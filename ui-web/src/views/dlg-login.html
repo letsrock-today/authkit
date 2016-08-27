@@ -1,0 +1,75 @@
+import dispatcher from '../dispatcher.js'
+
+<dlg-login>
+    <div if="{ visible }"
+         class="modal"
+         tabindex="-1"
+         role="dialog"
+         onclick="{ close }">
+        <div class="modal-dialog">
+            <div name="modalContent"
+                 class="modal-content"
+                 style="{ contentStyle() }"
+                 onclick="{ onModalContentClick }">
+                <div name="modalHeader"
+                     class="modal-header">
+                    <button type="button"
+                            class="close"
+                            onclick="{ close }"><span>&times;</span></button>
+                    <h4 class="modal-title">Login</h4>
+                </div>
+                <div name="modalBody"
+                     class="modal-body"
+                     style="{ modalBodyStyle() }">
+                    <div style="text-align:center">
+                        <form>
+                            <input type="text"
+                                   class="form-control"
+                                   name="login"
+                                   placeholder="User name or email"/>
+                            <input type="password" 
+                                   class="form-control"
+                                   name="password"
+                                   placeholder="Password"/>
+                            <button type="submit"
+                                    class="btn btn-default"
+                                    name="login">Login</button>
+                        </form>
+                        <br/>
+                        <a href="#">Register now</a> | <a href="#">Forget password?</a>
+                    </div>
+                    <hr/>
+                    <div>
+                        <login-provider each="{ p in loginProviders }"
+                                        icon="{ p.iconUrl }"
+                                        href="{ p.authCodeUrl }">
+                            { p.name }
+                        </login-provider>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let self = this;
+        self.visible = false;
+        self.show = () => {
+            self.visible = true;
+            self.update();
+        }
+        self.close = () => {
+            self.visible = false;
+            self.update();
+            opts.onclose && opts.onclose();
+        }
+        self.onModalContentClick = (e) => {
+            e.stopPropagation();
+            return true;
+        }
+        dispatcher.on(dispatcher.SHOW_LOGIN_DIALOG, (providers) => {
+            self.loginProviders = providers;
+            self.show();
+            self.update();
+        });
+    </script>
+</dlg-login>

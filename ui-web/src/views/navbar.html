@@ -1,0 +1,27 @@
+import dispatcher from '../dispatcher.js'
+
+<navbar>
+    <div class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a href="javascript:void(0)" class="navbar-brand">Hydra Demo</a>
+            </div>
+            <div class="navbar-collapse collapse" id="navbar-main">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><div if="{ opts.authorized }" class="username-in-bar text-success">{ opts.username }</div></li>
+                    <li><a if="{ !opts.authorized }" href="javascript:void(0)" onclick="{ login }">Login</a></li>
+                    <li><a if="{ opts.authorized }" href="javascript:void(0)" onclick="{ logout }">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        let self = this;
+        self.login = (e) => {
+            dispatcher.trigger(dispatcher.TRY_LOGIN);
+        }
+        self.logout = (e) => {
+            dispatcher.trigger(dispatcher.DO_LOGOUT);
+        }
+    </script>
+</navbar>

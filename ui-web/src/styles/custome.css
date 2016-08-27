@@ -10,6 +10,9 @@
 .modal {
     display: block;
 }
+.modal-dialog {
+    width: 400px !important;
+}
 .username-in-bar {
     margin: 13px;
     font-weight: bold;
@@ -26,4 +29,7 @@
 .navbar * a:active,
 .navbar * a:focus {
     outline: none !important;
+}
+button, input {
+    margin-bottom: 10px;
 }

@@ -3,7 +3,7 @@
   "description": "A sample of usage Hydra",
   "license": "MIT",
   "scripts": {
-    "dev": "webpack-dev-server",
+    "dev": "webpack-dev-server --host 192.168.2.33",
     "dist": "webpack -p -d"
   },
   "dependencies": {},
