@@ -1,0 +1,14 @@
+<app>
+  <navbar
+    username="{ user.login }"
+    authorized="{ user.authorized }">
+  </navbar>
+  <dlg-login></dlg-login>
+  <profile user="{ user }"></profile>
+
+  <script>
+    this.user = {login: "Test user", authorized: true}
+
+
+  </script>
+</app>

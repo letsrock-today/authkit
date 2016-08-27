@@ -1,0 +1,29 @@
+@media (min-width: 1500px) {
+    .container {
+        width: 1202px;
+    }
+}
+.page-header {
+    border: 0;
+    margin-top: 62px;
+}
+.modal {
+    display: block;
+}
+.username-in-bar {
+    margin: 13px;
+    font-weight: bold;
+}
+.login-provider {
+	margin: 5px auto;
+}
+.icon-image {
+	width: 32px;
+	height: 32px;
+	margin: 2px 5px;
+	display: inline-block;
+}
+.navbar * a:active,
+.navbar * a:focus {
+    outline: none !important;
+}
