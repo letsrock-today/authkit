@@ -1,0 +1,21 @@
+{
+  "name": "hydra-sample",
+  "description": "A sample of usage Hydra",
+  "license": "MIT",
+  "scripts": {
+    "dev": "webpack-dev-server",
+    "dist": "webpack -p -d"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "babel-core": "^6.14.0",
+    "babel-loader": "^6.2.5",
+    "babel-preset-es2015-riot": "^1.1.0",
+    "css-loader": "^0.24.0",
+    "riot": "2.6.1",
+    "riotjs-loader": "^3.0.0",
+    "style-loader": "^0.13.1",
+    "webpack": "^1.13.2",
+    "webpack-dev-server": "^1.15.0"
+  }
+}
