@@ -2,28 +2,32 @@ package conrtollers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/letsrock-today/hydra-sample/backend/common"
 	"github.com/letsrock-today/hydra-sample/backend/config"
 )
 
-type ProvidersReply struct {
-	Providers []config.OAuth2Provider `json:"providers"`
-}
+type (
+	ProvidersReply struct {
+		Providers []config.OAuth2Provider `json:"providers"`
+	}
 
-type AuthCodeURLsReplyItem struct {
-	Id  string `json:"id"`
-	URL string `json:"url"`
-}
+	AuthCodeURLsReplyItem struct {
+		Id  string `json:"id"`
+		URL string `json:"url"`
+	}
 
-type AuthCodeURLsReply struct {
-	URLs []AuthCodeURLsReplyItem `json:"urls"`
-}
+	AuthCodeURLsReply struct {
+		URLs []AuthCodeURLsReplyItem `json:"urls"`
+	}
+)
 
 func Providers(w http.ResponseWriter, r *http.Request) {
 	p := ProvidersReply{}
-	p.Providers = config.GetConfig().Providers
+	p.Providers = config.GetConfig().OAuth2Providers
 
 	b, err := json.Marshal(p)
 	if err != nil {
@@ -33,50 +37,17 @@ func Providers(w http.ResponseWriter, r *http.Request) {
 }
 
 func AuthCodeURLs(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("In AuthCodeURLs...\n")
 	reply := AuthCodeURLsReply{}
-	for pid, conf := range config.GetConfig().OAuth2Configs {
-		state, err := common.CreateStateToken(api.cfg.TokenSignKey, pid, r.FormValue("client"), api.cfg.OAuth2StateExpiration)
-		if err != nil {
-			return err
-		}
+	cfg := config.GetConfig()
+	for pid, conf := range cfg.OAuth2Configs {
+		fmt.Printf("In AuthCodeURLs pid=%s...\n", pid)
+		state := common.CreateToken(cfg.AuthConfig.TokenSignKey, cfg.AuthConfig.TokenIssuer, pid, cfg.AuthConfig.OAuth2StateExpiration)
 		reply.URLs = append(reply.URLs, AuthCodeURLsReplyItem{pid, conf.AuthCodeURL(state, conf.GetAuthCodeOptions(r.Form)...)})
 	}
-	return nil
-}
-
-type customClaims struct {
-	UserID string `json:"userid"`
-	jwt.StandardClaims
-}
-
-func createToken(userID string) string {
-	claims := customClaims{
-		userID,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(TokenExpiration).Unix(),
-			Issuer:    TokenIssuer,
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	s, err := token.SignedString(SignKey)
+	b, err := json.Marshal(reply)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Load auth code urls: %#v", err)
 	}
-	return s
-}
-
-func validToken(t interface{}) (string, bool) {
-	if s, ok := t.(string); ok {
-		token, err := jwt.ParseWithClaims(s, &customClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return SignKey, nil
-		})
-		if err != nil {
-			log.Print(err)
-			return "", false
-		}
-		if claims, ok := token.Claims.(*customClaims); ok && token.Valid {
-			return claims.UserID, true
-		}
-	}
-	return "", false
+	w.Write(b)
 }

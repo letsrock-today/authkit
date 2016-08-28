@@ -2,11 +2,12 @@ package config
 
 import (
 	"flag"
-	"getstar/common/log"
 	"io/ioutil"
+	"log"
+	"time"
 
-	"bitbucket.org/letsrock-today/server/modules/user/oauth2/deezer"
-
+	backend_oauth2 "github.com/letsrock-today/hydra-sample/backend/oauth2"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/bitbucket"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/github"
@@ -21,47 +22,51 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type (
-	OAuth2Provider struct {
-		Id           string   `json:"id" yaml:"id"`
-		Name         string   `json:"name" yaml:"name"`
-		ClientId     string   `json:"-" yaml:"client-id"`
-		ClientSecret string   `json:"-" yaml:"client-secret"`
-		PublicKey    string   `json:"-" yaml:"public-key"`
-		Scopes       []string `json:"-" yaml:"scopes"`
-		IconURL      string   `json:"iconUrl" yaml:"icon"`
-	}
+type AuthConfig struct {
+	TokenIssuer           string        `yaml:"token-issuer`
+	TokenSignKey          string        `yaml:"token-sign-key`
+	OAuth2StateExpiration time.Duration `yaml:"oauth2-state-expiration`
+	OAuth2RedirectUrl     string        `yaml:"oauth2-redirect-url"`
+}
 
-	Config struct {
-		initialized  bool
-		Providers    []OAuth2Provider               `yaml:"oauth2-providers"`
-		OAuth2Config map[string]oauth2.OAuth2Config `yaml:"-"`
-	}
-)
+type OAuth2Provider struct {
+	Id           string   `json:"id" yaml:"id"`
+	Name         string   `json:"name" yaml:"name"`
+	ClientId     string   `json:"-" yaml:"client-id"`
+	ClientSecret string   `json:"-" yaml:"client-secret"`
+	PublicKey    string   `json:"-" yaml:"public-key"`
+	Scopes       []string `json:"-" yaml:"scopes"`
+	IconURL      string   `json:"iconUrl" yaml:"icon"`
+}
+
+type Config struct {
+	initialized     bool
+	OAuth2Providers []OAuth2Provider                       `yaml:"oauth2-providers"`
+	AuthConfig      AuthConfig                             `yaml:"auth-configuration"`
+	OAuth2Configs   map[string]backend_oauth2.OAuth2Config `yaml:"-"`
+}
 
 var (
-	cfgPath      string
-	cfg          = Config{}
-	oauth2config = map[string]oauth2.OAuth2Config{}
+	cfgPath string
+	cfg     = Config{}
+	//oauth2config = map[string]oauth2.OAuth2Config{}
+	endpoints = map[string]oauth2.Endpoint{
+		"fb":        facebook.Endpoint,
+		"google":    google.Endpoint,
+		"linkedin":  linkedin.Endpoint,
+		"ok":        odnoklassniki.Endpoint,
+		"paypal":    paypal.Endpoint,
+		"vk":        vk.Endpoint,
+		"bitbucket": bitbucket.Endpoint,
+		"github":    github.Endpoint,
+		"heroku":    heroku.Endpoint,
+		"slack":     slack.Endpoint,
+		"uber":      uber.Endpoint,
+	}
 )
 
 func init() {
 	flag.StringVar(&cfgPath, "config", "./env/dev.yaml", "application's configuration file")
-}
-
-var endpoints = map[string]oauth2.Endpoint{
-	"fb":        facebook.Endpoint,
-	"google":    google.Endpoint,
-	"linkedin":  linkedin.Endpoint,
-	"ok":        odnoklassniki.Endpoint,
-	"paypal":    paypal.Endpoint,
-	"vk":        vk.Endpoint,
-	"deezer":    deezer.Endpoint,
-	"bitbucket": bitbucket.Endpoint,
-	"github":    github.Endpoint,
-	"heroku":    heroku.Endpoint,
-	"slack":     slack.Endpoint,
-	"uber":      uber.Endpoint,
 }
 
 func parseConfig() {
@@ -76,6 +81,7 @@ func parseConfig() {
 }
 
 func initOAuth2Config() error {
+	cfg.OAuth2Configs = make(map[string]backend_oauth2.OAuth2Config)
 	for _, p := range cfg.OAuth2Providers {
 		endpoint, ok := endpoints[p.Id]
 		if !ok {
@@ -86,9 +92,10 @@ func initOAuth2Config() error {
 			ClientSecret: p.ClientSecret,
 			Scopes:       p.Scopes,
 			Endpoint:     endpoint,
-			RedirectURL:  cfg.OAuth2RedirectUrl,
+			RedirectURL:  cfg.AuthConfig.OAuth2RedirectUrl,
 		}
-		oauth2config[p.Id] = &oauth2.Config{Config: &conf}
+		cfg.OAuth2Configs[p.Id] = &backend_oauth2.Config{Config: &conf}
+		//oauth2config[p.Id] = &backend_oauth2.Config{Config: &conf}
 	}
 	return nil
 }
@@ -97,10 +104,10 @@ func GetConfig() Config {
 	if cfg.initialized {
 		return cfg
 	}
-	log.Debugf("Program started with config file '%s'", cfgPath)
+	log.Printf("Program started with config file '%s'", cfgPath)
 	parseConfig()
 	initOAuth2Config()
 	cfg.initialized = true
-	log.Debugf("Parsed configuration: %#v", cfg)
+	log.Printf("Parsed configuration: %#v", cfg)
 	return cfg
 }

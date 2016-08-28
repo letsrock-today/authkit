@@ -25,3 +25,4 @@ _testmain.go
 
 ui-web/node_modules
 backend/vendor
+*.swp
