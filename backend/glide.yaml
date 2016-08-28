@@ -1,0 +1,3 @@
+package: main
+import:
+- package: gopkg.in/yaml.v2
