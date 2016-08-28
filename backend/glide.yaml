@@ -1,3 +1,4 @@
 package: main
 import:
 - package: gopkg.in/yaml.v2
+- package: golang.org/x/oauth2
