@@ -1,3 +1,3 @@
-import './styles/bootswatch/yeti/bootstrap.css'
+import './styles/bootswatch/yeti/bootstrap.min.css'
 import './styles/custome.css'
 import 'riot'
