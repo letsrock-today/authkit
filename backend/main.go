@@ -13,5 +13,5 @@ func main() {
 	http.Handle("/dist", http.FileServer(http.Dir("../iu-web/dist")))
 	http.HandleFunc("/api/v1/providers", conrtollers.Providers)
 	http.HandleFunc("/api/v1/auth-code-urls", conrtollers.AuthCodeURLs)
-	http.ListenAndServe(":8000", nil)
+	http.ListenAndServe(":8080", nil)
 }

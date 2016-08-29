@@ -23,6 +23,8 @@ _testmain.go
 *.test
 *.prof
 
-ui-web/node_modules
-backend/vendor
 *.swp
+backend/vendor
+backend/glide.lock
+ui-web/dist
+ui-web/node_modules
