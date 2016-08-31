@@ -1,17 +1,27 @@
 hash: defdc5432790082bbbfb06a234ebb7e35b4f895e2a2ca3ea2c4374bb4857704f
-updated: 2016-08-31T11:34:36.207588791+07:00
+updated: 2016-08-31T19:40:51.312691139+07:00
 imports:
 - name: cloud.google.com/go
-  version: b226296dfc516739c9dd82f137b8a36bf482e84e
+  version: 0be5b78e8f89c61a4877d5fccf2818cb16b1f0e4
   subpackages:
   - compute/metadata
   - internal
 - name: github.com/dgrijalva/jwt-go
   version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
+- name: github.com/fsnotify/fsnotify
+  version: f12c6236fe7b5cf6bcf30e5935d08cb079d78334
 - name: github.com/golang/protobuf
   version: 1f49d83d9aa00e6ce4fc8258c71cc7786aec968a
   subpackages:
   - proto
+- name: github.com/letsrock-today/hydra-sample
+  version: a1daafb1790ea815af8371345cc031e77735ce9f
+  subpackages:
+  - backend/config
+  - backend/handler
+  - backend/route
+  - backend/util/jwtutil
+  - backend/util/seekingbuffer
 - name: github.com/urfave/negroni
   version: fde5e16d32adc7ad637e9cd9ad21d4ebc6192535
 - name: golang.org/x/net
@@ -36,6 +46,10 @@ imports:
   - slack
   - uber
   - vk
+- name: golang.org/x/sys
+  version: a646d33e2ee3172a661fc09bca23bb4889a41bc8
+  subpackages:
+  - unix
 - name: google.golang.org/appengine
   version: 4f7eeb5305a4ba1966344836ba4af9996b7b4e05
   subpackages:
