@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
+	"github.com/letsrock-today/hydra-sample/backend/util/seekingbuffer"
 )
 
 type ProvidersReply struct {
@@ -13,12 +15,22 @@ type ProvidersReply struct {
 }
 
 func AuthProviders(w http.ResponseWriter, r *http.Request) {
-	p := ProvidersReply{}
-	p.Providers = config.GetConfig().OAuth2Providers
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Expires", time.Now().UTC().Format(http.TimeFormat))
+	http.ServeContent(
+		w,
+		r,
+		"",
+		config.ModTime(),
+		seekingbuffer.New(
+			func() ([]byte, error) {
+				p := ProvidersReply{}
+				p.Providers = config.GetConfig().OAuth2Providers
 
-	b, err := json.Marshal(p)
-	if err != nil {
-		log.Fatalf("Load providers: %v", err)
-	}
-	w.Write(b)
+				b, err := json.Marshal(p)
+				if err != nil {
+					log.Println("Error at AuthProviders, json.Marshal():", err)
+				}
+				return b, err
+			}))
 }

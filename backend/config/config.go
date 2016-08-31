@@ -8,7 +8,6 @@ import (
 )
 
 type Config struct {
-	initialized       bool
 	ListenAddr        string                   `yaml:"listen-addr"`
 	TLSCertFile       string                   `yaml:"tls-cert-file"`
 	TLSKeyFile        string                   `yaml:"tls-key-file"`
@@ -16,6 +15,7 @@ type Config struct {
 	OAuth2State       OAuth2State              `yaml:"oauth2-state"`
 	OAuth2Providers   []OAuth2Provider         `yaml:"oauth2-providers"`
 	OAuth2Configs     map[string]oauth2.Config `yaml:"-"`
+	modTime           time.Time                `yaml:"-"`
 }
 
 type OAuth2State struct {
@@ -35,12 +35,14 @@ type OAuth2Provider struct {
 }
 
 func GetConfig() Config {
-	if cfg.initialized {
-		return cfg
-	}
-	log.Printf("Program started with config file '%s'", cfgPath)
-	parseConfig()
-	initOAuth2Config()
-	cfg.initialized = true
-	return cfg
+	once.Do(func() {
+		log.Printf("Program started with config file '%s'", cfgPath)
+		cfg.Store(loadConfig())
+		initConfigFileWatcher()
+	})
+	return cfg.Load().(Config)
+}
+
+func ModTime() time.Time {
+	return GetConfig().modTime
 }

@@ -1,10 +1,15 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"io/ioutil"
 	"log"
+	"os"
+	"sync"
+	"sync/atomic"
 
+	"github.com/fsnotify/fsnotify"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/bitbucket"
 	"golang.org/x/oauth2/facebook"
@@ -22,7 +27,8 @@ import (
 
 var (
 	cfgPath   string
-	cfg       = Config{}
+	once      sync.Once
+	cfg       atomic.Value
 	endpoints = map[string]oauth2.Endpoint{
 		"fb":        facebook.Endpoint,
 		"google":    google.Endpoint,
@@ -42,30 +48,70 @@ func init() {
 	flag.StringVar(&cfgPath, "config", "./env/dev.yaml", "application's configuration file")
 }
 
-func parseConfig() {
-	data, err := ioutil.ReadFile(cfgPath)
+func loadConfig() Config {
+	c := Config{}
+	err := c.parseConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = yaml.Unmarshal([]byte(data), &cfg)
+	err = c.initOAuth2Config()
 	if err != nil {
 		log.Fatal(err)
 	}
+	return c
 }
 
-func initOAuth2Config() {
-	cfg.OAuth2Configs = make(map[string]oauth2.Config)
-	for _, p := range cfg.OAuth2Providers {
+func (c *Config) parseConfig() error {
+	data, err := ioutil.ReadFile(cfgPath)
+	if err != nil {
+		return err
+	}
+	err = yaml.Unmarshal([]byte(data), c)
+	if err != nil {
+		return err
+	}
+	s, err := os.Stat(cfgPath)
+	if err != nil {
+		return err
+	}
+	c.modTime = s.ModTime().UTC()
+	return nil
+}
+
+func (c *Config) initOAuth2Config() error {
+	c.OAuth2Configs = make(map[string]oauth2.Config)
+	for _, p := range c.OAuth2Providers {
 		endpoint, ok := endpoints[p.Id]
 		if !ok {
-			log.Fatal("Illegal OAuth2 configuration")
+			return errors.New("Illegal OAuth2 configuration")
 		}
-		cfg.OAuth2Configs[p.Id] = oauth2.Config{
+		c.OAuth2Configs[p.Id] = oauth2.Config{
 			ClientID:     p.ClientId,
 			ClientSecret: p.ClientSecret,
 			Scopes:       p.Scopes,
 			Endpoint:     endpoint,
-			RedirectURL:  cfg.OAuth2RedirectUrl,
+			RedirectURL:  c.OAuth2RedirectUrl,
 		}
 	}
+	return nil
+}
+
+func initConfigFileWatcher() {
+	go func() {
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer watcher.Close()
+		watcher.Add(cfgPath)
+		for {
+			select {
+			case err := <-watcher.Errors:
+				log.Println("initConfigFileWatcher:", err)
+			case <-watcher.Events:
+				log.Println("Config file changed")
+				cfg.Store(loadConfig())
+			}
+		}
+	}()
 }

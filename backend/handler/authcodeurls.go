@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
-	"github.com/letsrock-today/hydra-sample/backend/util"
+	"github.com/letsrock-today/hydra-sample/backend/util/jwtutil"
 )
 
 type (
@@ -24,19 +24,20 @@ func AuthCodeURLs(w http.ResponseWriter, r *http.Request) {
 	reply := AuthCodeURLsReply{}
 	cfg := config.GetConfig()
 	for pid, conf := range cfg.OAuth2Configs {
-		state, err := util.NewJWTSignedString(
+		state, err := jwtutil.NewJWTSignedString(
 			cfg.OAuth2State.TokenSignKey,
 			cfg.OAuth2State.TokenIssuer,
 			pid,
 			cfg.OAuth2State.Expiration)
 		if err != nil {
-			log.Fatalf("AuthCodeURLs, create state: %v", err)
+			log.Fatal("AuthCodeURLs, create state:", err)
 		}
 		reply.URLs = append(reply.URLs, AuthCodeURL{pid, conf.AuthCodeURL(state)})
 	}
 	b, err := json.Marshal(reply)
 	if err != nil {
-		log.Fatalf("AuthCodeURLs, marshal json: %v", err)
+		log.Fatal("AuthCodeURLs, marshal json:", err)
 	}
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(b)
 }

@@ -1,0 +1,53 @@
+hash: defdc5432790082bbbfb06a234ebb7e35b4f895e2a2ca3ea2c4374bb4857704f
+updated: 2016-08-31T11:34:36.207588791+07:00
+imports:
+- name: cloud.google.com/go
+  version: b226296dfc516739c9dd82f137b8a36bf482e84e
+  subpackages:
+  - compute/metadata
+  - internal
+- name: github.com/dgrijalva/jwt-go
+  version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
+- name: github.com/golang/protobuf
+  version: 1f49d83d9aa00e6ce4fc8258c71cc7786aec968a
+  subpackages:
+  - proto
+- name: github.com/urfave/negroni
+  version: fde5e16d32adc7ad637e9cd9ad21d4ebc6192535
+- name: golang.org/x/net
+  version: 9bc2a3340c92c17a20edcd0080e93851ed58f5d5
+  subpackages:
+  - context
+  - context/ctxhttp
+- name: golang.org/x/oauth2
+  version: 4d549c893be7d4011bab739cc585d091a7188d27
+  subpackages:
+  - bitbucket
+  - facebook
+  - github
+  - google
+  - heroku
+  - internal
+  - jws
+  - jwt
+  - linkedin
+  - odnoklassniki
+  - paypal
+  - slack
+  - uber
+  - vk
+- name: google.golang.org/appengine
+  version: 4f7eeb5305a4ba1966344836ba4af9996b7b4e05
+  subpackages:
+  - internal
+  - internal/app_identity
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/modules
+  - internal/remote_api
+  - internal/urlfetch
+  - urlfetch
+- name: gopkg.in/yaml.v2
+  version: e4d366fc3c7938e2958e662b4258c7a89e1f0e3e
+testImports: []

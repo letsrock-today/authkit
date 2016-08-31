@@ -25,6 +25,5 @@ _testmain.go
 
 *.swp
 backend/vendor
-backend/glide.lock
 ui-web/dist
 ui-web/node_modules
