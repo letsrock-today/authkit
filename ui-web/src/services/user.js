@@ -1,7 +1,7 @@
 'use strict';
 
 import dispatcher from '../dispatcher';
-import 'isomorphic-fetch';
+import 'whatwg-fetch';
 
 dispatcher.on(dispatcher.TRY_LOGIN, _login);
 dispatcher.on(dispatcher.DO_LOGOUT, _logout);
