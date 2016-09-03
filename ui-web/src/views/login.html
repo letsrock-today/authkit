@@ -1,3 +1,7 @@
+import urlParams from '../util/url-params.js';
+import 'whatwg-fetch';
+import respHelper from '../util/response-helper';
+
 <login>
     <div class="modal"
          tabindex="-1"
@@ -18,8 +22,9 @@
                 <div name="modalBody"
                     class="modal-body"
                     style="{ modalBodyStyle() }">
+                    <error-msg error="{ error }" />
                     <div style="text-align:center">
-                        <form>
+                        <form id="login-form">
                             <input type="text"
                                 class="form-control"
                                 name="login"
@@ -30,7 +35,8 @@
                                 placeholder="Password"/>
                             <button type="submit"
                                     class="btn btn-default"
-                                    name="login">Login</button>
+                                    name="login"
+                                    onclick="{ onLogin }" >Login</button>
                             <button type="submit"
                                     class="btn btn-default"
                                     name="signup">Sign Up</button>
@@ -44,11 +50,43 @@
     </div>
     <script>
         let self = this;
+        self.error = urlParams.get("error_description");
+        let challenge = urlParams.get("challenge");
+        if (!self.error && !challenge) {
+            self.error = "Could not authenticate.";
+        }
         self.close = () => {
         }
         self.onModalContentClick = (e) => {
             e.stopPropagation();
             return true;
+        }
+        self.onLogin = () => {
+            let form = new FormData(document.getElementById('login-form'));
+            form.append('challenge', challenge);
+            fetch("/api/login", {
+                method: "POST",
+                body: form
+            })
+            .then(r => {
+                return respHelper.handleStatus(r);
+            })
+            .then(data => {
+                
+                const {challenge, authenticated, error} = data;
+                if (!authenticated) {
+                    self.error = "Could not authenticate. ";
+                }
+                if (error) {
+                    self.error += error;
+                }
+                //TODO
+                console.log("resp on /api/login:", data, challenge, authenticated, error)
+                self.update();
+            })
+            .catch(e => {
+                console.log(e);
+            });
         }
     </script>
 </login>

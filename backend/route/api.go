@@ -9,4 +9,6 @@ import (
 func initAPI() {
 	http.HandleFunc("/api/auth-providers", handler.AuthProviders)
 	http.HandleFunc("/api/auth-code-urls", handler.AuthCodeURLs)
+
+	http.HandleFunc("/api/login", handler.Login)
 }

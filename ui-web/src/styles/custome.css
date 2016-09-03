@@ -33,3 +33,8 @@
 button, input {
     margin-bottom: 10px;
 }
+.error {
+    margin: 10px auto;
+    color: red;
+    font-weight: bold;
+}

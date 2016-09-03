@@ -2,6 +2,7 @@
 
 import dispatcher from '../dispatcher';
 import 'whatwg-fetch';
+import respHelper from '../util/response-helper';
 
 dispatcher.on(dispatcher.TRY_LOGIN, _login);
 dispatcher.on(dispatcher.DO_LOGOUT, _logout);
@@ -15,8 +16,8 @@ function _login() {
             fetch('/api/auth-code-urls', {cache: "no-cache"})])
         .then(responses => {
             return Promise.all([
-                    _handleApiResponseStatus(responses[0]),
-                    _handleApiResponseStatus(responses[1])]);
+                    respHelper.handleStatus(responses[0]),
+                    respHelper.handleStatus(responses[1])]);
         })
         .then(data => {
             let obj1 = data[0],
@@ -44,21 +45,4 @@ function _logout() {
             username: '',
             authorized: false
         });
-}
-
-// Helper method to check response status in fetch.
-function _handleApiResponseStatus(response) {
-    if (response.status === 200 || response.status === 0) {
-        return Promise.resolve(response.json());
-    } else if (response.status === 401) {
-        return Promise.reject({
-            error: 'AUTH_ERROR',
-            cause: new Error(response.statusText)
-        });
-    } else {
-        return Promise.reject({
-            error: 'UNKNOWN_ERROR',
-            cause: new Error(response.statusText)
-        });
-    }
 }

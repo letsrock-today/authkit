@@ -10,6 +10,8 @@ import (
 	"github.com/letsrock-today/hydra-sample/backend/config"
 )
 
+// we use proxy for hydra requests, so that all interaction with UI went via single port
+
 func initReverseProxy() {
 	u, err := url.Parse(config.GetConfig().HydraAddr)
 	if err != nil {
