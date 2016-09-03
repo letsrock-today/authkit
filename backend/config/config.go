@@ -14,6 +14,7 @@ type Config struct {
 	OAuth2RedirectUrl string                   `yaml:"oauth2-redirect-url"`
 	OAuth2State       OAuth2State              `yaml:"oauth2-state"`
 	OAuth2Providers   []OAuth2Provider         `yaml:"oauth2-providers"`
+	HydraAddr         string                   `yaml:"hydra-addr"`
 	OAuth2Configs     map[string]oauth2.Config `yaml:"-"`
 	modTime           time.Time                `yaml:"-"`
 }

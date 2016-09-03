@@ -1,0 +1,51 @@
+#/bin/bash
+
+echo "Don't execute this file, use snippets from it"
+exit 1
+
+# 1. start hydra
+
+sudo docker run -d \
+    -p 4444:4444 \
+    --name my-hydra \
+    -e "CONSENT_URL=https://localhost:8080/login" \
+    oryam/hydra
+
+# 2. get client_id and client_secret of default client from logs (to connect to Hydra with CLI)
+
+sudo docker logs my-hydra
+
+# 3. create client for test
+
+sudo docker exec -i -t my-hydra /bin/bash
+
+hydra connect --skip-tls-verify
+
+hydra clients create -n "test" \
+  -c [http://localhost:8080/callback] \
+  -g [authorize_code,authorization_code,client_credentials] \
+  -r [code,token] \
+  -a [core,hydra.keys.get] \
+  --skip-tls-verify
+
+hydra policies create --allow -r "rn:hydra:keys:<[^:]+>:public" -s "<.*>" -a "get" --skip-tls-verify
+
+hydra policies create --allow -r "rn:hydra:keys:<[^:]+>:private" -s "<.*>" -a "get" --skip-tls-verify
+
+exit
+
+# 4. put returned client_id and client_secret into dev.yml
+
+# 5. run ui-app
+
+cd ui-web/
+rm -rf dist
+npm run dist
+cd ..
+
+go run backend/main.go
+
+# 6. start from page like this (in firefox!, use client_id from #3):
+#
+# https://localhost:8080/oauth2/auth?client_id=xxx&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
+#
