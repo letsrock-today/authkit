@@ -1,10 +1,12 @@
 package route
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/letsrock-today/hydra-sample/backend/util/httputil"
+)
 
 func initStatic() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "../ui-web/")
-	})
+	http.Handle("/", httputil.AddSuffix(".html", http.FileServer(http.Dir("../ui-web/html"))))
 	http.Handle("/dist/", http.StripPrefix("/dist/", http.FileServer(http.Dir("../ui-web/dist"))))
 }

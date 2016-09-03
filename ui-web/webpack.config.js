@@ -4,12 +4,13 @@ module.exports = {
   cache: true,
   entry: {
     app: './src/index.js',
+    login: './src/login.js',
     vendor: './src/vendor.js',
   },
   output: {
     path: './dist/',
     publicPath: '/dist/',
-    filename: 'bundle.js',
+    filename: '[name].bundle.js',
   },
   module: {
     preLoaders: [

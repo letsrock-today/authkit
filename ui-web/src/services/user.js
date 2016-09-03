@@ -11,8 +11,8 @@ dispatcher.on(dispatcher.DO_LOGOUT, _logout);
 function _login() {
     Promise.all([
             // See https://hacks.mozilla.org/2016/03/referrer-and-cache-control-apis-for-fetch/
-            fetch('/auth-providers'),
-            fetch('/auth-code-urls', {cache: "no-cache"})])
+            fetch('/api/auth-providers'),
+            fetch('/api/auth-code-urls', {cache: "no-cache"})])
         .then(responses => {
             return Promise.all([
                     _handleApiResponseStatus(responses[0]),

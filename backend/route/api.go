@@ -8,6 +8,6 @@ import (
 
 func Init() {
 	initStatic()
-	http.HandleFunc("/auth-providers", handler.AuthProviders)
-	http.HandleFunc("/auth-code-urls", handler.AuthCodeURLs)
+	http.HandleFunc("/api/auth-providers", handler.AuthProviders)
+	http.HandleFunc("/api/auth-code-urls", handler.AuthCodeURLs)
 }
