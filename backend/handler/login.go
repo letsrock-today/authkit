@@ -6,14 +6,14 @@ import (
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/letsrock-today/hydra-sample/backend/util/mapstructureutil"
+	"github.com/mitchellh/mapstructure"
 )
 
 type (
 	LoginForm struct {
-		Challenge string `mapstructure:"challenge" valid:"required"`
-		Login     string `mapstructure:"login" valid:"email,required"`
-		Password  string `mapstructure:"password" valid:"stringlength(3|10),required"`
+		Challenge []string `mapstructure:"challenge" valid:"required"`
+		Login     []string `mapstructure:"login" valid:"email,required"`
+		Password  []string `mapstructure:"password" valid:"stringlength(3|10),required"`
 	}
 	LoginReply struct {
 		Challenge     string `json:"challenge"`
@@ -26,13 +26,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(0); err != nil {
 		log.Println(err)
 	}
-	//TODO
+
+	// To simplify validation logic we convert map to structure first
 
 	var loginForm LoginForm
-	if err := mapstructureutil.DecodeWithHook(
-		mapstructureutil.JoinStringsFunc(""),
-		r.Form,
-		&loginForm); err != nil {
+	if err := mapstructure.Decode(r.Form, &loginForm); err != nil {
 		writeErrorResponse(w, err)
 		return
 	}
