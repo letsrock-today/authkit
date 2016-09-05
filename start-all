@@ -41,11 +41,12 @@ exit
 cd ui-web/
 rm -rf dist
 npm run dist
-cd ..
+cd ../backend
 
-go run backend/main.go
+go run main.go
 
 # 6. start from page like this (in firefox!, use client_id from #3):
 #
-# https://localhost:8080/oauth2/auth?client_id=xxx&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
+# https://localhost:8080/hydra/oauth2/auth?client_id=xxx&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
+# https://localhost:8080/hydra/oauth2/auth?client_id=57ccd119-4f4d-45b3-9b74-043eeb488d7b&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
 #

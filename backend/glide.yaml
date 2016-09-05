@@ -18,3 +18,9 @@ import:
   - uber
   - vk
 - package: gopkg.in/yaml.v2
+- package: github.com/asaskevich/govalidator
+  version: ^4.0.0
+- package: github.com/mitchellh/mapstructure
+- package: golang.org/x/sys
+  subpackages:
+  - unix

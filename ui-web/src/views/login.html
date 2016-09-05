@@ -63,7 +63,9 @@ import respHelper from '../util/response-helper';
         }
         self.onLogin = () => {
             let form = new FormData(document.getElementById('login-form'));
-            form.append('challenge', challenge);
+            if (challenge) {
+                form.append('challenge', challenge);
+            }
             fetch("/api/login", {
                 method: "POST",
                 body: form

@@ -60,4 +60,21 @@ go run main.go
 
 ```
 
+## NB: Troubleshooting
 
+1. Don't use glide in symlinked path!
+
+```
+mkdir -p ~/work
+cd ~/work
+ln -s ~/go/src/github.com/letsrock-today/hydra-sample
+cd ./hydra-sample/backend
+
+# Now we are looking for trouble!
+# glide will make recurcive dependencies on our own subpackages and download
+# their old versions from github.
+glade up
+
+# Guess, which version of subpackages will be used?
+go run main.go
+```

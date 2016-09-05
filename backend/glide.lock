@@ -1,11 +1,13 @@
-hash: 892368e519cc473ce27a65aeb6a91c35db255ae22bf48caeaaa13410b4733c07
-updated: 2016-09-03T12:30:15.281108564+07:00
+hash: a724bb903027972bfbee95de33f19f12790aeafe0e92f565f6574085309c9f90
+updated: 2016-09-05T11:20:06.669131317+07:00
 imports:
 - name: cloud.google.com/go
   version: de848b02a4b8d92be5baa2a7ecb17c8ce0194d06
   subpackages:
   - compute/metadata
   - internal
+- name: github.com/asaskevich/govalidator
+  version: 7664702784775e51966f0885f5cd27435916517b
 - name: github.com/dgrijalva/jwt-go
   version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
 - name: github.com/fsnotify/fsnotify
@@ -14,6 +16,8 @@ imports:
   version: 1f49d83d9aa00e6ce4fc8258c71cc7786aec968a
   subpackages:
   - proto
+- name: github.com/mitchellh/mapstructure
+  version: ca63d7c062ee3c9f34db231e352b60012b4fd0c1
 - name: golang.org/x/net
   version: 1358eff22f0dd0c54fc521042cc607f6ff4b531a
   subpackages:
