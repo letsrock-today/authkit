@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
+	customhttputil "github.com/letsrock-today/hydra-sample/backend/util/httputil"
 )
 
 // we use proxy for hydra requests, so that all interaction with UI went via single port
@@ -22,5 +23,9 @@ func initReverseProxy() {
 	proxy.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	http.Handle("/hydra/", http.StripPrefix("/hydra/", proxy))
+	http.Handle(
+		"/hydra/",
+		http.StripPrefix(
+			"/hydra/",
+			customhttputil.Block("*/keys/*", proxy)))
 }

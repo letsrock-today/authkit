@@ -7,6 +7,8 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/mitchellh/mapstructure"
+
+	"github.com/letsrock-today/hydra-sample/backend/service/hydra"
 )
 
 type (
@@ -42,9 +44,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Login, loginForm:", loginForm)
 
+	//TODO: check password
+
+	//TODO: validate challenge
+
+	token, err := hydra.VerifyConsentChallenge(loginForm.Challenge[0])
+	if err != nil {
+		writeErrorResponse(w, err)
+		return
+	}
+
 	reply := LoginReply{
-		Authenticated: false,
-		Error:         "Not implemented yet",
+		Authenticated: true,
+		Challenge:     token.Raw,
 	}
 	b, err := json.Marshal(reply)
 	if err != nil {

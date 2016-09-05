@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 
 	"github.com/fsnotify/fsnotify"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/bitbucket"
+	"golang.org/x/oauth2/clientcredentials"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
@@ -79,6 +81,13 @@ func (c *Config) parseConfig() error {
 }
 
 func (c *Config) initOAuth2Config() error {
+	h := c.HydraClientCredentials
+	c.HydraOAuth2Config = clientcredentials.Config{
+		ClientID:     h.ClientId,
+		ClientSecret: h.ClientSecret,
+		Scopes:       h.Scopes,
+		TokenURL:     strings.Replace(h.TokenURL, "{hydra-addr}", c.HydraAddr, -1),
+	}
 	c.OAuth2Configs = make(map[string]oauth2.Config)
 	for _, p := range c.OAuth2Providers {
 		endpoint, ok := endpoints[p.Id]

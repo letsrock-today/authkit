@@ -1,5 +1,5 @@
-hash: a724bb903027972bfbee95de33f19f12790aeafe0e92f565f6574085309c9f90
-updated: 2016-09-05T11:20:06.669131317+07:00
+hash: 4b87d13549d8f37f4bec1981724c49089d60ba3f482cff81e155325e6834b13a
+updated: 2016-09-05T18:13:51.904637204+07:00
 imports:
 - name: cloud.google.com/go
   version: de848b02a4b8d92be5baa2a7ecb17c8ce0194d06
@@ -12,6 +12,8 @@ imports:
   version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
 - name: github.com/fsnotify/fsnotify
   version: a8a77c9133d2d6fd8334f3260d06f60e8d80a5fb
+- name: github.com/gobwas/glob
+  version: ce6abff51712df5da11095fb41dd4b0353559797
 - name: github.com/golang/protobuf
   version: 1f49d83d9aa00e6ce4fc8258c71cc7786aec968a
   subpackages:
