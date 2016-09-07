@@ -26,3 +26,4 @@ import:
   - unix
 - package: github.com/gobwas/glob
   version: ^0.2.0
+- package: github.com/mendsley/gojwk

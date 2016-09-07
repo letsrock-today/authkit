@@ -117,9 +117,20 @@ func initConfigFileWatcher() {
 			select {
 			case err := <-watcher.Errors:
 				log.Println("initConfigFileWatcher:", err)
+			// Currently, when config changed with vim, I receive several
+			// notifications, and sometimes file doesn't exists at the moment
+			// of notification (vim deletes original file and replaces it with
+			// tmp copy). We should check event type and reload config only on final
+			// event. Probably, short 1-2 second timeout would suffice to debounce
+			// events (to simplify logic, or else we would need to check every
+			// possible scenario). This is out of scope of this example project.
 			case <-watcher.Events:
-				log.Println("Config file changed")
+				log.Println("Config file changed, consider to restart server")
 				cfg.Store(loadConfig())
+				// This is not enaugh to dynamically load config.
+				// We should also send a notification about config change to
+				// restart server and routes, but it is out of scope of this
+				// example project.
 			}
 		}
 	}()

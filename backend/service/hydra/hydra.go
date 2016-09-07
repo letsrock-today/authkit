@@ -3,49 +3,73 @@ package hydra
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
-	"golang.org/x/oauth2"
-
 	"github.com/dgrijalva/jwt-go"
+	"github.com/mendsley/gojwk"
+	"golang.org/x/oauth2"
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
 )
 
-func getKey(set, kid string) (string, error) {
+// context to use for internal requests to Hydra
+//TODO: use real certeficates in PROD and remove transport replacement
+var ctx = context.WithValue(
+	context.Background(),
+	oauth2.HTTPClient,
+	&http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}})
+
+func getKey(set, kid string) (interface{}, error) {
 	c := config.GetConfig()
 	conf := c.HydraOAuth2Config
-	//TODO: use real certeficates in PROD and remove this
-	ctx := context.WithValue(
-		context.Background(),
-		oauth2.HTTPClient,
-		&http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			}})
 	client := conf.Client(ctx)
 
 	url := fmt.Sprintf("%s/keys/%s/%s", c.HydraAddr, set, kid)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to retrieve key from Hydra, status: %v", resp.Status)
 	}
 	defer resp.Body.Close()
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	//TODO
+	type keyResponse struct {
+		Keys []gojwk.Key `json:"keys"`
+	}
 
-	return string(b), nil
+	var kr keyResponse
+	err = json.Unmarshal(b, &kr)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(kr.Keys) == 0 {
+		return nil, fmt.Errorf("no keys from Hydra returned")
+	}
+
+	if kid == "public" {
+		return kr.Keys[0].DecodePublicKey()
+	}
+	if kid == "private" {
+		return kr.Keys[0].DecodePrivateKey()
+	}
+
+	return kr.Keys[0], nil
 }
 
 func VerifyConsentChallenge(c string) (*jwt.Token, error) {
@@ -53,7 +77,6 @@ func VerifyConsentChallenge(c string) (*jwt.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("Key from hydra", key)
 	return jwt.Parse(c, func(t *jwt.Token) (interface{}, error) {
 		return key, nil
 	})

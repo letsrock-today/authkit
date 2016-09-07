@@ -1,8 +1,8 @@
-hash: 4b87d13549d8f37f4bec1981724c49089d60ba3f482cff81e155325e6834b13a
-updated: 2016-09-05T18:13:51.904637204+07:00
+hash: ab0390a995579abc4532b22a4ddcb2b439dc81d4ae594afe2b748e303b4cbb33
+updated: 2016-09-07T11:05:01.035076347+07:00
 imports:
 - name: cloud.google.com/go
-  version: de848b02a4b8d92be5baa2a7ecb17c8ce0194d06
+  version: 8f813b332c515bb3de30ac88d3582c3c3a8f6ac5
   subpackages:
   - compute/metadata
   - internal
@@ -14,10 +14,20 @@ imports:
   version: a8a77c9133d2d6fd8334f3260d06f60e8d80a5fb
 - name: github.com/gobwas/glob
   version: ce6abff51712df5da11095fb41dd4b0353559797
+  subpackages:
+  - compiler
+  - match
+  - syntax
+  - syntax/ast
+  - syntax/lexer
+  - util/runes
+  - util/strings
 - name: github.com/golang/protobuf
   version: 1f49d83d9aa00e6ce4fc8258c71cc7786aec968a
   subpackages:
   - proto
+- name: github.com/mendsley/gojwk
+  version: 4d5ec6e58103388d6cb0d7d72bc72649be4f0504
 - name: github.com/mitchellh/mapstructure
   version: ca63d7c062ee3c9f34db231e352b60012b4fd0c1
 - name: golang.org/x/net
@@ -29,6 +39,7 @@ imports:
   version: 3c3a985cb79f52a3190fbc056984415ca6763d01
   subpackages:
   - bitbucket
+  - clientcredentials
   - facebook
   - github
   - google

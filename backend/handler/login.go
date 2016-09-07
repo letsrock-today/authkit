@@ -46,8 +46,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	//TODO: check password
 
-	//TODO: validate challenge
-
 	token, err := hydra.VerifyConsentChallenge(loginForm.Challenge[0])
 	if err != nil {
 		writeErrorResponse(w, err)

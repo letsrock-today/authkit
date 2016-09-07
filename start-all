@@ -48,5 +48,5 @@ go run main.go
 # 6. start from page like this (in firefox!, use client_id from #3):
 #
 # https://localhost:8080/hydra/oauth2/auth?client_id=xxx&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
-# https://localhost:8080/hydra/oauth2/auth?client_id=57ccd119-4f4d-45b3-9b74-043eeb488d7b&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
+# https://localhost:8080/hydra/oauth2/auth?client_id=47f36722-9f26-425e-9c24-1efb8a06ce34&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
 #
