@@ -1,0 +1,33 @@
+<auth>
+    <div style="text-align:center">
+        <form name="login-form">
+            <input type="text"
+                class="form-control"
+                name="login"
+                placeholder="User name or email"/>
+            <input type="password" 
+                class="form-control"
+                name="password"
+                placeholder="Password"/>
+            <button type="submit"
+                    class="btn btn-default"
+                    name="signin"
+                    onclick="{ onLogin }">Login</button>
+            <button type="submit"
+                    class="btn btn-default"
+                    name="signup"
+                    onclick="{ onSignUp }">Sign Up</button>
+        </form>
+        <br/>
+        <a href="#">Forget password?</a>
+    </div>
+    <script>
+        let self = this;
+        self.onLogin = () => {
+            opts.onlogin(self['login-form'], self.login.value);
+        }
+        self.onSignUp = () => {
+            opts.onsignup(self['login-form']);
+        }
+    </script>
+</auth>

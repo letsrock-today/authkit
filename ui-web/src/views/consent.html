@@ -1,0 +1,22 @@
+<consent>
+    <p><strong>App { opts.challenge.aud }</strong></p>
+    <p>This app would like to:
+    <ul>
+        <li each="{ scope in opts.challenge.scp }">{ scopes[scope] || scope }</li>
+    </ul>
+    </p>
+    <div style="text-align:center">
+		<button className="btn btn-lg btn-danger btn-block btn-signin"
+		  onClick={ opts.onabort }>Cancel</button>
+		<button className="btn btn-lg btn-primary btn-block btn-signin"
+		  onClick={ opts.onconsent }>Grant Access</button>
+    </div>
+	<script>
+		this.scopes = {
+			core: 'generate an access and refresh token on your behalf',
+			openid: 'issue an ID token',
+			hydra: 'access all of Hydra\'s endpoints on your behalf',
+            "hydra.keys.get": 'retrieve keys from Hydra'
+		}
+	</script>
+</consent>

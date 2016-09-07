@@ -22,38 +22,24 @@ import respHelper from '../util/response-helper';
                 <div name="modalBody"
                     class="modal-body"
                     style="{ modalBodyStyle() }">
-                    <error-msg error="{ error }" />
-                    <div style="text-align:center">
-                        <form id="login-form">
-                            <input type="text"
-                                class="form-control"
-                                name="login"
-                                placeholder="User name or email"/>
-                            <input type="password" 
-                                class="form-control"
-                                name="password"
-                                placeholder="Password"/>
-                            <button type="submit"
-                                    class="btn btn-default"
-                                    name="login"
-                                    onclick="{ onLogin }" >Login</button>
-                            <button type="submit"
-                                    class="btn btn-default"
-                                    name="signup">Sign Up</button>
-                        </form>
-                        <br/>
-                        <a href="#">Forget password?</a>
-                    </div>
+                    <error-msg error="{ error }"/>
+                    <auth if="{ !authenticated }"
+                          onlogin="{ onLogin }"
+                          onsignup="{ onSignUp }"/>
+                    <consent if="{ authenticated }"
+                             onconsent="{ onConsent }"
+                             onabort="{ onAbortConsent }"
+                             challenge="{ decodedChallenge }"/>
                 </div>
             </div>
         </div>
     </div>
     <script>
         let self = this;
-        self.error = urlParams.get("error_description");
-        let challenge = urlParams.get("challenge");
+        self.error = urlParams.get('error_description');
+        let challenge = urlParams.get('challenge');
         if (!self.error && !challenge) {
-            self.error = "Could not authenticate.";
+            self.error = 'Could not authenticate.';
         }
         self.close = () => {
         }
@@ -61,34 +47,60 @@ import respHelper from '../util/response-helper';
             e.stopPropagation();
             return true;
         }
-        self.onLogin = () => {
-            let form = new FormData(document.getElementById('login-form'));
+        self.onLogin = (loginForm, login) => {
+            let form = new FormData(loginForm);
             if (challenge) {
                 form.append('challenge', challenge);
             }
-            fetch("/api/login", {
-                method: "POST",
+            fetch('/api/login', {
+                method: 'POST',
                 body: form
             })
             .then(r => {
                 return respHelper.handleStatus(r);
             })
             .then(data => {
-                
                 const {challenge, authenticated, error} = data;
+                self.error = '';
                 if (!authenticated) {
-                    self.error = "Could not authenticate. ";
+                    self.error = 'Could not authenticate. ';
                 }
                 if (error) {
                     self.error += error;
                 }
-                //TODO
-                console.log("resp on /api/login:", data, challenge, authenticated, error)
+                self.login = login;
+                self.authenticated = authenticated;
+                self.decodedChallenge = challenge;
                 self.update();
             })
             .catch(e => {
                 console.log(e);
             });
+        }
+        self.onConsent = () => {
+            self.error = '';
+            fetch('/api/consent', {
+                method: 'POST',
+                body: JSON.stringify({
+                    challenge: challenge,
+                    scopes: self.decodedChallenge.scp,
+                    login: self.login
+                })
+            })
+            .then(r => {
+                return respHelper.handleStatus(r);
+            })
+            .then(({consent}) => {
+                window.location.href = self.decodedChallenge.redir + '&consent=' + consent;
+            })
+            .catch(e => {
+                console.log(e);
+            });
+        }
+        self.onAbortConsent = () => {
+            window.location.href = self.decodedChallenge.redir + '&consent=false';
+        }
+        self.onSignUp = (loginForm) => {
         }
     </script>
 </login>

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/letsrock-today/hydra-sample/backend/service/hydra"
@@ -18,9 +19,9 @@ type (
 		Password  []string `mapstructure:"password" valid:"stringlength(3|10),required"`
 	}
 	LoginReply struct {
-		Challenge     string `json:"challenge"`
-		Authenticated bool   `json:"authenticated"`
-		Error         string `json:"error"`
+		Challenge     jwt.Claims `json:"challenge"`
+		Authenticated bool       `json:"authenticated"`
+		Error         string     `json:"error"`
 	}
 )
 
@@ -42,32 +43,22 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Login, loginForm:", loginForm)
-
-	//TODO: check password
-
 	token, err := hydra.VerifyConsentChallenge(loginForm.Challenge[0])
 	if err != nil {
 		writeErrorResponse(w, err)
 		return
 	}
 
+	if err := UserService.Authenticate(
+		loginForm.Login[0],
+		loginForm.Password[0]); err != nil {
+		writeErrorResponse(w, err)
+		return
+	}
+
 	reply := LoginReply{
 		Authenticated: true,
-		Challenge:     token.Raw,
-	}
-	b, err := json.Marshal(reply)
-	if err != nil {
-		log.Fatal("Login, marshal json:", err)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
-}
-
-func writeErrorResponse(w http.ResponseWriter, err error) {
-	reply := LoginReply{
-		Authenticated: false,
-		Error:         err.Error(),
+		Challenge:     token.Claims,
 	}
 	b, err := json.Marshal(reply)
 	if err != nil {

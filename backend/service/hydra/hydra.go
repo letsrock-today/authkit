@@ -81,3 +81,29 @@ func VerifyConsentChallenge(c string) (*jwt.Token, error) {
 		return key, nil
 	})
 }
+
+/*
+generateConsentToken(subject, scopes, challenge) {
+        warn()
+        return new Promise((resolve, reject) => {
+            this.getKey('consent.endpoint', 'private').then((key) => {
+                const {payload: {aud, exp}}  = jwt.decode(challenge, {complete: true})
+                jwt.sign({
+                    aud,
+                    exp,
+                    scp: scopes,
+                    sub: subject
+                }, jwkToPem({
+                    ...key,
+                    // the following keys are optional in the spec but for some reason required by the library.
+                    dp: '', dq: '', qi: ''
+                }, {private: true}), {algorithm: 'RS256'}, (error, token) => {
+                    if (error) {
+                        return reject({error: 'Could not verify consent challenge: ' + error})
+                    }
+                    resolve({consent: token})
+                })
+            }).catch(reject)
+        })
+    }
+*/

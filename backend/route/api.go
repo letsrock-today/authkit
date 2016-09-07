@@ -11,4 +11,7 @@ func initAPI() {
 	http.HandleFunc("/api/auth-code-urls", handler.AuthCodeURLs)
 
 	http.HandleFunc("/api/login", handler.Login)
+	http.HandleFunc("/api/consent", handler.Consent)
+
+	http.HandleFunc("/callback", handler.Callback)
 }
