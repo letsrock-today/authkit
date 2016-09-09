@@ -12,7 +12,8 @@ type Config struct {
 	ListenAddr             string                   `yaml:"listen-addr"`
 	TLSCertFile            string                   `yaml:"tls-cert-file"`
 	TLSKeyFile             string                   `yaml:"tls-key-file"`
-	OAuth2RedirectUrl      string                   `yaml:"oauth2-redirect-url"`
+	ExternalBaseURL        string                   `yaml:"external-base-url"`
+	OAuth2RedirectURL      string                   `yaml:"oauth2-redirect-url"`
 	HydraClientCredentials OAuth2Provider           `yaml:"hydra-clientcredentials"`
 	OAuth2State            OAuth2State              `yaml:"oauth2-state"`
 	OAuth2Providers        []OAuth2Provider         `yaml:"oauth2-providers"`
@@ -37,6 +38,7 @@ type OAuth2Provider struct {
 	Scopes       []string `json:"-" yaml:"scopes"`
 	IconURL      string   `json:"iconUrl" yaml:"icon"`
 	TokenURL     string   `json:"-" yaml:"token-url"`
+	AuthURL      string   `json:"-" yaml:"auth-url"`
 }
 
 func GetConfig() Config {

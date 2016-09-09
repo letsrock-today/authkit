@@ -86,7 +86,11 @@ func (c *Config) initOAuth2Config() error {
 		ClientID:     h.ClientId,
 		ClientSecret: h.ClientSecret,
 		Scopes:       h.Scopes,
-		TokenURL:     strings.Replace(h.TokenURL, "{hydra-addr}", c.HydraAddr, -1),
+		TokenURL:     strings.Replace(h.TokenURL, "{base-url}", c.HydraAddr, -1),
+	}
+	endpoints["hydra-sample"] = oauth2.Endpoint{
+		TokenURL: strings.Replace(h.TokenURL, "{base-url}", c.ExternalBaseURL, -1),
+		AuthURL:  strings.Replace(h.AuthURL, "{base-url}", c.ExternalBaseURL, -1),
 	}
 	c.OAuth2Configs = make(map[string]oauth2.Config)
 	for _, p := range c.OAuth2Providers {
@@ -99,7 +103,7 @@ func (c *Config) initOAuth2Config() error {
 			ClientSecret: p.ClientSecret,
 			Scopes:       p.Scopes,
 			Endpoint:     endpoint,
-			RedirectURL:  c.OAuth2RedirectUrl,
+			RedirectURL:  c.OAuth2RedirectURL,
 		}
 	}
 	return nil
