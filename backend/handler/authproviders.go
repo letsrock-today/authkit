@@ -10,7 +10,7 @@ import (
 	"github.com/letsrock-today/hydra-sample/backend/util/seekingbuffer"
 )
 
-type ProvidersReply struct {
+type providersReply struct {
 	Providers []config.OAuth2Provider `json:"providers"`
 }
 
@@ -24,7 +24,7 @@ func AuthProviders(w http.ResponseWriter, r *http.Request) {
 		config.ModTime(),
 		seekingbuffer.New(
 			func() ([]byte, error) {
-				p := ProvidersReply{}
+				p := providersReply{}
 				p.Providers = config.GetConfig().OAuth2Providers
 
 				b, err := json.Marshal(p)

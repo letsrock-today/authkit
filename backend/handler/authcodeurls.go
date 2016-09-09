@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
@@ -10,18 +9,18 @@ import (
 )
 
 type (
-	AuthCodeURL struct {
+	authCodeURL struct {
 		Id  string `json:"id"`
 		URL string `json:"url"`
 	}
 
-	AuthCodeURLsReply struct {
-		URLs []AuthCodeURL `json:"urls"`
+	authCodeURLsReply struct {
+		URLs []authCodeURL `json:"urls"`
 	}
 )
 
 func AuthCodeURLs(w http.ResponseWriter, r *http.Request) {
-	reply := AuthCodeURLsReply{}
+	reply := authCodeURLsReply{}
 	cfg := config.GetConfig()
 	for pid, conf := range cfg.OAuth2Configs {
 		state, err := jwtutil.NewJWTSignedString(
@@ -30,13 +29,15 @@ func AuthCodeURLs(w http.ResponseWriter, r *http.Request) {
 			pid,
 			cfg.OAuth2State.Expiration)
 		if err != nil {
-			log.Fatal("AuthCodeURLs, create state:", err)
+			writeErrorResponse(w, err)
+			return
 		}
-		reply.URLs = append(reply.URLs, AuthCodeURL{pid, conf.AuthCodeURL(state)})
+		reply.URLs = append(reply.URLs, authCodeURL{pid, conf.AuthCodeURL(state)})
 	}
 	b, err := json.Marshal(reply)
 	if err != nil {
-		log.Fatal("AuthCodeURLs, marshal json:", err)
+		writeErrorResponse(w, err)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(b)

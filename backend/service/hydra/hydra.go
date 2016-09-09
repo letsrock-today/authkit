@@ -25,6 +25,51 @@ var ctx = context.WithValue(
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}})
 
+type ChallengeClaims struct {
+	jwt.StandardClaims
+	Scopes      []string `json:"scp,omitempty"`
+	RedirectURL string   `json:"redir,omitempty"`
+}
+
+func VerifyConsentChallenge(c string) (*jwt.Token, error) {
+	key, err := getKey("consent.challenge", "public")
+	if err != nil {
+		return nil, err
+	}
+	return jwt.ParseWithClaims(
+		c,
+		&ChallengeClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return key, nil
+		})
+}
+
+func GenerateConsentToken(
+	subj string,
+	scopes []string,
+	challenge string) (string, error) {
+	decodedChallenge, err := VerifyConsentChallenge(challenge)
+	if err != nil {
+		return "", err
+	}
+	decodedChallengeClaims := decodedChallenge.Claims.(*ChallengeClaims)
+	claims := ChallengeClaims{
+		jwt.StandardClaims{
+			Audience:  decodedChallengeClaims.Audience,
+			ExpiresAt: decodedChallengeClaims.ExpiresAt,
+			Subject:   subj,
+		},
+		scopes,
+		"",
+	}
+	key, err := getKey("consent.endpoint", "private")
+	if err != nil {
+		return "", err
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	return token.SignedString(key)
+}
+
 func getKey(set, kid string) (interface{}, error) {
 	c := config.GetConfig()
 	conf := c.HydraOAuth2Config
@@ -71,39 +116,3 @@ func getKey(set, kid string) (interface{}, error) {
 
 	return kr.Keys[0], nil
 }
-
-func VerifyConsentChallenge(c string) (*jwt.Token, error) {
-	key, err := getKey("consent.challenge", "public")
-	if err != nil {
-		return nil, err
-	}
-	return jwt.Parse(c, func(t *jwt.Token) (interface{}, error) {
-		return key, nil
-	})
-}
-
-/*
-generateConsentToken(subject, scopes, challenge) {
-        warn()
-        return new Promise((resolve, reject) => {
-            this.getKey('consent.endpoint', 'private').then((key) => {
-                const {payload: {aud, exp}}  = jwt.decode(challenge, {complete: true})
-                jwt.sign({
-                    aud,
-                    exp,
-                    scp: scopes,
-                    sub: subject
-                }, jwkToPem({
-                    ...key,
-                    // the following keys are optional in the spec but for some reason required by the library.
-                    dp: '', dq: '', qi: ''
-                }, {private: true}), {algorithm: 'RS256'}, (error, token) => {
-                    if (error) {
-                        return reject({error: 'Could not verify consent challenge: ' + error})
-                    }
-                    resolve({consent: token})
-                })
-            }).catch(reject)
-        })
-    }
-*/

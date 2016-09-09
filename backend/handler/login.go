@@ -2,37 +2,35 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/letsrock-today/hydra-sample/backend/service/hydra"
 )
 
 type (
-	LoginForm struct {
+	loginForm struct {
 		Challenge []string `mapstructure:"challenge" valid:"required"`
 		Login     []string `mapstructure:"login" valid:"email,required"`
 		Password  []string `mapstructure:"password" valid:"stringlength(3|10),required"`
 	}
-	LoginReply struct {
-		Challenge     jwt.Claims `json:"challenge"`
-		Authenticated bool       `json:"authenticated"`
-		Error         string     `json:"error"`
+	loginReply struct {
+		Challenge     hydra.ChallengeClaims `json:"challenge"`
+		Authenticated bool                  `json:"authenticated"`
 	}
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(0); err != nil {
-		log.Println(err)
+		writeErrorResponse(w, err)
+		return
 	}
 
 	// To simplify validation logic we convert map to structure first
 
-	var loginForm LoginForm
+	var loginForm loginForm
 	if err := mapstructure.Decode(r.Form, &loginForm); err != nil {
 		writeErrorResponse(w, err)
 		return
@@ -56,13 +54,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reply := LoginReply{
+	reply := loginReply{
 		Authenticated: true,
-		Challenge:     token.Claims,
+		Challenge:     *token.Claims.(*hydra.ChallengeClaims),
 	}
 	b, err := json.Marshal(reply)
 	if err != nil {
-		log.Fatal("Login, marshal json:", err)
+		writeErrorResponse(w, err)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(b)

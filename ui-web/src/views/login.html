@@ -83,6 +83,8 @@ import respHelper from '../util/response-helper';
                 method: 'POST',
                 body: JSON.stringify({
                     challenge: challenge,
+                    // in general case we can unmark some scopes with
+                    // checkboxes in UI, current UI doesn't allow this
                     scopes: self.decodedChallenge.scp,
                     login: self.login
                 })
@@ -91,14 +93,20 @@ import respHelper from '../util/response-helper';
                 return respHelper.handleStatus(r);
             })
             .then(({consent}) => {
-                window.location.href = self.decodedChallenge.redir + '&consent=' + consent;
+                window.location.href = urlParams.updateUrlParameter(
+                    self.decodedChallenge.redir,
+                    'consent',
+                    consent);
             })
             .catch(e => {
                 console.log(e);
             });
         }
         self.onAbortConsent = () => {
-            window.location.href = self.decodedChallenge.redir + '&consent=false';
+            window.location.href = urlParams.updateUrlParameter(
+                self.decodedChallenge.redir,
+                'consent',
+                '');
         }
         self.onSignUp = (loginForm) => {
         }

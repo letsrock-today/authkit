@@ -1,34 +1,46 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/letsrock-today/hydra-sample/backend/service/hydra"
 )
 
 type (
-	ConsentRequest struct {
+	consentRequest struct {
 		Challenge string   `json:"challenge"`
 		Login     string   `json:"login"`
 		Scopes    []string `json:"scopes"`
 	}
-	ConsentReply struct {
-		Consent jwt.Token `json:"consent"`
+	consentReply struct {
+		Consent string `json:"consent"`
 	}
 )
 
 func Consent(w http.ResponseWriter, r *http.Request) {
-	//TODO
-	/*
-		app.post('/api/consent', (r, w) => {
-		        const {challenge, scopes, email} = r.body
-		        hydra.generateConsentToken(email, scopes, challenge).then(({consent}) => {
-		            w.send({consent})
-		        }).catch((error) => {
-		            console.log('An error occurred on consent', error)
-		            w.status(500)
-		            w.send(error)
-		        })
-		    })
-	*/
+	var cr consentRequest
+	err := json.NewDecoder(r.Body).Decode(&cr)
+	if err != nil {
+		writeErrorResponse(w, err)
+		return
+	}
+	signedTokenString, err := hydra.GenerateConsentToken(
+		cr.Login,
+		cr.Scopes,
+		cr.Challenge)
+	if err != nil {
+		writeErrorResponse(w, err)
+		return
+	}
+	reply := consentReply{
+		Consent: signedTokenString,
+	}
+	b, err := json.Marshal(reply)
+	if err != nil {
+		writeErrorResponse(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(b)
 }
