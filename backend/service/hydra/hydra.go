@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/mendsley/gojwk"
+	"github.com/pborman/uuid"
 	"golang.org/x/oauth2"
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
@@ -52,6 +54,10 @@ func GenerateConsentToken(
 	if err != nil {
 		return "", err
 	}
+	key, err := getKey("consent.endpoint", "private")
+	if err != nil {
+		return "", err
+	}
 	decodedChallengeClaims := decodedChallenge.Claims.(*ChallengeClaims)
 	claims := ChallengeClaims{
 		jwt.StandardClaims{
@@ -62,9 +68,26 @@ func GenerateConsentToken(
 		scopes,
 		"",
 	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	return token.SignedString(key)
+}
+
+func IssueChallenge(
+	client_id string,
+	scopes []string,
+	redirectURL string) (string, error) {
 	key, err := getKey("consent.endpoint", "private")
 	if err != nil {
 		return "", err
+	}
+	claims := ChallengeClaims{
+		jwt.StandardClaims{
+			Id:        uuid.New(),
+			Audience:  client_id,
+			ExpiresAt: time.Now().Add(config.GetConfig().ChallengeLifespan).Unix(),
+		},
+		scopes,
+		redirectURL,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	return token.SignedString(key)

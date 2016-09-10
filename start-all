@@ -5,6 +5,8 @@ exit 1
 
 # 1. start hydra
 
+sudo docker run -d -p 4444:4444 --name my-hydra -e "CONSENT_URL=https://localhost:8080/login" oryam/hydra
+
 sudo docker run -d \
     -p 4444:4444 \
     --name my-hydra \
@@ -20,6 +22,8 @@ sudo docker logs my-hydra
 sudo docker exec -i -t my-hydra /bin/bash
 
 hydra connect --skip-tls-verify
+
+hydra clients create -n "test" -c [https://localhost:8080/callback] -g [authorize_code,authorization_code,client_credentials] -r [code,token] -a [core,hydra.keys.get] --skip-tls-verify
 
 hydra clients create -n "test" \
   -c [https://localhost:8080/callback] \
@@ -48,5 +52,5 @@ go run main.go
 # 6. start from page like this (in firefox!, use client_id from #3):
 #
 # https://localhost:8080/oauth2/auth?client_id=xxx&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
-# https://localhost:8080/oauth2/auth?client_id=6b9c9490-efa7-4aa7-b9c5-085935333bcd&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
+# https://localhost:8080/oauth2/auth?client_id=f63df7a6-3657-4dff-8843-4e3a4305f860&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
 #

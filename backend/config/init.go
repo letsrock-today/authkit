@@ -88,10 +88,6 @@ func (c *Config) initOAuth2Config() error {
 		Scopes:       h.Scopes,
 		TokenURL:     strings.Replace(h.TokenURL, "{base-url}", c.HydraAddr, -1),
 	}
-	endpoints["hydra-sample"] = oauth2.Endpoint{
-		TokenURL: strings.Replace(h.TokenURL, "{base-url}", c.ExternalBaseURL, -1),
-		AuthURL:  strings.Replace(h.AuthURL, "{base-url}", c.ExternalBaseURL, -1),
-	}
 	c.OAuth2Configs = make(map[string]oauth2.Config)
 	for _, p := range c.OAuth2Providers {
 		endpoint, ok := endpoints[p.Id]
