@@ -1,6 +1,7 @@
 import urlParams from '../util/url-params.js';
 import 'whatwg-fetch';
 import respHelper from '../util/response-helper';
+import jwt from 'jwt-decode';
 
 <login>
     <div class="modal"
@@ -23,10 +24,10 @@ import respHelper from '../util/response-helper';
                     class="modal-body"
                     style="{ modalBodyStyle() }">
                     <error-msg error="{ error }"/>
-                    <auth if="{ !authenticated }"
+                    <auth if="{ showAuth }"
                           onlogin="{ onLogin }"
                           onsignup="{ onSignUp }"/>
-                    <consent if="{ authenticated }"
+                    <consent if="{ !showAuth }"
                              onconsent="{ onConsent }"
                              onabort="{ onAbortConsent }"
                              challenge="{ decodedChallenge }"/>
@@ -36,6 +37,7 @@ import respHelper from '../util/response-helper';
     </div>
     <script>
         let self = this;
+        self.showAuth = true;
         self.error = urlParams.get('error_description');
         let challenge = urlParams.get('challenge');
         if (!self.error && !challenge) {
@@ -47,59 +49,43 @@ import respHelper from '../util/response-helper';
             e.stopPropagation();
             return true;
         }
-        self.onLogin = (loginForm, login) => {
-            let form = new FormData(loginForm);
+        self.onLogin = (loginForm) => {
+            self.showAuth = false;
+            self.error = '';
+            self.loginForm = new FormData(loginForm);
             if (challenge) {
-                form.append('challenge', challenge);
+                self.loginForm.append('challenge', challenge);
             }
+            self.decodedChallenge = jwt(challenge);
+        }
+        self.onConsent = (scopes) => {
+            self.loginForm.append('scopes', scopes);
             fetch('/api/login', {
                 method: 'POST',
-                body: form
+                body: self.loginForm
             })
             .then(r => {
                 return respHelper.handleStatus(r);
             })
             .then(data => {
-                const {challenge, authenticated, error} = data;
-                self.error = '';
-                if (!authenticated) {
-                    self.error = 'Could not authenticate. ';
-                }
+                console.log(data);
+                const {consent, error} = data;
                 if (error) {
-                    self.error += error;
+                    self.error = 'Could not authenticate. ' + error;
+                    self.showAuth = true;
+                    self.update();
+                } else {
+                    window.location.href = urlParams.updateUrlParameter(
+                        self.decodedChallenge.redir,
+                        'consent',
+                        consent);
                 }
-                self.login = login;
-                self.authenticated = authenticated;
-                self.decodedChallenge = challenge;
+            })
+            .catch(e => {
+                console.log(e);
+                self.error = 'Could not authenticate. ';
+                self.showAuth = true;
                 self.update();
-            })
-            .catch(e => {
-                console.log(e);
-            });
-        }
-        self.onConsent = () => {
-            self.error = '';
-            fetch('/api/consent', {
-                method: 'POST',
-                body: JSON.stringify({
-                    challenge: challenge,
-                    // in general case we can unmark some scopes with
-                    // checkboxes in UI, current UI doesn't allow this
-                    scopes: self.decodedChallenge.scp,
-                    login: self.login
-                })
-            })
-            .then(r => {
-                return respHelper.handleStatus(r);
-            })
-            .then(({consent}) => {
-                window.location.href = urlParams.updateUrlParameter(
-                    self.decodedChallenge.redir,
-                    'consent',
-                    consent);
-            })
-            .catch(e => {
-                console.log(e);
             });
         }
         self.onAbortConsent = () => {

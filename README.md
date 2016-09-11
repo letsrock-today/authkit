@@ -34,10 +34,11 @@ sudo apt-get install glide
 
 __NPM, nodejs__
 
-Use `umake` to install or update nodejs
+Use `umake` to install or update nodejs, then install webpack
 
 ```
 umake nodejs
+npm install webpack -g
 ```
 
 

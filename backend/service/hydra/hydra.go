@@ -59,6 +59,18 @@ func GenerateConsentToken(
 		return "", err
 	}
 	decodedChallengeClaims := decodedChallenge.Claims.(*ChallengeClaims)
+	for _, n := range scopes {
+		exist := false
+		for _, o := range decodedChallengeClaims.Scopes {
+			if n == o {
+				exist = true
+				break
+			}
+		}
+		if !exist {
+			return "", fmt.Errorf("Disallowed to enlarge set of scopes")
+		}
+	}
 	claims := ChallengeClaims{
 		jwt.StandardClaims{
 			Audience:  decodedChallengeClaims.Audience,

@@ -4,14 +4,17 @@
             <input type="text"
                 class="form-control"
                 name="login"
-                placeholder="User name or email"/>
+                placeholder="User name or email"
+                onkeyup="{ onKeyUp }"/>
             <input type="password" 
                 class="form-control"
                 name="password"
-                placeholder="Password"/>
+                placeholder="Password"
+                onkeyup="{ onKeyUp }"/>
             <button type="submit"
                     class="btn btn-default"
                     name="signin"
+                    disabled
                     onclick="{ onLogin }">Login</button>
             <button type="submit"
                     class="btn btn-default"
@@ -23,8 +26,12 @@
     </div>
     <script>
         let self = this;
+        self.onKeyUp = () => {
+            self.signin.disabled = !self.login.value || !self.password.value;
+            return true;
+        }
         self.onLogin = () => {
-            opts.onlogin(self['login-form'], self.login.value);
+            opts.onlogin(self['login-form']);
         }
         self.onSignUp = () => {
             opts.onsignup(self['login-form']);

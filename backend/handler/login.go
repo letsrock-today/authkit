@@ -15,10 +15,10 @@ type (
 		Challenge []string `mapstructure:"challenge" valid:"required"`
 		Login     []string `mapstructure:"login" valid:"email,required"`
 		Password  []string `mapstructure:"password" valid:"stringlength(3|10),required"`
+		Scopes    []string `mapstructure:"scopes" valid:"stringlength(1|500),required"`
 	}
 	loginReply struct {
-		Challenge     hydra.ChallengeClaims `json:"challenge"`
-		Authenticated bool                  `json:"authenticated"`
+		Consent string `json:"consent"`
 	}
 )
 
@@ -30,33 +30,35 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// To simplify validation logic we convert map to structure first
 
-	var loginForm loginForm
-	if err := mapstructure.Decode(r.Form, &loginForm); err != nil {
+	var lf loginForm
+	if err := mapstructure.Decode(r.Form, &lf); err != nil {
 		writeErrorResponse(w, err)
 		return
 	}
 
-	if _, err := govalidator.ValidateStruct(loginForm); err != nil {
-		writeErrorResponse(w, err)
-		return
-	}
-
-	token, err := hydra.VerifyConsentChallenge(loginForm.Challenge[0])
-	if err != nil {
+	if _, err := govalidator.ValidateStruct(lf); err != nil {
 		writeErrorResponse(w, err)
 		return
 	}
 
 	if err := UserService.Authenticate(
-		loginForm.Login[0],
-		loginForm.Password[0]); err != nil {
+		lf.Login[0],
+		lf.Password[0]); err != nil {
+		writeErrorResponse(w, err)
+		return
+	}
+
+	signedTokenString, err := hydra.GenerateConsentToken(
+		lf.Login[0],
+		lf.Scopes,
+		lf.Challenge[0])
+	if err != nil {
 		writeErrorResponse(w, err)
 		return
 	}
 
 	reply := loginReply{
-		Authenticated: true,
-		Challenge:     *token.Claims.(*hydra.ChallengeClaims),
+		Consent: signedTokenString,
 	}
 	b, err := json.Marshal(reply)
 	if err != nil {

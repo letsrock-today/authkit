@@ -1,22 +1,28 @@
 <consent>
     <p><strong>App { opts.challenge.aud }</strong></p>
-    <p>This app would like to:
-    <ul>
-        <li each="{ scope in opts.challenge.scp }">{ scopes[scope] || scope }</li>
-    </ul>
-    </p>
+    <p>This app would like to:</p>
+    <div each="{ scope in opts.challenge.scp }">
+        <input type="checkbox" name="scopes" value="{ scope }" checked>
+        <span>{ scopeNames[scope] || scope }</span>
+    </div>
+    <p/>
+    <p><i>Please note that editable checkboxes added just for demo, and should be all set for correct application's work.</i></p>
     <div style="text-align:center">
 		<button class="btn btn-danger btn-signin"
 		  onClick={ opts.onabort }>Cancel</button>
 		<button class="btn btn-primary btn-signin"
-		  onClick={ opts.onconsent }>Grant Access</button>
+		  onClick={ onConsent }>Grant Access</button>
     </div>
 	<script>
-		this.scopes = {
+        let self = this;
+		self.scopeNames = {
 			core: 'generate an access and refresh token on your behalf',
 			openid: 'issue an ID token',
 			hydra: 'access all of Hydra\'s endpoints on your behalf',
             "hydra.keys.get": 'retrieve keys from Hydra'
 		}
+        self.onConsent = () => {
+            opts.onconsent(self.scopes.filter(el => el.checked).map(el => el.value));
+        }
 	</script>
 </consent>
