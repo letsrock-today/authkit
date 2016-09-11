@@ -22,7 +22,9 @@ import dispatcher from '../dispatcher.js'
                      class="modal-body"
                      style="{ modalBodyStyle() }">
                     <div style="text-align:center">
-                        <form>
+                        <form action="/api/login-hydra"
+                              method="post"
+                              enctype="multipart/form-data">
                             <input type="text"
                                    class="form-control"
                                    name="login"
@@ -32,8 +34,9 @@ import dispatcher from '../dispatcher.js'
                                    name="password"
                                    placeholder="Password"/>
                             <button type="submit"
-                                    class="btn btn-default"
-                                    name="login">Login</button>
+                                    class="btn btn-default">
+                                Login
+                            </button>
                         </form>
                         <br/>
                         <a href="#">Register now</a> | <a href="#">Forget password?</a>
