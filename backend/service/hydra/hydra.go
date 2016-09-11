@@ -84,10 +84,9 @@ func GenerateConsentToken(
 	return token.SignedString(key)
 }
 
-func IssueChallenge(
+func IssueConsentToken(
 	client_id string,
-	scopes []string,
-	redirectURL string) (string, error) {
+	scopes []string) (string, error) {
 	key, err := getKey("consent.endpoint", "private")
 	if err != nil {
 		return "", err
@@ -99,7 +98,7 @@ func IssueChallenge(
 			ExpiresAt: time.Now().Add(config.GetConfig().ChallengeLifespan).Unix(),
 		},
 		scopes,
-		redirectURL,
+		"",
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	return token.SignedString(key)
@@ -107,7 +106,7 @@ func IssueChallenge(
 
 func getKey(set, kid string) (interface{}, error) {
 	c := config.GetConfig()
-	conf := c.HydraOAuth2Config
+	conf := c.HydraClientCredentials
 	client := conf.Client(ctx)
 
 	url := fmt.Sprintf("%s/keys/%s/%s", c.HydraAddr, set, kid)

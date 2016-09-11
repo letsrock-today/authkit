@@ -81,12 +81,22 @@ func (c *Config) parseConfig() error {
 }
 
 func (c *Config) initOAuth2Config() error {
-	h := c.HydraClientCredentials
-	c.HydraOAuth2Config = clientcredentials.Config{
+	h := c.HydraOAuth2Provider
+	c.HydraClientCredentials = clientcredentials.Config{
 		ClientID:     h.ClientId,
 		ClientSecret: h.ClientSecret,
 		Scopes:       h.Scopes,
 		TokenURL:     strings.Replace(h.TokenURL, "{base-url}", c.HydraAddr, -1),
+	}
+	c.HydraOAuth2Config = oauth2.Config{
+		ClientID:     h.ClientId,
+		ClientSecret: h.ClientSecret,
+		Scopes:       h.Scopes,
+		Endpoint: oauth2.Endpoint{
+			TokenURL: strings.Replace(h.TokenURL, "{base-url}", c.ExternalBaseURL, -1),
+			AuthURL:  strings.Replace(h.AuthURL, "{base-url}", c.ExternalBaseURL, -1),
+		},
+		RedirectURL: c.OAuth2RedirectURL,
 	}
 	c.OAuth2Configs = make(map[string]oauth2.Config)
 	for _, p := range c.OAuth2Providers {
