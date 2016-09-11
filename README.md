@@ -74,7 +74,7 @@ cd ./hydra-sample/backend
 # Now we are looking for trouble!
 # glide will make recurcive dependencies on our own subpackages and download
 # their old versions from github.
-glade up
+glide up
 
 # Guess, which version of subpackages will be used?
 go run main.go
