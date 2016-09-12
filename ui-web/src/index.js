@@ -1,4 +1,4 @@
-import './services/user.js'
-import './riotTags.js'
+import './services/user'
+import './riotTags'
 
 riot.mount('app')

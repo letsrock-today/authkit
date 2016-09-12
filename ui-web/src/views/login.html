@@ -1,4 +1,4 @@
-import urlParams from '../util/url-params.js';
+import urlParams from '../util/url-params';
 import 'whatwg-fetch';
 import respHelper from '../util/response-helper';
 import jwt from 'jwt-decode';
@@ -11,7 +11,6 @@ import jwt from 'jwt-decode';
         <div class="modal-dialog">
             <div name="modalContent"
                 class="modal-content"
-                style="{ contentStyle() }"
                 onclick="{ onModalContentClick }">
                 <div name="modalHeader"
                     class="modal-header">
@@ -21,8 +20,7 @@ import jwt from 'jwt-decode';
                     <h4 class="modal-title">Login</h4>
                 </div>
                 <div name="modalBody"
-                    class="modal-body"
-                    style="{ modalBodyStyle() }">
+                     class="modal-body">
                     <error-msg error="{ error }"/>
                     <auth if="{ showAuth }"
                           onlogin="{ onLogin }"
@@ -68,7 +66,6 @@ import jwt from 'jwt-decode';
                 return respHelper.handleStatus(r);
             })
             .then(data => {
-                console.log(data);
                 const {consent, error} = data;
                 if (error) {
                     self.error = 'Could not authenticate. ' + error;

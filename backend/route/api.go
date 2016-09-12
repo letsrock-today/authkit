@@ -11,7 +11,7 @@ func initAPI() {
 	http.HandleFunc("/api/auth-code-urls", handler.AuthCodeURLs)
 
 	http.HandleFunc("/api/login", handler.Login)
-	http.HandleFunc("/api/login-hydra", handler.LoginHydra)
+	http.HandleFunc("/api/login-priv", handler.LoginPriv)
 
 	http.HandleFunc("/callback", handler.Callback)
 }

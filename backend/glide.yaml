@@ -1,12 +1,19 @@
 package: github.com/letsrock-today/hydra-sample/backend
 import:
+- package: github.com/asaskevich/govalidator
+  version: ^4.0.0
 - package: github.com/dgrijalva/jwt-go
   version: ^3.0.0
 - package: github.com/fsnotify/fsnotify
   version: ^1.3.1
+- package: github.com/mendsley/gojwk
+- package: github.com/mitchellh/mapstructure
+- package: github.com/pborman/uuid
+  version: ^1.0.0
 - package: golang.org/x/oauth2
   subpackages:
   - bitbucket
+  - clientcredentials
   - facebook
   - github
   - google
@@ -18,20 +25,3 @@ import:
   - uber
   - vk
 - package: gopkg.in/yaml.v2
-- package: github.com/asaskevich/govalidator
-  version: ^4.0.0
-- package: github.com/mitchellh/mapstructure
-- package: golang.org/x/sys
-  subpackages:
-  - unix
-- package: github.com/gobwas/glob
-  version: ^0.2.0
-- package: github.com/mendsley/gojwk
-- package: github.com/pborman/uuid
-  version: ^1.0.0
-- package: cloud.google.com/go
-  subpackages:
-  - /compute/metadata
-- package: golang.org/x/net
-  subpackages:
-  - /context

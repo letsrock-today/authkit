@@ -1,4 +1,6 @@
-import dispatcher from '../dispatcher.js'
+import dispatcher from '../dispatcher'
+import 'whatwg-fetch';
+import respHelper from '../util/response-helper';
 
 <dlg-login>
     <div if="{ visible }"
@@ -9,7 +11,6 @@ import dispatcher from '../dispatcher.js'
         <div class="modal-dialog">
             <div name="modalContent"
                  class="modal-content"
-                 style="{ contentStyle() }"
                  onclick="{ onModalContentClick }">
                 <div name="modalHeader"
                      class="modal-header">
@@ -19,28 +20,10 @@ import dispatcher from '../dispatcher.js'
                     <h4 class="modal-title">Login</h4>
                 </div>
                 <div name="modalBody"
-                     class="modal-body"
-                     style="{ modalBodyStyle() }">
-                    <div style="text-align:center">
-                        <form action="/api/login-hydra"
-                              method="post"
-                              enctype="multipart/form-data">
-                            <input type="text"
-                                   class="form-control"
-                                   name="login"
-                                   placeholder="User name or email"/>
-                            <input type="password" 
-                                   class="form-control"
-                                   name="password"
-                                   placeholder="Password"/>
-                            <button type="submit"
-                                    class="btn btn-default">
-                                Login
-                            </button>
-                        </form>
-                        <br/>
-                        <a href="#">Register now</a> | <a href="#">Forget password?</a>
-                    </div>
+                     class="modal-body">
+                    <error-msg error="{ error }"/>
+                    <auth onlogin="{ onLogin }"
+                          onsignup="{ onSignUp }"/>
                     <hr/>
                     <div>
                         <login-provider each="{ p in loginProviders }"
@@ -74,5 +57,32 @@ import dispatcher from '../dispatcher.js'
             self.show();
             self.update();
         });
+        self.onLogin = (loginForm) => {
+            self.error = '';
+            fetch('/api/login-priv', {
+                method: 'POST',
+                body: new FormData(loginForm)
+            })
+            .then(r => {
+                return respHelper.handleStatus(r);
+            })
+            .then(data => {
+                console.log(data);
+                const {redirUrl, error} = data;
+                if (error) {
+                    self.error = 'Could not authenticate. ' + error;
+                    self.update();
+                } else {
+                    window.location.href = redirUrl;
+                }
+            })
+            .catch(e => {
+                console.log(e);
+                self.error = 'Could not authenticate. ';
+                self.update();
+            });
+        }
+        self.onSignUp = (loginForm) => {
+        }
     </script>
 </dlg-login>

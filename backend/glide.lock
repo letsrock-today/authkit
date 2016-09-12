@@ -1,8 +1,8 @@
-hash: a2634ef9b04f61f965ab43906b7c81e6ef62545496e4bd34d426e68241ff70b5
-updated: 2016-09-09T21:22:51.617121887+07:00
+hash: 89f3380a59e46cebd2940e1ad6942324f102678338baaba5326a86238d05067f
+updated: 2016-09-12T13:40:58.495959584+07:00
 imports:
 - name: cloud.google.com/go
-  version: 34b7f5b9fef1f79d2953ca03a36a9b824a1c54af
+  version: 875ae77d893c7f79ac4ebdc9f902bbd8f8c80b01
   subpackages:
   - compute/metadata
   - internal
@@ -12,8 +12,6 @@ imports:
   version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
 - name: github.com/fsnotify/fsnotify
   version: a8a77c9133d2d6fd8334f3260d06f60e8d80a5fb
-- name: github.com/gobwas/glob
-  version: ce6abff51712df5da11095fb41dd4b0353559797
 - name: github.com/golang/protobuf
   version: 1f49d83d9aa00e6ce4fc8258c71cc7786aec968a
   subpackages:
@@ -25,7 +23,7 @@ imports:
 - name: github.com/pborman/uuid
   version: a97ce2ca70fa5a848076093f05e639a89ca34d06
 - name: golang.org/x/net
-  version: 9313baa13d9262e49d07b20ed57dceafcd7240cc
+  version: cfe3c2a7525b50c3d707256e371c90938cfef98a
   subpackages:
   - context
   - context/ctxhttp

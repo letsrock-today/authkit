@@ -1,6 +1,0 @@
-# config for hydra-idp-react
-#
-
-client_id: fdb9e993-89b0-4568-b606-f62a88e406e5
-client_secret: h2Pjld?t$b%/3mCExldvDXVgtj
-cluster_url: https://my-hydra:4444
