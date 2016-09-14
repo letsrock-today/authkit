@@ -7,12 +7,15 @@ import (
 	"net/http/httputil"
 	"net/url"
 
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine/standard"
+
 	"github.com/letsrock-today/hydra-sample/backend/config"
 )
 
 // we use proxy for hydra requests, so that all interaction with UI went via single port
 
-func initReverseProxy() {
+func initReverseProxy(e *echo.Echo) {
 	u, err := url.Parse(config.GetConfig().HydraAddr)
 	if err != nil {
 		log.Fatal(err)
@@ -22,5 +25,6 @@ func initReverseProxy() {
 	proxy.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	http.Handle("/oauth2/", proxy)
+
+	e.Any("/oauth2/*", standard.WrapHandler(proxy))
 }

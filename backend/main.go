@@ -3,7 +3,10 @@ package main
 import (
 	"flag"
 	"log"
-	"net/http"
+
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine"
+	"github.com/labstack/echo/engine/standard"
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
 	"github.com/letsrock-today/hydra-sample/backend/handler"
@@ -13,16 +16,23 @@ import (
 
 func main() {
 	flag.Parse()
+
 	//TODO: replace implementation
 	handler.UserService = dummyuser.New()
-	route.Init()
+
+	e := echo.New()
+
+	route.Init(e)
+
 	c := config.GetConfig()
+
 	log.Printf("Serving at address: '%s'.", c.ListenAddr)
 	log.Printf("Use 'https://' prefix in browser.")
 	log.Printf("Press Ctrl+C to exit.")
-	http.ListenAndServeTLS(
-		c.ListenAddr,
-		c.TLSCertFile,
-		c.TLSKeyFile,
-		nil)
+
+	e.Run(standard.WithConfig(engine.Config{
+		Address:     c.ListenAddr,
+		TLSCertFile: c.TLSCertFile,
+		TLSKeyFile:  c.TLSKeyFile,
+	}))
 }

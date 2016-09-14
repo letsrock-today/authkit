@@ -1,16 +1,9 @@
 package route
 
-import (
-	"net/http"
+import "github.com/labstack/echo"
 
-	"github.com/letsrock-today/hydra-sample/backend/util/httputil"
-)
-
-func initStatic() {
-	http.Handle("/",
-		httputil.AddSuffix(".html",
-			http.FileServer(http.Dir("../ui-web/html"))))
-	http.Handle("/dist/",
-		http.StripPrefix("/dist/",
-			http.FileServer(http.Dir("../ui-web/dist"))))
+func initStatic(e *echo.Echo) {
+	e.File("/", "../ui-web/html/index.html")
+	e.File("/login", "../ui-web/html/login.html")
+	e.Static("/dist", "../ui-web/dist")
 }

@@ -6,6 +6,11 @@ import:
   version: ^3.0.0
 - package: github.com/fsnotify/fsnotify
   version: ^1.3.1
+- package: github.com/labstack/echo
+  version: ^2.0.2
+  subpackages:
+  - engine
+  - engine/standard
 - package: github.com/mendsley/gojwk
 - package: github.com/mitchellh/mapstructure
 - package: github.com/pborman/uuid

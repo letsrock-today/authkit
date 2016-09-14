@@ -1,51 +1,40 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/mitchellh/mapstructure"
+	"github.com/labstack/echo"
 
 	"github.com/letsrock-today/hydra-sample/backend/service/hydra"
 )
 
 type (
 	loginForm struct {
-		Challenge []string `mapstructure:"challenge" valid:"required"`
-		Login     []string `mapstructure:"login" valid:"email,required"`
-		Password  []string `mapstructure:"password" valid:"stringlength(3|10),required"`
-		Scopes    []string `mapstructure:"scopes" valid:"stringlength(1|500),required"`
+		Challenge []string `form:"challenge" valid:"required"`
+		Login     []string `form:"login" valid:"email,required"`
+		Password  []string `form:"password" valid:"stringlength(3|10),required"`
+		Scopes    []string `form:"scopes" valid:"stringlength(1|500),required"`
 	}
 	loginReply struct {
 		Consent string `json:"consent"`
 	}
 )
 
-func Login(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseMultipartForm(0); err != nil {
-		writeErrorResponse(w, err)
-		return
-	}
-
-	// To simplify validation logic we convert map to structure first
-
+func Login(c echo.Context) error {
 	var lf loginForm
-	if err := mapstructure.Decode(r.Form, &lf); err != nil {
-		writeErrorResponse(w, err)
-		return
+	if err := c.Bind(&lf); err != nil {
+		return err
 	}
 
 	if _, err := govalidator.ValidateStruct(lf); err != nil {
-		writeErrorResponse(w, err)
-		return
+		return c.JSON(http.StatusOK, newJsonError(err))
 	}
 
 	if err := UserService.Authenticate(
 		lf.Login[0],
 		lf.Password[0]); err != nil {
-		writeErrorResponse(w, err)
-		return
+		return c.JSON(http.StatusOK, newJsonError(err))
 	}
 
 	signedTokenString, err := hydra.GenerateConsentToken(
@@ -53,18 +42,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		lf.Scopes,
 		lf.Challenge[0])
 	if err != nil {
-		writeErrorResponse(w, err)
-		return
+		return err
 	}
 
 	reply := loginReply{
 		Consent: signedTokenString,
 	}
-	b, err := json.Marshal(reply)
-	if err != nil {
-		writeErrorResponse(w, err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
+	return c.JSON(http.StatusOK, reply)
 }

@@ -5,42 +5,37 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/labstack/echo"
+
+	"github.com/letsrock-today/hydra-sample/backend/util/echo-querybinder"
 )
 
 type (
 	callbackRequest struct {
-		Error            []string `mapstructure:"error"`
-		ErrorDescription []string `mapstructure:"error_description"`
-		State            []string `mapstructure:"state"`
-		Code             []string `mapstructure: code`
+		Error            []string `form:"error"`
+		ErrorDescription []string `form:"error_description"`
+		State            []string `form:"state"`
+		Code             []string `form:"code"`
 	}
 )
 
-func Callback(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		log.Println(err)
-		http.Error(w, "Error decoding request params.", http.StatusInternalServerError)
-		return
-	}
-
+func Callback(c echo.Context) error {
 	var cr callbackRequest
-	if err := mapstructure.Decode(r.Form, &cr); err != nil {
-		log.Println(err)
-		http.Error(w, "Error decoding request params.", http.StatusInternalServerError)
-		return
+	if err := querybinder.New().Bind(&cr, c); err != nil {
+		return err
 	}
 
 	if len(cr.Error) > 0 {
-		msg := fmt.Sprintf("OAuth2 flow failed. Error: %s. Description: %s.", cr.Error, cr.ErrorDescription)
-		log.Println(msg)
-		http.Error(w, msg, http.StatusInternalServerError)
-		return
+		return fmt.Errorf("OAuth2 flow failed. Error: %s. Description: %s.", cr.Error, cr.ErrorDescription)
 	}
 
 	//TODO: validate request params
 
-	log.Println("Obtained code and state", cr.Code, cr.State)
+	s := fmt.Sprintf("Obtained code=%s and state=%s", cr.Code, cr.State)
 
 	//TODO
+
+	log.Println(s)
+
+	return c.String(http.StatusOK, s)
 }

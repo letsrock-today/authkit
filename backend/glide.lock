@@ -1,8 +1,8 @@
-hash: 89f3380a59e46cebd2940e1ad6942324f102678338baaba5326a86238d05067f
-updated: 2016-09-12T13:40:58.495959584+07:00
+hash: 0140eab13ff77e2dcd860c56089086358f6adb3fe85648ea47f6aaadb91b55d8
+updated: 2016-09-14T21:23:33.624089491+07:00
 imports:
 - name: cloud.google.com/go
-  version: 875ae77d893c7f79ac4ebdc9f902bbd8f8c80b01
+  version: 47cc972f7569537ef0462055df5a10e5ea90f5d6
   subpackages:
   - compute/metadata
   - internal
@@ -16,14 +16,31 @@ imports:
   version: 1f49d83d9aa00e6ce4fc8258c71cc7786aec968a
   subpackages:
   - proto
+- name: github.com/labstack/echo
+  version: fbcdf70c52c155ae9aa58e72ee0532fa2f1cad2e
+  subpackages:
+  - engine
+  - engine/standard
+  - log
+- name: github.com/labstack/gommon
+  version: 431777a5117c8de4352a400dad1e2a55f484b189
+  subpackages:
+  - color
+  - log
+- name: github.com/mattn/go-colorable
+  version: ed8eb9e318d7a84ce5915b495b7d35e0cfe7b5a8
+- name: github.com/mattn/go-isatty
+  version: 66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8
 - name: github.com/mendsley/gojwk
   version: 4d5ec6e58103388d6cb0d7d72bc72649be4f0504
 - name: github.com/mitchellh/mapstructure
   version: ca63d7c062ee3c9f34db231e352b60012b4fd0c1
 - name: github.com/pborman/uuid
   version: a97ce2ca70fa5a848076093f05e639a89ca34d06
+- name: github.com/valyala/fasttemplate
+  version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: golang.org/x/net
-  version: cfe3c2a7525b50c3d707256e371c90938cfef98a
+  version: de35ec43e7a9aabd6a9c54d2898220ea7e44de7d
   subpackages:
   - context
   - context/ctxhttp
@@ -62,5 +79,5 @@ imports:
   - internal/urlfetch
   - urlfetch
 - name: gopkg.in/yaml.v2
-  version: e4d366fc3c7938e2958e662b4258c7a89e1f0e3e
+  version: 31c299268d302dd0aa9a0dcf765a3d58971ac83f
 testImports: []

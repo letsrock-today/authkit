@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
+	"github.com/labstack/echo"
+
 	"github.com/letsrock-today/hydra-sample/backend/config"
-	"github.com/letsrock-today/hydra-sample/backend/util/jwtutil"
 )
 
 type (
@@ -19,26 +19,19 @@ type (
 	}
 )
 
-func AuthCodeURLs(w http.ResponseWriter, r *http.Request) {
+func AuthCodeURLs(c echo.Context) error {
 	reply := authCodeURLsReply{}
 	cfg := config.GetConfig()
 	for pid, conf := range cfg.OAuth2Configs {
-		state, err := jwtutil.NewJWTSignedString(
+		state, err := newStateToken(
 			cfg.OAuth2State.TokenSignKey,
 			cfg.OAuth2State.TokenIssuer,
 			pid,
 			cfg.OAuth2State.Expiration)
 		if err != nil {
-			writeErrorResponse(w, err)
-			return
+			return err
 		}
 		reply.URLs = append(reply.URLs, authCodeURL{pid, conf.AuthCodeURL(state)})
 	}
-	b, err := json.Marshal(reply)
-	if err != nil {
-		writeErrorResponse(w, err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
+	return c.JSON(http.StatusOK, reply)
 }

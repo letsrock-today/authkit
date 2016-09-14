@@ -1,4 +1,4 @@
-package jwtutil
+package handler
 
 import (
 	"errors"
@@ -7,11 +7,11 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-func NewJWTSignedString(
+func newStateToken(
 	tokenSignKey []byte,
 	tokenIssuer, pid string,
 	tokenExpiration time.Duration) (string, error) {
-	claims := customClaims{
+	claims := stateClaims{
 		pid,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tokenExpiration).Unix(),
@@ -22,19 +22,19 @@ func NewJWTSignedString(
 	return token.SignedString(tokenSignKey)
 }
 
-func ParseJWT(
+func parseStateToken(
 	tokenSignKey []byte,
 	tokenIssuer, tokenString string) (string, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
-		&customClaims{},
+		&stateClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			return tokenSignKey, nil
 		})
 	if err != nil {
 		return "", err
 	}
-	claims, ok := token.Claims.(*customClaims)
+	claims, ok := token.Claims.(*stateClaims)
 	if !ok || !token.Valid {
 		return "", errors.New("Invalid token")
 	}
@@ -46,7 +46,7 @@ func ParseJWT(
 
 //// Internals
 
-type customClaims struct {
+type stateClaims struct {
 	Pid string `json:"pid"`
 	jwt.StandardClaims
 }
