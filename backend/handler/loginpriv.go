@@ -14,8 +14,9 @@ import (
 
 type (
 	privLoginForm struct {
-		Login    string `form:"login" valid:"email,required"`
-		Password string `form:"password" valid:"stringlength(3|10),required"`
+		Action   []string `form:"action" valid:"required,matches(login|signup)"`
+		Login    string   `form:"login" valid:"email,required"`
+		Password string   `form:"password" valid:"stringlength(3|10),required"`
 	}
 	privLoginReply struct {
 		RedirectURL string `json:"redirUrl"`
@@ -36,7 +37,15 @@ func LoginPriv(c echo.Context) error {
 		return c.JSON(http.StatusOK, newJsonError(err))
 	}
 
-	if err := UserService.Authenticate(
+	var action func(login, password string) error
+
+	if lf.Action[0] == "login" {
+		action = UserService.Authenticate
+	} else {
+		action = UserService.Create
+	}
+
+	if err := action(
 		lf.Login,
 		lf.Password); err != nil {
 		return c.JSON(http.StatusOK, newJsonError(err))

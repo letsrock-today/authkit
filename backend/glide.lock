@@ -1,8 +1,8 @@
-hash: 0140eab13ff77e2dcd860c56089086358f6adb3fe85648ea47f6aaadb91b55d8
-updated: 2016-09-14T21:23:33.624089491+07:00
+hash: ea348cda40e6d9d12044848c920798a435f807c1723682df2424dee4793e8b0f
+updated: 2016-09-16T11:23:22.433247348+07:00
 imports:
 - name: cloud.google.com/go
-  version: 47cc972f7569537ef0462055df5a10e5ea90f5d6
+  version: 99eed3309ff7980d16154d2258600a5b38b129a9
   subpackages:
   - compute/metadata
   - internal
@@ -40,7 +40,7 @@ imports:
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: golang.org/x/net
-  version: de35ec43e7a9aabd6a9c54d2898220ea7e44de7d
+  version: 71a035914f99bb58fe82eac0f1289f10963d876c
   subpackages:
   - context
   - context/ctxhttp
@@ -67,7 +67,7 @@ imports:
   subpackages:
   - unix
 - name: google.golang.org/appengine
-  version: 4f7eeb5305a4ba1966344836ba4af9996b7b4e05
+  version: 78199dcb0669fc381c22e919e1e97eba879e8f60
   subpackages:
   - internal
   - internal/app_identity
@@ -78,6 +78,8 @@ imports:
   - internal/remote_api
   - internal/urlfetch
   - urlfetch
+- name: gopkg.in/mgo.v2
+  version: 3f83fa5005286a7fe593b055f0d7771a7dce4655
 - name: gopkg.in/yaml.v2
   version: 31c299268d302dd0aa9a0dcf765a3d58971ac83f
 testImports: []

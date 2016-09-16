@@ -57,11 +57,13 @@ import respHelper from '../util/response-helper';
             self.show();
             self.update();
         });
-        self.onLogin = (loginForm) => {
+        let loginOrSignup = (action, loginForm, errMsgPrefix) => {
             self.error = '';
+            let body =new FormData(loginForm);
+            body.append('action', action);
             fetch('/api/login-priv', {
                 method: 'POST',
-                body: new FormData(loginForm)
+                body: body
             })
             .then(r => {
                 return respHelper.handleStatus(r);
@@ -70,7 +72,7 @@ import respHelper from '../util/response-helper';
                 console.log(data);
                 const {redirUrl, error} = data;
                 if (error) {
-                    self.error = 'Could not authenticate. ' + error;
+                    self.error = errMsgPrefix + error;
                     self.update();
                 } else {
                     window.location.href = redirUrl;
@@ -78,11 +80,15 @@ import respHelper from '../util/response-helper';
             })
             .catch(e => {
                 console.log(e);
-                self.error = 'Could not authenticate. ';
+                self.error = errMsgPrefix;
                 self.update();
             });
         }
+        self.onLogin = (loginForm) => {
+            loginOrSignup('login', loginForm, 'Could not authenticate. ');
+        }
         self.onSignUp = (loginForm) => {
+            loginOrSignup('signup', loginForm, 'Could not create user. ');
         }
     </script>
 </dlg-login>

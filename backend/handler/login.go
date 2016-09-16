@@ -11,10 +11,11 @@ import (
 
 type (
 	loginForm struct {
+		Action    []string `form:"action" valid:"required,matches(login|signup)"`
 		Challenge []string `form:"challenge" valid:"required"`
-		Login     []string `form:"login" valid:"email,required"`
-		Password  []string `form:"password" valid:"stringlength(3|10),required"`
-		Scopes    []string `form:"scopes" valid:"stringlength(1|500),required"`
+		Login     []string `form:"login" valid:"required,email"`
+		Password  []string `form:"password" valid:"required,stringlength(3|10)"`
+		Scopes    []string `form:"scopes" valid:"required,stringlength(1|500)"`
 	}
 	loginReply struct {
 		Consent string `json:"consent"`
@@ -31,18 +32,26 @@ func Login(c echo.Context) error {
 		return c.JSON(http.StatusOK, newJsonError(err))
 	}
 
-	if err := UserService.Authenticate(
-		lf.Login[0],
-		lf.Password[0]); err != nil {
-		return c.JSON(http.StatusOK, newJsonError(err))
-	}
-
 	signedTokenString, err := hydra.GenerateConsentToken(
 		lf.Login[0],
 		lf.Scopes,
 		lf.Challenge[0])
 	if err != nil {
 		return err
+	}
+
+	var action func(login, password string) error
+
+	if lf.Action[0] == "login" {
+		action = UserService.Authenticate
+	} else {
+		action = UserService.Create
+	}
+
+	if err := action(
+		lf.Login[0],
+		lf.Password[0]); err != nil {
+		return c.JSON(http.StatusOK, newJsonError(err))
 	}
 
 	reply := loginReply{

@@ -1,4 +1,4 @@
-package dummyuser
+package user
 
 import (
 	"errors"
@@ -7,8 +7,8 @@ import (
 
 type dummyuserapi struct{}
 
-func New() api.UserAPI {
-	return dummyuserapi{}
+func New() (api.UserAPI, error) {
+	return &dummyuserapi{}, nil
 }
 
 func (dummyuserapi) Create(login, password string) error {
@@ -20,5 +20,9 @@ func (dummyuserapi) Authenticate(login, password string) error {
 		err := errors.New("Invalid username and password combination")
 		return err
 	}
+	return nil
+}
+
+func (dummyuserapi) Close() error {
 	return nil
 }

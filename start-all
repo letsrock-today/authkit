@@ -5,8 +5,6 @@ exit 1
 
 # 1. start hydra
 
-sudo docker run -d -p 4444:4444 --name my-hydra -e "CONSENT_URL=https://localhost:8080/login" oryam/hydra
-
 sudo docker run -d \
     -p 4444:4444 \
     --name my-hydra \
@@ -23,8 +21,6 @@ sudo docker exec -i -t my-hydra /bin/bash
 
 hydra connect --skip-tls-verify
 
-hydra clients create -n "test" -c [https://localhost:8080/callback] -g [authorize_code,authorization_code,client_credentials] -r [code,token] -a [core,hydra.keys.get] --skip-tls-verify
-
 hydra clients create -n "test" \
   -c [https://localhost:8080/callback] \
   -g [authorize_code,authorization_code,client_credentials] \
@@ -40,7 +36,13 @@ exit
 
 # 4. put returned client_id and client_secret into dev.yml
 
-# 5. run ui-app
+# 5. start DB
+
+sudo docker run -d \
+    --name mongo-hydra-sample \
+    mongo
+
+# 6. run ui-app
 
 cd ui-web/
 rm -rf dist
@@ -49,7 +51,7 @@ cd ../backend
 
 go run main.go
 
-# 6. start from page like this (in firefox!, use client_id from #3):
+# 7. start from page like this (in firefox!, use client_id from #3):
 #
 # https://localhost:8080/oauth2/auth?client_id=xxx&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
 # https://localhost:8080/oauth2/auth?client_id=70e0c112-bd98-440a-b6fd-7f24857bc9f7&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof

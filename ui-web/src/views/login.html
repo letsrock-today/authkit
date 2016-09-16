@@ -47,14 +47,27 @@ import jwt from 'jwt-decode';
             e.stopPropagation();
             return true;
         }
-        self.onLogin = (loginForm) => {
+        let loginOrSignup = (action, loginForm, errMsgPrefix) => {
             self.showAuth = false;
             self.error = '';
+            console.log(self.error);
             self.loginForm = new FormData(loginForm);
             if (challenge) {
                 self.loginForm.append('challenge', challenge);
             }
+            self.loginForm.append('action', action);
             self.decodedChallenge = jwt(challenge);
+            self.errMsgPrefix = errMsgPrefix;
+            console.log(self.error);
+            self.update();
+        }
+        self.onLogin = (loginForm) => {
+            loginOrSignup('login', loginForm, 'Could not authenticate. ');
+            console.log(self.error);
+        }
+        self.onSignUp = (loginForm) => {
+            loginOrSignup('signup', loginForm, 'Could not create user. ');
+            console.log(self.error);
         }
         self.onConsent = (scopes) => {
             scopes.forEach(scope => self.loginForm.append('scopes', scope));
@@ -68,7 +81,7 @@ import jwt from 'jwt-decode';
             .then(data => {
                 const {consent, error} = data;
                 if (error) {
-                    self.error = 'Could not authenticate. ' + error;
+                    self.error = self.errMsgPrefix + error;
                     self.showAuth = true;
                     self.update();
                 } else {
@@ -80,7 +93,7 @@ import jwt from 'jwt-decode';
             })
             .catch(e => {
                 console.log(e);
-                self.error = 'Could not authenticate. ';
+                self.error = self.errMsgPrefix;
                 self.showAuth = true;
                 self.update();
             });
@@ -90,8 +103,6 @@ import jwt from 'jwt-decode';
                 self.decodedChallenge.redir,
                 'consent',
                 '');
-        }
-        self.onSignUp = (loginForm) => {
         }
     </script>
 </login>

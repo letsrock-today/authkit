@@ -30,3 +30,4 @@ import:
   - uber
   - vk
 - package: gopkg.in/yaml.v2
+- package: gopkg.in/mgo.v2

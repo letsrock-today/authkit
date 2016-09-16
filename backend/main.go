@@ -11,14 +11,19 @@ import (
 	"github.com/letsrock-today/hydra-sample/backend/config"
 	"github.com/letsrock-today/hydra-sample/backend/handler"
 	"github.com/letsrock-today/hydra-sample/backend/route"
-	"github.com/letsrock-today/hydra-sample/backend/service/user/dummyuser"
+	"github.com/letsrock-today/hydra-sample/backend/service/user/mgo-user"
 )
 
 func main() {
 	flag.Parse()
 
-	//TODO: replace implementation
-	handler.UserService = dummyuser.New()
+	// store implementation can be changed here
+	u, err := user.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer u.Close()
+	handler.UserService = u
 
 	e := echo.New()
 
