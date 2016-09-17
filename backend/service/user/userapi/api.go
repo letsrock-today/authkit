@@ -9,6 +9,7 @@ type UserAPI interface {
 	io.Closer
 	Create(login, password string) error
 	Authenticate(login, password string) error
+	GetUser(email string) (User, error)
 }
 
 type User struct {

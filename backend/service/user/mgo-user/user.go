@@ -80,6 +80,11 @@ func (ua userapi) Authenticate(login, password string) error {
 	return nil
 }
 
+func (ua userapi) GetUser(email string) (api.User, error) {
+	// TODO
+	return api.User{}, nil
+}
+
 func hash(pass string) string {
 	h := md5.New()
 	h.Write([]byte(pass))

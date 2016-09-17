@@ -23,6 +23,10 @@ func (dummyuserapi) Authenticate(login, password string) error {
 	return nil
 }
 
+func (dummyuserapi) GetUser(email string) (api.User, error) {
+	return api.User{}, nil
+}
+
 func (dummyuserapi) Close() error {
 	return nil
 }

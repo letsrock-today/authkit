@@ -39,6 +39,7 @@ exit
 # 5. start DB
 
 sudo docker run -d \
+    -p 27017:27017 \
     --name mongo-hydra-sample \
     mongo
 

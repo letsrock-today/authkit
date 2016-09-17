@@ -14,4 +14,6 @@ func initAPI(e *echo.Echo) {
 	e.POST("/api/login-priv", handler.LoginPriv)
 
 	e.GET("/callback", handler.Callback)
+
+	e.POST("/password-reset", handler.ResetPassword)
 }

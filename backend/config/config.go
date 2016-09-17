@@ -19,6 +19,7 @@ type Config struct {
 	OAuth2Providers        []OAuth2Provider         `yaml:"oauth2-providers"`
 	HydraAddr              string                   `yaml:"hydra-addr"`
 	ChallengeLifespan      time.Duration            `yaml:"challenge-lifespan"`
+	EmailConfig            EmailConfig              `yaml:"email-config"`
 	HydraClientCredentials clientcredentials.Config `yaml:"-"`
 	HydraOAuth2Config      oauth2.Config            `yaml:"-"`
 	OAuth2Configs          map[string]oauth2.Config `yaml:"-"`
@@ -41,6 +42,13 @@ type OAuth2Provider struct {
 	IconURL      string   `json:"iconUrl" yaml:"icon"`
 	TokenURL     string   `json:"-" yaml:"token-url"`
 	AuthURL      string   `json:"-" yaml:"auth-url"`
+}
+
+type EmailConfig struct {
+	Sender     string `yaml:"sender"`
+	SenderPass string `yaml:"sender-pass"`
+	MailServer string `yaml:"server"`
+	MailPort   string `yaml:"port"`
 }
 
 func GetConfig() Config {
