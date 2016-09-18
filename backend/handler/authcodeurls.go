@@ -26,6 +26,7 @@ func AuthCodeURLs(c echo.Context) error {
 		state, err := newStateToken(
 			cfg.OAuth2State.TokenSignKey,
 			cfg.OAuth2State.TokenIssuer,
+			"",
 			pid,
 			cfg.OAuth2State.Expiration)
 		if err != nil {

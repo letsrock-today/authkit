@@ -11,10 +11,10 @@ import (
 
 type (
 	loginForm struct {
-		Action    []string `form:"action" valid:"required,matches(login|signup)"`
-		Challenge []string `form:"challenge" valid:"required"`
-		Login     []string `form:"login" valid:"required,email"`
-		Password  []string `form:"password" valid:"required,stringlength(3|10)"`
+		Action    string   `form:"action" valid:"required,matches(login|signup)"`
+		Challenge string   `form:"challenge" valid:"required"`
+		Login     string   `form:"login" valid:"required,email"`
+		Password  string   `form:"password" valid:"required,stringlength(3|10)"`
 		Scopes    []string `form:"scopes" valid:"required,stringlength(1|500)"`
 	}
 	loginReply struct {
@@ -33,24 +33,24 @@ func Login(c echo.Context) error {
 	}
 
 	signedTokenString, err := hydra.GenerateConsentToken(
-		lf.Login[0],
+		lf.Login,
 		lf.Scopes,
-		lf.Challenge[0])
+		lf.Challenge)
 	if err != nil {
 		return err
 	}
 
 	var action func(login, password string) error
 
-	if lf.Action[0] == "login" {
+	if lf.Action == "login" {
 		action = UserService.Authenticate
 	} else {
 		action = UserService.Create
 	}
 
 	if err := action(
-		lf.Login[0],
-		lf.Password[0]); err != nil {
+		lf.Login,
+		lf.Password); err != nil {
 		return c.JSON(http.StatusOK, newJsonError(err))
 	}
 

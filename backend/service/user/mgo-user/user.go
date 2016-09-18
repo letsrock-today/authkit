@@ -80,9 +80,31 @@ func (ua userapi) Authenticate(login, password string) error {
 	return nil
 }
 
-func (ua userapi) GetUser(email string) (api.User, error) {
-	// TODO
-	return api.User{}, nil
+func (ua userapi) Get(email string) (*api.User, error) {
+	user := api.User{}
+	err := ua.users.Find(
+		bson.M{
+			"email": email,
+		}).One(&user)
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			return nil, api.AuthErrorUserNotFound
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (ua userapi) UpdatePassword(login, password string) error {
+	return ua.users.Update(
+		bson.M{
+			"email": login,
+		},
+		bson.M{
+			"$set": bson.M{
+				"passwordhash": hash(password),
+			},
+		})
 }
 
 func hash(pass string) string {

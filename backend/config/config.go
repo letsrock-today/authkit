@@ -9,21 +9,22 @@ import (
 )
 
 type Config struct {
-	ListenAddr             string                   `yaml:"listen-addr"`
-	TLSCertFile            string                   `yaml:"tls-cert-file"`
-	TLSKeyFile             string                   `yaml:"tls-key-file"`
-	ExternalBaseURL        string                   `yaml:"external-base-url"`
-	OAuth2RedirectURL      string                   `yaml:"oauth2-redirect-url"`
-	HydraOAuth2Provider    OAuth2Provider           `yaml:"hydra-clientcredentials"`
-	OAuth2State            OAuth2State              `yaml:"oauth2-state"`
-	OAuth2Providers        []OAuth2Provider         `yaml:"oauth2-providers"`
-	HydraAddr              string                   `yaml:"hydra-addr"`
-	ChallengeLifespan      time.Duration            `yaml:"challenge-lifespan"`
-	EmailConfig            EmailConfig              `yaml:"email-config"`
-	HydraClientCredentials clientcredentials.Config `yaml:"-"`
-	HydraOAuth2Config      oauth2.Config            `yaml:"-"`
-	OAuth2Configs          map[string]oauth2.Config `yaml:"-"`
-	modTime                time.Time                `yaml:"-"`
+	ListenAddr                string                   `yaml:"listen-addr"`
+	TLSCertFile               string                   `yaml:"tls-cert-file"`
+	TLSKeyFile                string                   `yaml:"tls-key-file"`
+	ExternalBaseURL           string                   `yaml:"external-base-url"`
+	OAuth2RedirectURL         string                   `yaml:"oauth2-redirect-url"`
+	HydraOAuth2Provider       OAuth2Provider           `yaml:"hydra-clientcredentials"`
+	OAuth2State               OAuth2State              `yaml:"oauth2-state"`
+	OAuth2Providers           []OAuth2Provider         `yaml:"oauth2-providers"`
+	HydraAddr                 string                   `yaml:"hydra-addr"`
+	ChallengeLifespan         time.Duration            `yaml:"challenge-lifespan"`
+	PasswordResetLinkLifespan time.Duration            `yaml:"password-reset-link-lifespan"`
+	EmailConfig               EmailConfig              `yaml:"email-config"`
+	HydraClientCredentials    clientcredentials.Config `yaml:"-"`
+	HydraOAuth2Config         oauth2.Config            `yaml:"-"`
+	OAuth2Configs             map[string]oauth2.Config `yaml:"-"`
+	modTime                   time.Time                `yaml:"-"`
 }
 
 type OAuth2State struct {

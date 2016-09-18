@@ -14,9 +14,9 @@ import (
 
 type (
 	privLoginForm struct {
-		Action   []string `form:"action" valid:"required,matches(login|signup)"`
-		Login    string   `form:"login" valid:"email,required"`
-		Password string   `form:"password" valid:"stringlength(3|10),required"`
+		Action   string `form:"action" valid:"required,matches(login|signup)"`
+		Login    string `form:"login" valid:"email,required"`
+		Password string `form:"password" valid:"stringlength(3|10),required"`
 	}
 	privLoginReply struct {
 		RedirectURL string `json:"redirUrl"`
@@ -39,7 +39,7 @@ func LoginPriv(c echo.Context) error {
 
 	var action func(login, password string) error
 
-	if lf.Action[0] == "login" {
+	if lf.Action == "login" {
 		action = UserService.Authenticate
 	} else {
 		action = UserService.Create
@@ -62,6 +62,7 @@ func LoginPriv(c echo.Context) error {
 	state, err := newStateToken(
 		cfg.OAuth2State.TokenSignKey,
 		cfg.OAuth2State.TokenIssuer,
+		"",
 		"hydra-sample",
 		cfg.OAuth2State.Expiration)
 	if err != nil {
@@ -82,7 +83,7 @@ func LoginPriv(c echo.Context) error {
 	v := u.Query()
 	v.Set("client_id", cfg.HydraOAuth2Config.ClientID)
 	v.Set("response_type", "code")
-	v.Set("scope", strings.Join(cfg.HydraOAuth2Config.Scopes, "+"))
+	v.Set("scope", strings.Join(cfg.HydraOAuth2Config.Scopes, " "))
 	v.Set("state", state)
 	//v.Set("nonce", base64.URLEncoding.EncodeToString(nonce))
 	v.Set("consent", signedTokenString)

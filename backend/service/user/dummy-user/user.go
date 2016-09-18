@@ -23,8 +23,12 @@ func (dummyuserapi) Authenticate(login, password string) error {
 	return nil
 }
 
-func (dummyuserapi) GetUser(email string) (api.User, error) {
-	return api.User{}, nil
+func (dummyuserapi) Get(email string) (*api.User, error) {
+	return nil, errors.New("Not implemented yet")
+}
+
+func (ua userapi) UpdatePassword(login, password string) error {
+	return errors.New("Not implemented yet")
 }
 
 func (dummyuserapi) Close() error {
