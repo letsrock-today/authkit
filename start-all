@@ -1,6 +1,7 @@
 #/bin/bash
 
 echo "Don't execute this file, use snippets from it"
+less ./start-all
 exit 1
 
 # 1. start hydra
@@ -55,5 +56,4 @@ go run main.go
 # 7. start from page like this (in firefox!, use client_id from #3):
 #
 # https://localhost:8080/oauth2/auth?client_id=xxx&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
-# https://localhost:8080/oauth2/auth?client_id=70e0c112-bd98-440a-b6fd-7f24857bc9f7&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff&nonce=tedgziijemvninkuotcuuiof
 #

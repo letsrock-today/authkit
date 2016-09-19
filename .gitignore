@@ -27,5 +27,9 @@ _testmain.go
 
 *.swp
 backend/vendor
+backend/env/dev.yaml
+backend/env/dev-server.crt
+backend/env/dev-server.key
 ui-web/dist
 ui-web/node_modules
+

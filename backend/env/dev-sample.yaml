@@ -1,0 +1,104 @@
+listen-addr: ":8080"
+
+# use command below to generate self-signed certificate files:
+# openssl req -x509 -nodes -newkey rsa:2048 -keyout server.rsa.key -out server.rsa.crt -days 3650
+tls-cert-file: "./env/dev-server.crt"
+tls-key-file: "./env/dev-server.key"
+
+# this URL should be visible from app server (localhost, local IP or name)
+# TODO: ask Hydra guys whether unix sockets allowed
+hydra-addr: "https://localhost:4444"
+
+# URLs below should be visible from clients (with external IP or DNS name)
+external-base-url: "https://localhost:8080"
+oauth2-redirect-url: "https://localhost:8080/callback"
+
+challenge-lifespan: 5m
+password-reset-link-lifespan: 60m
+
+# hydra secrets (returned when client created via CLI)
+hydra-clientcredentials:
+    client-id: "xxx"
+    client-secret: "xxx"
+    scopes: ["core", "hydra.keys.get"]
+    token-url: "{base-url}/oauth2/token"
+    auth-url: "{base-url}/oauth2/auth"
+
+oauth2-state:
+    token-issuer: hydra-sample
+    # cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32
+    token-sign-key: "xxx"
+    expiration: 15m
+ 
+email-config:
+    sender: "xxx@gmail.com"
+    sender-pass: "xxx"
+    server: "smtp.gmail.com"
+    port: 587
+
+oauth2-providers:
+
+    - id: fb
+      name: FB (https://www.facebook.com/)
+      client-id: "xxx"
+      client-secret: "xxx"
+      icon: "\
+             data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgaGV\
+             pZ2h0PSI1MTIiIGlkPSJMYXllcl8xIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAg\
+             MCA1MTIgNTEyIiB3aWR0aD0iNTEyIiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxuc\
+             z0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOmNjPSJodHRwOi8vY3\
+             JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmc\
+             vZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5r\
+             c2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiIHhtbG5zOnJkZj0iaHR0cDovL\
+             3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyIgeG1sbnM6c29kaX\
+             BvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2R\
+             pLTAuZHRkIiB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48\
+             ZGVmcyBpZD0iZGVmczEyIi8+PGcgaWQ9Imc1OTkxIj48cmVjdCBoZWlnaHQ9IjUxM\
+             iIgaWQ9InJlY3QyOTg3IiByeD0iNjQiIHJ5PSI2NCIgc3R5bGU9ImZpbGw6IzNiNT\
+             k5ODtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6bm9uemVybztzdHJva2U6bm9uZSI\
+             gd2lkdGg9IjUxMiIgeD0iMCIgeT0iMCIvPjxwYXRoIGQ9Ik0gMjg2Ljk2NzgzLDQ1\
+             NS45OTk3MiBWIDI3My41Mzc1MyBoIDYxLjI0NCBsIDkuMTY5OSwtNzEuMTAyNjYga\
+             CAtNzAuNDEyNDYgdiAtNDUuMzk0OTMgYyAwLC0yMC41ODgyOCA1LjcyMDY2LC0zNC\
+             42MTk0MiAzNS4yMzQ5NiwtMzQuNjE5NDIgbCAzNy42NTU0LC0wLjAxMTIgViA1OC4\
+             4MDc5MTUgYyAtNi41MDk3LC0wLjg3MzgxIC0yOC44NTcxLC0yLjgwNzk0IC01NC44\
+             Njc1LC0yLjgwNzk0IC01NC4yODgwMywwIC05MS40NDk5NSwzMy4xNDU4NSAtOTEuN\
+             DQ5OTUsOTMuOTk4MTI1IHYgNTIuNDM3MDggaCAtNjEuNDAxODEgdiA3MS4xMDI2Ni\
+             BoIDYxLjQwMDM5IHYgMTgyLjQ2MjE5IGggNzMuNDI3MDcgeiIgaWQ9ImZfMV8iIHN\
+             0eWxlPSJmaWxsOiNmZmZmZmYiLz48L2c+PC9zdmc+"
+
+    - id: linkedin
+      name: LN (https://www.linkedin.com/)
+      client-id: "xxx"
+      client-secret: "xxx"
+      icon: "\
+             data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgaGV\
+             pZ2h0PSI1MTIiIGlkPSJMYXllcl8xIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAg\
+             MCA1MTIgNTEyIiB3aWR0aD0iNTEyIiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxuc\
+             z0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOmNjPSJodHRwOi8vY3\
+             JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmc\
+             vZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5r\
+             c2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiIHhtbG5zOnJkZj0iaHR0cDovL\
+             3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyIgeG1sbnM6c29kaX\
+             BvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2R\
+             pLTAuZHRkIiB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48\
+             ZGVmcyBpZD0iZGVmczEyIi8+PGcgaWQ9Imc1ODkxIj48cmVjdCBoZWlnaHQ9IjUxM\
+             iIgaWQ9InJlY3QyOTg3IiByeD0iNjQiIHJ5PSI2NCIgc3R5bGU9ImZpbGw6IzAwOD\
+             NiZTtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6bm9uemVybztzdHJva2U6bm9uZSI\
+             gd2lkdGg9IjUxMiIgeD0iMCIgeT0iNS42ODQzNDE5ZS0wMTQiLz48ZyBpZD0iZzkt\
+             MSIgdHJhbnNmb3JtPSJtYXRyaXgoMS41NTM3OTQ2LDAsMCwxLjU1Mzc5NDYsLTE0M\
+             C44NzMzMiwtMTMyLjY0NTUyKSI+PHJlY3QgaGVpZ2h0PSIxNjYuMDIxIiBpZD0icm\
+             VjdDExIiBzdHlsZT0iZmlsbDojZmZmZmZmIiB3aWR0aD0iNTUuMTk0IiB4PSIxMjk\
+             uOTU3IiB5PSIyMDAuMzU2OTkiLz48cGF0aCBkPSJtIDE1Ny45MjcsMTIwLjMwMyBj\
+             IC0xOC44ODQsMCAtMzEuMjIyLDEyLjQxNSAtMzEuMjIyLDI4LjY4NyAwLDE1LjkzI\
+             DExLjk2MywyOC42ODcgMzAuNDkxLDI4LjY4NyBoIDAuMzU3IGMgMTkuMjQ1LDAgMz\
+             EuMjI0LC0xMi43NTcgMzEuMjI0LC0yOC42ODcgLTAuMzU3LC0xNi4yNzIgLTExLjk\
+             3OCwtMjguNjg3IC0zMC44NSwtMjguNjg3IHoiIGlkPSJwYXRoMTMtMCIgc3R5bGU9\
+             ImZpbGw6I2ZmZmZmZiIvPjxwYXRoIGQ9Im0gMzIwLjYwNCwxOTYuNDUzIGMgLTI5L\
+             jI3NywwIC00Mi4zOTEsMTYuMTAxIC00OS43MzQsMjcuNDEgdiAtMjMuNTA2IGggLT\
+             U1LjE4IGMgMC43MzIsMTUuNTczIDAsMTY2LjAyMSAwLDE2Ni4wMjEgaCA1NS4xNzk\
+             gViAyNzMuNjYgYyAwLC00Ljk2MyAwLjM1NywtOS45MjQgMS44MiwtMTMuNDcxIDMu\
+             OTgyLC05LjkxMSAxMy4wNjgsLTIwLjE3OCAyOC4zMTMsLTIwLjE3OCAxOS45NTksM\
+             CAyNy45NTUsMTUuMjMgMjcuOTU1LDM3LjUzOSB2IDg4LjgyOCBoIDU1LjE4MiB2IC\
+             05NS4yMDYgYyAwLC01MC45OTYgLTI3LjIyNywtNzQuNzE5IC02My41MzUsLTc0Ljc\
+             xOSB6IiBpZD0icGF0aDE1IiBzdHlsZT0iZmlsbDojZmZmZmZmIi8+PC9nPjwvZz48\
+             L3N2Zz4="
