@@ -16,7 +16,7 @@ import (
 // we use proxy for hydra requests, so that all interaction with UI went via single port
 
 func initReverseProxy(e *echo.Echo) {
-	u, err := url.Parse(config.GetConfig().HydraAddr)
+	u, err := url.Parse(config.Get().HydraAddr)
 	if err != nil {
 		log.Fatal(err)
 	}

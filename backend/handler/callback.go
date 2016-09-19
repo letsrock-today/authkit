@@ -12,10 +12,10 @@ import (
 
 type (
 	callbackRequest struct {
-		Error            []string `form:"error"`
-		ErrorDescription []string `form:"error_description"`
-		State            []string `form:"state"`
-		Code             []string `form:"code"`
+		Error            string `form:"error"`
+		ErrorDescription string `form:"error_description"`
+		State            string `form:"state"`
+		Code             string `form:"code"`
 	}
 )
 
@@ -25,7 +25,7 @@ func Callback(c echo.Context) error {
 		return err
 	}
 
-	if len(cr.Error) > 0 {
+	if cr.Error != "" {
 		return fmt.Errorf("OAuth2 flow failed. Error: %s. Description: %s.", cr.Error, cr.ErrorDescription)
 	}
 

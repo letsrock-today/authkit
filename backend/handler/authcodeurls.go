@@ -21,7 +21,7 @@ type (
 
 func AuthCodeURLs(c echo.Context) error {
 	reply := authCodeURLsReply{}
-	cfg := config.GetConfig()
+	cfg := config.Get()
 	for pid, conf := range cfg.OAuth2Configs {
 		state, err := newStateToken(
 			cfg.OAuth2State.TokenSignKey,

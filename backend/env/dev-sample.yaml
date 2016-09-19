@@ -14,7 +14,7 @@ external-base-url: "https://localhost:8080"
 oauth2-redirect-url: "https://localhost:8080/callback"
 
 challenge-lifespan: 5m
-password-reset-link-lifespan: 60m
+confirmation-link-lifespan: 60m
 
 # hydra secrets (returned when client created via CLI)
 hydra-clientcredentials:

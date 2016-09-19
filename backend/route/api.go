@@ -17,4 +17,6 @@ func initAPI(e *echo.Echo) {
 
 	e.POST("/password-reset", handler.ResetPassword)
 	e.POST("/password-change", handler.ChangePassword)
+
+	e.GET("/email-confirm", handler.EmailConfirm)
 }

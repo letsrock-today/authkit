@@ -10,6 +10,7 @@ import (
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
 	"github.com/letsrock-today/hydra-sample/backend/service/hydra"
+	"github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
 )
 
 type (
@@ -38,20 +39,31 @@ func LoginPriv(c echo.Context) error {
 	}
 
 	var action func(login, password string) error
+	signup := lf.Action == "signup"
 
-	if lf.Action == "login" {
-		action = UserService.Authenticate
-	} else {
+	if signup {
 		action = UserService.Create
+	} else {
+		action = UserService.Authenticate
 	}
 
 	if err := action(
 		lf.Login,
 		lf.Password); err != nil {
+		if signup &&
+			(err == userapi.AuthErrorDisabled || err == userapi.AuthErrorDup) {
+			if err := sendConfirmationEmail(
+				lf.Login,
+				"",
+				confirmEmailURL,
+				false); err != nil {
+				return err
+			}
+		}
 		return c.JSON(http.StatusOK, newJsonError(err))
 	}
 
-	cfg := config.GetConfig()
+	cfg := config.Get()
 	signedTokenString, err := hydra.IssueConsentToken(
 		cfg.HydraOAuth2Config.ClientID,
 		cfg.HydraOAuth2Config.Scopes)

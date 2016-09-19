@@ -29,7 +29,7 @@ func main() {
 
 	route.Init(e)
 
-	c := config.GetConfig()
+	c := config.Get()
 
 	log.Printf("Serving at address: '%s'.", c.ListenAddr)
 	log.Printf("Use 'https://' prefix in browser.")

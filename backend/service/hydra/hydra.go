@@ -95,7 +95,7 @@ func IssueConsentToken(
 		jwt.StandardClaims{
 			Id:        uuid.New(),
 			Audience:  client_id,
-			ExpiresAt: time.Now().Add(config.GetConfig().ChallengeLifespan).Unix(),
+			ExpiresAt: time.Now().Add(config.Get().ChallengeLifespan).Unix(),
 		},
 		scopes,
 		"",
@@ -105,7 +105,7 @@ func IssueConsentToken(
 }
 
 func getKey(set, kid string) (interface{}, error) {
-	c := config.GetConfig()
+	c := config.Get()
 	conf := c.HydraClientCredentials
 	client := conf.Client(ctx)
 

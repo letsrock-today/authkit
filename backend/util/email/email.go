@@ -1,4 +1,4 @@
-package util
+package email
 
 import (
 	"bytes"
@@ -21,14 +21,14 @@ Best,
 {{.From}}`
 )
 
-func SendEmail(to, subj, text string) error {
+func Send(to, subj, text string) error {
 	var err error
 	t := template.New("emailTemplate")
 	if t, err = t.Parse(emailTemplate); err != nil {
 		return err
 	}
 
-	c := config.GetConfig().EmailConfig
+	c := config.Get().EmailConfig
 
 	var b bytes.Buffer
 	if err = t.Execute(&b, struct {

@@ -3,10 +3,12 @@ package user
 import (
 	"crypto/md5"
 	"fmt"
+	"time"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
+	"github.com/letsrock-today/hydra-sample/backend/config"
 	api "github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
 )
 
@@ -44,6 +46,13 @@ func New() (api.UserAPI, error) {
 		Key:    []string{"email"},
 		Unique: true,
 	}
+	if err := ua.users.EnsureIndex(index); err != nil {
+		return nil, err
+	}
+	index = mgo.Index{
+		Key:         []string{"disabled"},
+		ExpireAfter: config.Get().ConfirmationLinkLifespan,
+	}
 	return ua, ua.users.EnsureIndex(index)
 }
 
@@ -53,13 +62,18 @@ func (ua userapi) Close() error {
 }
 
 func (ua userapi) Create(login, password string) error {
+	t := time.Now()
 	err := ua.users.Insert(
 		&api.User{
 			Email:        login,
 			PasswordHash: hash(password),
+			Disabled:     &t,
 		})
 	if mgo.IsDup(err) {
 		return api.AuthErrorDup
+	}
+	if err == nil {
+		return api.AuthErrorDisabled
 	}
 	return err
 }
@@ -77,14 +91,17 @@ func (ua userapi) Authenticate(login, password string) error {
 		}
 		return err
 	}
+	if err == nil && user.Disabled != nil {
+		return api.AuthErrorDisabled
+	}
 	return nil
 }
 
-func (ua userapi) Get(email string) (*api.User, error) {
+func (ua userapi) Get(login string) (*api.User, error) {
 	user := api.User{}
 	err := ua.users.Find(
 		bson.M{
-			"email": email,
+			"email": login,
 		}).One(&user)
 	if err != nil {
 		if err == mgo.ErrNotFound {
@@ -96,7 +113,7 @@ func (ua userapi) Get(email string) (*api.User, error) {
 }
 
 func (ua userapi) UpdatePassword(login, password string) error {
-	return ua.users.Update(
+	err := ua.users.Update(
 		bson.M{
 			"email": login,
 		},
@@ -105,6 +122,26 @@ func (ua userapi) UpdatePassword(login, password string) error {
 				"passwordhash": hash(password),
 			},
 		})
+	if err == mgo.ErrNotFound {
+		return api.AuthErrorUserNotFound
+	}
+	return err
+}
+
+func (ua userapi) Enable(login string) error {
+	err := ua.users.Update(
+		bson.M{
+			"email": login,
+		},
+		bson.M{
+			"$set": bson.M{
+				"disabled": nil,
+			},
+		})
+	if err == mgo.ErrNotFound {
+		return api.AuthErrorUserNotFound
+	}
+	return err
 }
 
 func hash(pass string) string {

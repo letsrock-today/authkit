@@ -1,15 +1,15 @@
 package handler
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
+
 	"github.com/letsrock-today/hydra-sample/backend/config"
 	"github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
-	"github.com/letsrock-today/hydra-sample/backend/util"
 )
 
 type (
@@ -23,10 +23,7 @@ type (
 	}
 )
 
-var (
-	emailInvalidErr    = fmt.Errorf("Email invalid or not registered in the app")
-	confirmPasswordURL = "/password-confirm"
-)
+var emailInvalidErr = errors.New("Email is invalid or not registered in the app")
 
 func ResetPassword(c echo.Context) error {
 	var rp resetPasswordForm
@@ -44,21 +41,12 @@ func ResetPassword(c echo.Context) error {
 		}
 		return err
 	}
-	cfg := config.GetConfig()
-	token, err := newStateToken(
-		cfg.OAuth2State.TokenSignKey,
-		cfg.OAuth2State.TokenIssuer,
+
+	if err := sendConfirmationEmail(
 		user.Email,
 		user.PasswordHash,
-		cfg.PasswordResetLinkLifespan)
-	if err != nil {
-		return err
-	}
-
-	confirmPasswordExternalURL := cfg.ExternalBaseURL + confirmPasswordURL
-	link := fmt.Sprintf("%s?token=%s", confirmPasswordExternalURL, token)
-	text := fmt.Sprintf("Follow this link to change your password: %s\n", link)
-	if err = util.SendEmail(user.Email, "Confirm password reset", text); err != nil {
+		confirmPasswordURL,
+		true); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, struct{}{})
@@ -73,7 +61,7 @@ func ChangePassword(c echo.Context) error {
 		return c.JSON(http.StatusOK, newJsonError(err))
 	}
 
-	cfg := config.GetConfig()
+	cfg := config.Get()
 	claims, err := parseStateToken(
 		cfg.OAuth2State.TokenSignKey,
 		cfg.OAuth2State.TokenIssuer,

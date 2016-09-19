@@ -22,7 +22,7 @@ func AuthProviders(c echo.Context) error {
 		seekingbuffer.New(
 			func() ([]byte, error) {
 				p := providersReply{}
-				p.Providers = config.GetConfig().OAuth2Providers
+				p.Providers = config.Get().OAuth2Providers
 
 				b, err := json.Marshal(p)
 				if err != nil {
