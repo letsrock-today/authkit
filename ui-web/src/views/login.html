@@ -1,5 +1,5 @@
 import urlParams from '../util/url-params';
-import 'whatwg-fetch';
+import _fetch from '../util/fetch';
 import respHelper from '../util/response-helper';
 import jwt from 'jwt-decode';
 
@@ -71,7 +71,7 @@ import jwt from 'jwt-decode';
         }
         self.onConsent = (scopes) => {
             scopes.forEach(scope => self.loginForm.append('scopes', scope));
-            fetch('/api/login', {
+            _fetch.fetch('/api/login', {
                 method: 'POST',
                 body: self.loginForm
             })

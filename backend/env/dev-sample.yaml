@@ -16,6 +16,9 @@ oauth2-redirect-url: "https://localhost:8080/callback"
 challenge-lifespan: 5m
 confirmation-link-lifespan: 60m
 
+# cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32
+csrf-secret: "xxx"
+
 # hydra secrets (returned when client created via CLI)
 hydra-clientcredentials:
     client-id: "xxx"

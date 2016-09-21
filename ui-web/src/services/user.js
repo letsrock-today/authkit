@@ -1,7 +1,7 @@
 'use strict';
 
 import dispatcher from '../dispatcher';
-import 'whatwg-fetch';
+import _fetch from '../util/fetch';
 import respHelper from '../util/response-helper';
 
 dispatcher.on(dispatcher.TRY_LOGIN, _login);
@@ -12,8 +12,8 @@ dispatcher.on(dispatcher.DO_LOGOUT, _logout);
 function _login() {
     Promise.all([
             // See https://hacks.mozilla.org/2016/03/referrer-and-cache-control-apis-for-fetch/
-            fetch('/api/auth-providers'),
-            fetch('/api/auth-code-urls', {cache: "no-cache"})])
+            _fetch.fetch('/api/auth-providers'),
+            _fetch.fetch('/api/auth-code-urls', {cache: "no-cache"})])
         .then(responses => {
             return Promise.all([
                     respHelper.handleStatus(responses[0]),

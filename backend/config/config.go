@@ -25,12 +25,15 @@ type Config struct {
 	HydraOAuth2Config        oauth2.Config            `yaml:"-"`
 	OAuth2Configs            map[string]oauth2.Config `yaml:"-"`
 	modTime                  time.Time                `yaml:"-"`
+	CSRFSecretHex            string                   `yaml:"csrf-secret"`
+	CSRFSecret               []byte                   `yaml:"-"`
 }
 
 type OAuth2State struct {
-	TokenIssuer  string        `yaml:"token-issuer`
-	TokenSignKey []byte        `yaml:"token-sign-key`
-	Expiration   time.Duration `yaml:"expiration`
+	TokenIssuer     string        `yaml:"token-issuer"`
+	TokenSignKeyHex string        `yaml:"token-sign-key"`
+	TokenSignKey    []byte        `yaml:"-"`
+	Expiration      time.Duration `yaml:"expiration"`
 }
 
 type OAuth2Provider struct {

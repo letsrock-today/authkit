@@ -1,5 +1,5 @@
 import dispatcher from '../dispatcher'
-import 'whatwg-fetch';
+import _fetch from '../util/fetch';
 import respHelper from '../util/response-helper';
 
 <dlg-login>
@@ -61,7 +61,7 @@ import respHelper from '../util/response-helper';
             self.error = '';
             let body =new FormData(loginForm);
             body.append('action', action);
-            fetch('/api/login-priv', {
+            _fetch.fetch('/api/login-priv', {
                 method: 'POST',
                 body: body
             })

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/hex"
 	"errors"
 	"flag"
 	"io/ioutil"
@@ -77,6 +78,16 @@ func (c *Config) parseConfig() error {
 		return err
 	}
 	c.modTime = s.ModTime().UTC()
+	c.CSRFSecret, err = hex.DecodeString(c.CSRFSecretHex)
+	if err != nil {
+		return err
+	}
+	c.OAuth2State.TokenSignKey, err = hex.DecodeString(c.OAuth2State.TokenSignKeyHex)
+	if err != nil {
+		return err
+	}
+	log.Println(c.CSRFSecret, c.OAuth2State.TokenSignKey)
+
 	return nil
 }
 
