@@ -27,8 +27,6 @@ type (
 // Login for "priveleged" client - app's own UI
 func LoginPriv(c echo.Context) error {
 
-	// TODO: protect against csrf
-
 	var lf privLoginForm
 	if err := c.Bind(&lf); err != nil {
 		return err
@@ -75,7 +73,7 @@ func LoginPriv(c echo.Context) error {
 		cfg.OAuth2State.TokenSignKey,
 		cfg.OAuth2State.TokenIssuer,
 		lf.Login,
-		"hydra-sample",
+		privPID,
 		cfg.OAuth2State.Expiration)
 	if err != nil {
 		return err

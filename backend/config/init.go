@@ -86,8 +86,6 @@ func (c *Config) parseConfig() error {
 	if err != nil {
 		return err
 	}
-	log.Println(c.CSRFSecret, c.OAuth2State.TokenSignKey)
-
 	return nil
 }
 
@@ -106,6 +104,16 @@ func (c *Config) initOAuth2Config() error {
 		Endpoint: oauth2.Endpoint{
 			TokenURL: strings.Replace(h.TokenURL, "{base-url}", c.ExternalBaseURL, -1),
 			AuthURL:  strings.Replace(h.AuthURL, "{base-url}", c.ExternalBaseURL, -1),
+		},
+		RedirectURL: c.OAuth2RedirectURL,
+	}
+	c.HydraOAuth2ConfigInt = oauth2.Config{
+		ClientID:     h.ClientId,
+		ClientSecret: h.ClientSecret,
+		Scopes:       h.Scopes,
+		Endpoint: oauth2.Endpoint{
+			TokenURL: strings.Replace(h.TokenURL, "{base-url}", c.HydraAddr, -1),
+			AuthURL:  strings.Replace(h.AuthURL, "{base-url}", c.HydraAddr, -1),
 		},
 		RedirectURL: c.OAuth2RedirectURL,
 	}

@@ -1,3 +1,5 @@
+'use strict';
+
 import dispatcher from '../dispatcher'
 import _fetch from '../util/fetch';
 import respHelper from '../util/response-helper';
@@ -69,7 +71,6 @@ import respHelper from '../util/response-helper';
                 return respHelper.handleStatus(r);
             })
             .then(data => {
-                console.log(data);
                 const {redirUrl, error} = data;
                 if (error) {
                     self.error = errMsgPrefix + error;
@@ -79,7 +80,6 @@ import respHelper from '../util/response-helper';
                 }
             })
             .catch(e => {
-                console.log(e);
                 self.error = errMsgPrefix;
                 self.update();
             });

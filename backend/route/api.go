@@ -9,6 +9,7 @@ import (
 func initAPI(e *echo.Echo) {
 	e.GET("/api/auth-providers", handler.AuthProviders)
 	e.GET("/api/auth-code-urls", handler.AuthCodeURLs)
+	e.GET("/api/profile", handler.Profile)
 
 	e.POST("/api/login", handler.Login)
 	e.POST("/api/login-priv", handler.LoginPriv)

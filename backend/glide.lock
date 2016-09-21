@@ -1,8 +1,8 @@
-hash: ea348cda40e6d9d12044848c920798a435f807c1723682df2424dee4793e8b0f
-updated: 2016-09-19T13:24:16.898477468+07:00
+hash: a01c7b6a47feb475393a7d6b043404a96e84b9da1a12f9835900b3582a3971d1
+updated: 2016-09-22T19:14:52.65043385+07:00
 imports:
 - name: cloud.google.com/go
-  version: 837ecd5c3c75f2e8304f300f8f1c883ee26cdee9
+  version: bb30d4428e701b3ad3c462f990a243ac51359753
   subpackages:
   - compute/metadata
   - internal
@@ -22,9 +22,11 @@ imports:
   - engine
   - engine/standard
   - log
+  - middleware
 - name: github.com/labstack/gommon
-  version: 431777a5117c8de4352a400dad1e2a55f484b189
+  version: 35d2b9f99cc2aa9f89dce3ea318229c68769e182
   subpackages:
+  - bytes
   - color
   - log
 - name: github.com/mattn/go-colorable
@@ -40,7 +42,7 @@ imports:
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: golang.org/x/net
-  version: 71a035914f99bb58fe82eac0f1289f10963d876c
+  version: 6d3beaea10370160dea67f5c9327ed791afd5389
   subpackages:
   - context
   - context/ctxhttp
@@ -67,7 +69,7 @@ imports:
   subpackages:
   - unix
 - name: google.golang.org/appengine
-  version: 78199dcb0669fc381c22e919e1e97eba879e8f60
+  version: 45688856612892bdabe348fff413e5075ac72f46
   subpackages:
   - internal
   - internal/app_identity

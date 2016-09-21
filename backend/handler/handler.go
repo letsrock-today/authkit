@@ -13,6 +13,7 @@ var UserService userapi.UserAPI
 const (
 	confirmPasswordURL = "/password-confirm"
 	confirmEmailURL    = "/email-confirm"
+	privPID            = "hydra-sample"
 )
 
 type jsonError struct {

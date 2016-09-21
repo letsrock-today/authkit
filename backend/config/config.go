@@ -23,6 +23,7 @@ type Config struct {
 	EmailConfig              EmailConfig              `yaml:"email-config"`
 	HydraClientCredentials   clientcredentials.Config `yaml:"-"`
 	HydraOAuth2Config        oauth2.Config            `yaml:"-"`
+	HydraOAuth2ConfigInt     oauth2.Config            `yaml:"-"`
 	OAuth2Configs            map[string]oauth2.Config `yaml:"-"`
 	modTime                  time.Time                `yaml:"-"`
 	CSRFSecretHex            string                   `yaml:"csrf-secret"`
