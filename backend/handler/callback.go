@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo"
 
+	"github.com/letsrock-today/hydra-sample/backend/config"
 	"github.com/letsrock-today/hydra-sample/backend/util/echo-querybinder"
 )
 
@@ -31,11 +32,21 @@ func Callback(c echo.Context) error {
 
 	//TODO: validate request params
 
-	s := fmt.Sprintf("Obtained code=%s and state=%s", cr.Code, cr.State)
+	s := fmt.Sprintf("Obtained code=%s and state=%s\n", cr.Code, cr.State)
+	log.Println(s)
 
 	//TODO
+	cfg := config.Get()
+	claims, err := parseStateToken(
+		cfg.OAuth2State.TokenSignKey,
+		cfg.OAuth2State.TokenIssuer,
+		cr.State)
+	if err != nil {
+		return err
+	}
 
-	log.Println(s)
+	ss := fmt.Sprintf("Claims=%#v", claims)
+	log.Println(ss)
 
 	return c.String(http.StatusOK, s)
 }

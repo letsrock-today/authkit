@@ -31,3 +31,9 @@ import:
   - vk
 - package: gopkg.in/yaml.v2
 - package: gopkg.in/mgo.v2
+- package: cloud.google.com/go
+  subpackages:
+  - /compute/metadata
+- package: golang.org/x/sys
+  subpackages:
+  - /unix
