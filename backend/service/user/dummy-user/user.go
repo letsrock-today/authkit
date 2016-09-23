@@ -1,6 +1,11 @@
 package user
 
-import api "github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
+import (
+	"errors"
+	"time"
+
+	api "github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
+)
 
 type dummyuserapi struct {
 	users map[string]api.User
@@ -22,9 +27,11 @@ func (du *dummyuserapi) Create(login, password string) error {
 	if ok {
 		return api.AuthErrorDup
 	}
+	t := time.Now()
 	du.users[login] = api.User{
 		Email:        login,
 		PasswordHash: password,
+		Disabled:     &t,
 	}
 	return api.AuthErrorDisabled
 }
@@ -37,13 +44,13 @@ func (du *dummyuserapi) Authenticate(login, password string) error {
 	if password != u.PasswordHash {
 		return api.AuthError
 	}
-	if !u.Enabled {
+	if u.Disabled != nil {
 		return api.AuthErrorDisabled
 	}
 	return nil
 }
 
-func (du *dummyuserapi) Get(login string) (*api.User, error) {
+func (du *dummyuserapi) User(login string) (*api.User, error) {
 	u, ok := du.users[login]
 	if !ok {
 		return nil, api.AuthErrorUserNotFound
@@ -52,7 +59,7 @@ func (du *dummyuserapi) Get(login string) (*api.User, error) {
 }
 
 func (du *dummyuserapi) UpdatePassword(login, password string) error {
-	u, err := du.Get(login)
+	u, err := du.User(login)
 	if err != nil {
 		return err
 	}
@@ -60,11 +67,21 @@ func (du *dummyuserapi) UpdatePassword(login, password string) error {
 	return nil
 }
 
-func (du *dummyuserapi) Enable(login string, enable bool) error {
-	u, err := du.Get(login)
+func (du *dummyuserapi) Enable(login string) error {
+	u, err := du.User(login)
 	if err != nil {
 		return err
 	}
-	u.Enabled = enable
+	u.Disabled = nil
 	return nil
+}
+
+func (du *dummyuserapi) UpdateToken(login, pid, token string) error {
+	//TODO
+	return errors.New("Not implemented yet")
+}
+
+func (du *dummyuserapi) Token(login, pid string) (string, error) {
+	//TODO
+	return "", errors.New("Not implemented yet")
 }

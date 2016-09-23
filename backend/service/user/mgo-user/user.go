@@ -2,6 +2,7 @@ package user
 
 import (
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"time"
 
@@ -97,7 +98,7 @@ func (ua userapi) Authenticate(login, password string) error {
 	return nil
 }
 
-func (ua userapi) Get(login string) (*api.User, error) {
+func (ua userapi) User(login string) (*api.User, error) {
 	user := api.User{}
 	err := ua.users.Find(
 		bson.M{
@@ -142,6 +143,16 @@ func (ua userapi) Enable(login string) error {
 		return api.AuthErrorUserNotFound
 	}
 	return err
+}
+
+func (ua userapi) UpdateToken(login, pid, token string) error {
+	//TODO
+	return errors.New("Not implemented yet")
+}
+
+func (ua userapi) Token(login, pid string) (string, error) {
+	//TODO
+	return "", errors.New("Not implemented yet")
 }
 
 func hash(pass string) string {

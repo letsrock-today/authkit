@@ -18,13 +18,19 @@ type UserAPI interface {
 	Authenticate(login, password string) error
 
 	// return user by login
-	Get(login string) (*User, error)
+	User(login string) (*User, error)
 
 	// update password
 	UpdatePassword(login, password string) error
 
 	// enable account
 	Enable(login string) error
+
+	// save token
+	UpdateToken(login, pid, token string) error
+
+	// return token
+	Token(login, pid string) (string, error)
 }
 
 type User struct {

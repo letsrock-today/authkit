@@ -42,7 +42,7 @@ func EmailConfirm(c echo.Context) error {
 		return err
 	}
 
-	if err := UserService.Enable(claims.Audience); err != nil {
+	if err := Users.Enable(claims.Audience); err != nil {
 		if err == userapi.AuthErrorUserNotFound {
 			//TODO: format error
 			return c.String(http.StatusOK, err.Error())

@@ -4,16 +4,19 @@ import (
 	"fmt"
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
+	"github.com/letsrock-today/hydra-sample/backend/service/socialprofile"
 	"github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
 	"github.com/letsrock-today/hydra-sample/backend/util/email"
 )
 
-var UserService userapi.UserAPI
+var (
+	Users    userapi.UserAPI
+	Profiles socialprofile.ProfileAPI
+)
 
 const (
 	confirmPasswordURL = "/password-confirm"
 	confirmEmailURL    = "/email-confirm"
-	privPID            = "hydra-sample"
 )
 
 type jsonError struct {

@@ -8,6 +8,10 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 )
 
+const (
+	PrivPID = "hydra-sample"
+)
+
 type Config struct {
 	ListenAddr               string                   `yaml:"listen-addr"`
 	TLSCertFile              string                   `yaml:"tls-cert-file"`

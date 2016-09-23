@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -102,6 +103,11 @@ func IssueConsentToken(
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	return token.SignedString(key)
+}
+
+func IssueToken() (*oauth2.Token, error) {
+	//TODO
+	return nil, errors.New("Not implemented yet")
 }
 
 func getKey(set, kid string) (interface{}, error) {

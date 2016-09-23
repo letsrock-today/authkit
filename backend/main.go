@@ -11,6 +11,7 @@ import (
 	"github.com/letsrock-today/hydra-sample/backend/config"
 	"github.com/letsrock-today/hydra-sample/backend/handler"
 	"github.com/letsrock-today/hydra-sample/backend/route"
+	"github.com/letsrock-today/hydra-sample/backend/service/socialprofile"
 	"github.com/letsrock-today/hydra-sample/backend/service/user/mgo-user"
 )
 
@@ -23,7 +24,14 @@ func main() {
 		log.Fatal(err)
 	}
 	defer u.Close()
-	handler.UserService = u
+	handler.Users = u
+
+	p, err := socialprofile.New("hydra-sample")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer p.Close()
+	handler.Profiles = p
 
 	e := echo.New()
 

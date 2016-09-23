@@ -2,9 +2,11 @@ package handler
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/tls"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"golang.org/x/oauth2"
@@ -13,6 +15,9 @@ import (
 	"github.com/labstack/echo"
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
+	"github.com/letsrock-today/hydra-sample/backend/service/hydra"
+	"github.com/letsrock-today/hydra-sample/backend/service/socialprofile"
+	"github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
 	"github.com/letsrock-today/hydra-sample/backend/util/echo-querybinder"
 )
 
@@ -24,6 +29,8 @@ type (
 		Code             string `form:"code" valid:"required"`
 	}
 )
+
+const authCookieName = "X-App-Auth"
 
 func Callback(c echo.Context) error {
 	var cr callbackRequest
@@ -53,7 +60,7 @@ func Callback(c echo.Context) error {
 	ctx := context.Background()
 	pid := claims.Subject
 
-	if pid == privPID {
+	if pid == config.PrivPID {
 		oauth2cfg = cfg.HydraOAuth2ConfigInt
 		//TODO: provide factory for insecure context and app setting
 		//TODO: use real certeficates in PROD and remove transport replacement
@@ -77,18 +84,12 @@ func Callback(c echo.Context) error {
 		return err
 	}
 
-	if pid == privPID {
-		cookie := new(echo.Cookie)
-		//TODO: extract constant
-		cookie.SetName("X-App-Auth")
-		cookie.SetValue(token.AccessToken)
-		cookie.SetSecure(true)
+	if pid == config.PrivPID {
+		// our trusted provider, just return access token to client
+		cookie := createCookie(token.AccessToken)
 		c.SetCookie(cookie)
 		return c.Redirect(http.StatusFound, "/")
 	}
-
-	// If pid is of our own provider (hydra), return token to client and exit
-	// (redirect client to / with token in header).
 
 	// If pid is external, we need:
 	// - ensure, that internal user exists for external one,
@@ -96,31 +97,102 @@ func Callback(c echo.Context) error {
 	// - save external token to be able to use external API in the future,
 	// - generate our provider's (hydra) token for user and return it to client.
 
-	// Check that internal user exists for external user. Use external user ID
-	// to obtain internal user ID.
+	// Make provider-specific call to external provider for user's profile data.
+	// Obtain external user id and profile data.
+	pa, err := socialprofile.New(pid)
+	if err != nil {
+		return err
+	}
+	client := oauth2cfg.Client(ctx, token)
+	p, err := pa.Profile(client)
+	if err != nil {
+		return err
+	}
 
-	// If internal user doesn't exist:
+	// Check that internal user exists for external user.
+	// We use email as unique id for simplicity.
+	// It will only work when we can guarantee, that external provider
+	// returns unique and valid email.
+	// TODO: In general case we should use synthetic internal id
+	// and map external id to it.
+	user, err := Users.User(p.Email)
+	if err != nil && err != userapi.AuthErrorUserNotFound {
+		return err
+	}
 
-	// - Make provider-specifi call to external provider for user's profile data.
+	if user == nil {
+		// If internal user doesn't exist:
 
-	// - Create internal user.
+		// - Save user's profile from external provider to our profile db.
+		if err := Profiles.Save(client, p); err != nil {
+			return err
+		}
 
-	// - Save user's profile from external provider to our profile db.
+		// - Create internal user.
+		pass, err := makePassword() // create long random password
+		if err != nil {
+			return err
+		}
+		if err := Users.Create(p.Email, pass); err != nil {
+			return err
+		}
+		if err := Users.Enable(p.Email); err != nil {
+			return err
+		}
+	}
 
 	// Use provider-specific call to exchange short-lived token to long-lived one,
 	// if possible (facebook).
+	//TODO: check if it is relevant, use link below to implement
+	//TODO: https://github.com/golang/oauth2/issues/154
 
 	// Save external provider's token in the users DB.
+	b, err := json.Marshal(token)
+	if err != nil {
+		return err
+	}
+	if err := Users.UpdateToken(p.Email, pid, string(b)); err != nil {
+		return err
+	}
 
 	// Issue new hydra token for the user.
+	strtoken, err := Users.Token(p.Email, config.PrivPID)
+	if err != nil {
+		return err
+	}
+	var hydratoken *oauth2.Token
+	if strtoken == "" {
+		hydratoken, err = hydra.IssueToken()
+		if err != nil {
+			return err
+		}
+	} else {
+		err := json.Unmarshal([]byte(strtoken), hydratoken)
+		if err != nil {
+			return err
+		}
+	}
 
 	// Return hydra token to client end exit (redirect client to / with token in header).
+	cookie := createCookie(hydratoken.AccessToken)
+	c.SetCookie(cookie)
+	return c.Redirect(http.StatusFound, "/")
+}
 
-	s := fmt.Sprintf("Obtained code=%s and state=%s", cr.Code, cr.State)
-	log.Println(s)
+func makePassword() (string, error) {
+	const passwordLen = 20
+	b := make([]byte, passwordLen)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(b), nil
+}
 
-	ss := fmt.Sprintf("Claims=%#v", claims)
-	log.Println(ss)
-
-	return c.String(http.StatusOK, s)
+func createCookie(accessToken string) *echo.Cookie {
+	cookie := new(echo.Cookie)
+	cookie.SetName(authCookieName)
+	cookie.SetValue(accessToken)
+	cookie.SetSecure(true)
+	return cookie
 }

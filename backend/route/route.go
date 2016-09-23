@@ -8,6 +8,12 @@ import (
 )
 
 func Init(e *echo.Echo) {
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "method=${method}, uri=${uri}, status=${status}\n",
+	}))
+	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		StackSize: 1 << 10, // 1 KB
+	}))
 	e.Use(middleware.Secure())
 	e.Use(middleware.CSRF(config.Get().CSRFSecret))
 	initReverseProxy(e)

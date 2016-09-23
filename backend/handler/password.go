@@ -34,7 +34,7 @@ func ResetPassword(c echo.Context) error {
 		return c.JSON(http.StatusOK, newJsonError(err))
 	}
 
-	user, err := UserService.Get(rp.Email)
+	user, err := Users.User(rp.Email)
 	if err != nil {
 		if err == userapi.AuthErrorUserNotFound {
 			return c.JSON(http.StatusOK, newJsonError(err))
@@ -75,7 +75,7 @@ func ChangePassword(c echo.Context) error {
 		return err
 	}
 
-	user, err := UserService.Get(claims.Audience)
+	user, err := Users.User(claims.Audience)
 	if err != nil {
 		if err == userapi.AuthErrorUserNotFound {
 			return c.JSON(http.StatusOK, newJsonError(err))
@@ -85,7 +85,7 @@ func ChangePassword(c echo.Context) error {
 	if user.PasswordHash != claims.Subject {
 		return c.JSON(http.StatusOK, newJsonError(userapi.AuthError))
 	}
-	err = UserService.UpdatePassword(user.Email, cp.Password)
+	err = Users.UpdatePassword(user.Email, cp.Password)
 	if err != nil {
 		return err
 	}

@@ -40,9 +40,9 @@ func LoginPriv(c echo.Context) error {
 	signup := lf.Action == "signup"
 
 	if signup {
-		action = UserService.Create
+		action = Users.Create
 	} else {
-		action = UserService.Authenticate
+		action = Users.Authenticate
 	}
 
 	if err := action(
@@ -73,7 +73,7 @@ func LoginPriv(c echo.Context) error {
 		cfg.OAuth2State.TokenSignKey,
 		cfg.OAuth2State.TokenIssuer,
 		lf.Login,
-		privPID,
+		config.PrivPID,
 		cfg.OAuth2State.Expiration)
 	if err != nil {
 		return err
