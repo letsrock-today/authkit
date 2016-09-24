@@ -32,6 +32,7 @@ type Config struct {
 	modTime                  time.Time                `yaml:"-"`
 	CSRFSecretHex            string                   `yaml:"csrf-secret"`
 	CSRFSecret               []byte                   `yaml:"-"`
+	TLSInsecureSkipVerify    bool                     `yaml:"tls-insecure-skip-verify"`
 }
 
 type OAuth2State struct {

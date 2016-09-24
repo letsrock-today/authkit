@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -19,14 +20,10 @@ import (
 )
 
 // context to use for internal requests to Hydra
-//TODO: use real certeficates in PROD and remove transport replacement
-var ctx = context.WithValue(
-	context.Background(),
-	oauth2.HTTPClient,
-	&http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}})
+var (
+	once sync.Once
+	ctx  context.Context
+)
 
 type ChallengeClaims struct {
 	jwt.StandardClaims
@@ -113,7 +110,7 @@ func IssueToken() (*oauth2.Token, error) {
 func getKey(set, kid string) (interface{}, error) {
 	c := config.Get()
 	conf := c.HydraClientCredentials
-	client := conf.Client(ctx)
+	client := conf.Client(getHttpContext())
 
 	url := fmt.Sprintf("%s/keys/%s/%s", c.HydraAddr, set, kid)
 	req, err := http.NewRequest("GET", url, nil)
@@ -155,4 +152,20 @@ func getKey(set, kid string) (interface{}, error) {
 	}
 
 	return kr.Keys[0], nil
+}
+
+func getHttpContext() context.Context {
+	// context to use for internal requests to Hydra
+	once.Do(func() {
+		ctx = context.WithValue(
+			context.Background(),
+			oauth2.HTTPClient,
+			&http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: config.Get().TLSInsecureSkipVerify,
+					},
+				}})
+	})
+	return ctx
 }

@@ -62,14 +62,13 @@ func Callback(c echo.Context) error {
 
 	if pid == config.PrivPID {
 		oauth2cfg = cfg.HydraOAuth2ConfigInt
-		//TODO: provide factory for insecure context and app setting
 		//TODO: use real certeficates in PROD and remove transport replacement
 		ctx = context.WithValue(
 			context.Background(),
 			oauth2.HTTPClient,
 			&http.Client{
 				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+					TLSClientConfig: &tls.Config{InsecureSkipVerify: cfg.TLSInsecureSkipVerify},
 				}})
 	} else {
 		var ok bool
@@ -85,6 +84,9 @@ func Callback(c echo.Context) error {
 	}
 
 	if pid == config.PrivPID {
+		if err = updateToken(claims.Audience, config.PrivPID, token); err != nil {
+			return err
+		}
 		// our trusted provider, just return access token to client
 		cookie := createCookie(token.AccessToken)
 		c.SetCookie(cookie)
@@ -147,11 +149,7 @@ func Callback(c echo.Context) error {
 	//TODO: https://github.com/golang/oauth2/issues/154
 
 	// Save external provider's token in the users DB.
-	b, err := json.Marshal(token)
-	if err != nil {
-		return err
-	}
-	if err := Users.UpdateToken(p.Email, pid, string(b)); err != nil {
+	if err = updateToken(p.Email, pid, token); err != nil {
 		return err
 	}
 
@@ -166,7 +164,11 @@ func Callback(c echo.Context) error {
 		if err != nil {
 			return err
 		}
+		if err = updateToken(p.Email, config.PrivPID, hydratoken); err != nil {
+			return err
+		}
 	} else {
+		// TODO check expiration and update hydra token
 		err := json.Unmarshal([]byte(strtoken), hydratoken)
 		if err != nil {
 			return err
@@ -195,4 +197,13 @@ func createCookie(accessToken string) *echo.Cookie {
 	cookie.SetValue(accessToken)
 	cookie.SetSecure(true)
 	return cookie
+}
+
+func updateToken(login, pid string, token *oauth2.Token) error {
+	b, err := json.Marshal(token)
+	if err != nil {
+		return err
+	}
+	Users.UpdateToken(login, pid, string(b))
+	return err
 }

@@ -15,6 +15,7 @@ type (
 
 func Profile(c echo.Context) error {
 	//TODO
+	//TODO to obtain user we would use custom middleware, which will get user by access token for PrivPID
 	reply := profileReply{
 		FullName: "Test Testovich",
 	}

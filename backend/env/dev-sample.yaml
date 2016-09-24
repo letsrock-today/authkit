@@ -4,6 +4,8 @@ listen-addr: ":8080"
 # openssl req -x509 -nodes -newkey rsa:2048 -keyout server.rsa.key -out server.rsa.crt -days 3650
 tls-cert-file: "./env/dev-server.crt"
 tls-key-file: "./env/dev-server.key"
+#TODO: use real certeficates in PROD and remove transport replacement (change setting bellow to false)
+tls-insecure-skip-verify: true
 
 # this URL should be visible from app server (localhost, local IP or name)
 # TODO: ask Hydra guys whether unix sockets allowed
