@@ -54,7 +54,7 @@ func (linkedin) Profile(client *http.Client) (*Profile, error) {
 	req.URL.Opaque = lnProfileQueryURLOpaque
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("x-li-format", "json")
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -87,14 +87,6 @@ func (linkedin) Profile(client *http.Client) (*Profile, error) {
 	}, nil
 }
 
-func (linkedin) Save(client *http.Client, profile *Profile) error {
-	return ErrorNotImplemented
-}
-
 func (linkedin) Friends(client *http.Client) ([]Profile, error) {
-	return nil, ErrorNotImplemented
-}
-
-func (linkedin) Close() error {
-	return nil
+	return nil, errors.New("Friends API request is not supported due Linked in policy (partner account required)")
 }

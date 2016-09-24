@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
-	"github.com/letsrock-today/hydra-sample/backend/service/socialprofile"
+	"github.com/letsrock-today/hydra-sample/backend/service/profile/profileapi"
 	"github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
 	"github.com/letsrock-today/hydra-sample/backend/util/email"
 )
 
 var (
 	Users    userapi.UserAPI
-	Profiles socialprofile.ProfileAPI
+	Profiles profileapi.ProfileAPI
 )
 
 const (

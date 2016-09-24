@@ -62,7 +62,6 @@ func Callback(c echo.Context) error {
 
 	if pid == config.PrivPID {
 		oauth2cfg = cfg.HydraOAuth2ConfigInt
-		//TODO: use real certeficates in PROD and remove transport replacement
 		ctx = context.WithValue(
 			context.Background(),
 			oauth2.HTTPClient,
@@ -125,20 +124,21 @@ func Callback(c echo.Context) error {
 	if user == nil {
 		// If internal user doesn't exist:
 
-		// - Save user's profile from external provider to our profile db.
-		if err := Profiles.Save(client, p); err != nil {
-			return err
-		}
-
 		// - Create internal user.
 		pass, err := makePassword() // create long random password
 		if err != nil {
 			return err
 		}
 		if err := Users.Create(p.Email, pass); err != nil {
-			return err
+			if err != userapi.AuthErrorDisabled {
+				return err
+			}
+			if err := Users.Enable(p.Email); err != nil {
+				return err
+			}
 		}
-		if err := Users.Enable(p.Email); err != nil {
+		// - Save user's profile from external provider to our profile db.
+		if err := Profiles.Save(p.Email, p); err != nil {
 			return err
 		}
 	}
@@ -159,19 +159,26 @@ func Callback(c echo.Context) error {
 		return err
 	}
 	var hydratoken *oauth2.Token
-	if strtoken == "" {
+	issueToken := func() (err error) {
 		hydratoken, err = hydra.IssueToken()
 		if err != nil {
 			return err
 		}
-		if err = updateToken(p.Email, config.PrivPID, hydratoken); err != nil {
+		return updateToken(p.Email, config.PrivPID, hydratoken)
+	}
+	if strtoken == "" {
+		if err = issueToken(); err != nil {
 			return err
 		}
 	} else {
-		// TODO check expiration and update hydra token
-		err := json.Unmarshal([]byte(strtoken), hydratoken)
-		if err != nil {
+		hydratoken = new(oauth2.Token)
+		if err := json.Unmarshal([]byte(strtoken), hydratoken); err != nil {
 			return err
+		}
+		if !hydratoken.Valid() {
+			if err = issueToken(); err != nil {
+				return err
+			}
 		}
 	}
 

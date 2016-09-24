@@ -82,10 +82,6 @@ func (facebook) Profile(client *http.Client) (*Profile, error) {
 	}, nil
 }
 
-func (facebook) Save(client *http.Client, profile *Profile) error {
-	return ErrorNotImplemented
-}
-
 func (facebook) Friends(client *http.Client) ([]Profile, error) {
 	resp, err := client.Get(fbFriendsQueryURL)
 	if err != nil {
@@ -120,8 +116,4 @@ func (facebook) Friends(client *http.Client) ([]Profile, error) {
 		})
 	}
 	return res, nil
-}
-
-func (facebook) Close() error {
-	return nil
 }

@@ -36,7 +36,8 @@ type UserAPI interface {
 type User struct {
 	Email        string
 	PasswordHash string
-	Disabled     *time.Time `bson:",omitempty"`
+	Disabled     *time.Time        `bson:",omitempty"`
+	Tokens       map[string]string // pid -> token
 }
 
 var (

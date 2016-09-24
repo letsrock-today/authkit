@@ -103,8 +103,14 @@ func IssueConsentToken(
 }
 
 func IssueToken() (*oauth2.Token, error) {
-	//TODO
-	return nil, errors.New("Not implemented yet")
+	c := config.Get()
+	conf := c.HydraClientCredentials
+	client := conf.Client(getHttpContext())
+	transport, ok := client.Transport.(*oauth2.Transport)
+	if !ok {
+		return nil, errors.New("Cannot retrieve token from http.Client")
+	}
+	return transport.Source.Token()
 }
 
 func getKey(set, kid string) (interface{}, error) {
