@@ -47,6 +47,7 @@ oauth2-providers:
       name: FB (https://www.facebook.com/)
       client-id: "xxx"
       client-secret: "xxx"
+      scopes: ["user_friends","email","user_birthday","user_location"]
       icon: "\
              data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgaGV\
              pZ2h0PSI1MTIiIGlkPSJMYXllcl8xIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAg\
