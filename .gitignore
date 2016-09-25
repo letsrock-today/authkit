@@ -23,7 +23,8 @@ _testmain.go
 *.test
 *.prof
 
-.idea
+#.idea/
+#backend/.idea/
 
 *.swp
 backend/vendor
@@ -33,3 +34,4 @@ backend/env/dev-server.key
 ui-web/dist
 ui-web/node_modules
 
+*.bak
