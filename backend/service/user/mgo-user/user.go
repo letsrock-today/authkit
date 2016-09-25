@@ -12,6 +12,7 @@ import (
 	api "github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
 )
 
+//TODO: pass as a parameters to New()
 const (
 	dbURL              = "localhost"
 	dbName             = "hydra-sample"
@@ -34,8 +35,14 @@ func New() (api.UserAPI, error) {
 	}
 	err = ua.users.Create(&mgo.CollectionInfo{
 		Validator: bson.M{
-			"email":        bson.M{"$exists": true},
-			"passwordhash": bson.M{"$exists": true},
+			"email": bson.M{
+				"$exists": true,
+				"$ne":     "",
+			},
+			"passwordhash": bson.M{
+				"$exists": true,
+				"$ne":     "",
+			},
 		},
 	})
 	// unfortunately, there is no other field to distinguish this error

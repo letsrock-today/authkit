@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"golang.org/x/oauth2"
@@ -24,6 +25,7 @@ type lnProfile struct {
 	Id            string         `json:"id"`
 	FormattedName string         `json:"formattedName"`
 	MainAddress   string         `json:"mainAddress"`
+	Picture       string         `json:"pictureUrl"`
 	PhoneNumbers  lnPhoneNumbers `json:"phoneNumbers"`
 }
 
@@ -31,7 +33,7 @@ type linkedin struct{}
 
 const (
 	lnProfileURL            = "https://api.linkedin.com%s?oauth2_access_token=%s&format=json"
-	lnProfileQueryURLOpaque = "/v1/people/~:(id,formatted-name,main-address,email-address,phone-numbers)"
+	lnProfileQueryURLOpaque = "/v1/people/~:(id,formatted-name,main-address,email-address,phone-numbers,picture-url)"
 )
 
 func (linkedin) Profile(client *http.Client) (*Profile, error) {
@@ -75,13 +77,14 @@ func (linkedin) Profile(client *http.Client) (*Profile, error) {
 		phones = append(phones, v.Number)
 	}
 
+	log.Println("LN >>>>> ", string(b))
+
 	return &Profile{
-		Id:            p.Id,
 		Email:         p.Email,
 		FormattedName: p.FormattedName,
 		Location:      p.MainAddress,
-		Picture:       "", //TODO
-		Birthday:      "",
+		Picture:       p.Picture,
+		Birthday:      "", // Requires partner account
 		Gender:        "",
 		Phones:        phones,
 	}, nil

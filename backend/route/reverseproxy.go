@@ -22,7 +22,6 @@ func initReverseProxy(e *echo.Echo) {
 		log.Fatal(err)
 	}
 	proxy := httputil.NewSingleHostReverseProxy(u)
-	//TODO: use real certeficates in PROD and remove this
 	proxy.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: cfg.TLSInsecureSkipVerify},
 	}

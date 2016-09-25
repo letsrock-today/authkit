@@ -6,7 +6,6 @@ import (
 )
 
 type Profile struct {
-	Id            string
 	Email         string
 	FormattedName string
 	Location      string

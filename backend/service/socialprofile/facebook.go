@@ -71,7 +71,6 @@ func (facebook) Profile(client *http.Client) (*Profile, error) {
 		return nil, fmt.Errorf(p.Error.Message)
 	}
 	return &Profile{
-		Id:            p.Id,
 		Email:         p.Email,
 		FormattedName: p.Name,
 		Location:      p.Location.Name,
@@ -105,7 +104,6 @@ func (facebook) Friends(client *http.Client) ([]Profile, error) {
 	res := make([]Profile, 0)
 	for _, p := range friends.Profiles {
 		res = append(res, Profile{
-			Id:            p.Id,
 			Email:         p.Email,
 			FormattedName: p.Name,
 			Location:      p.Location.Name,

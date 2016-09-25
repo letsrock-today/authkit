@@ -1,7 +1,6 @@
 package user
 
 import (
-	"errors"
 	"time"
 
 	api "github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
@@ -77,11 +76,18 @@ func (du *dummyuserapi) Enable(login string) error {
 }
 
 func (du *dummyuserapi) UpdateToken(login, pid, token string) error {
-	//TODO
-	return errors.New("Not implemented yet")
+	user, err := du.User(login)
+	if err != nil {
+		return err
+	}
+	user.Tokens[pid] = token
+	return nil
 }
 
 func (du *dummyuserapi) Token(login, pid string) (string, error) {
-	//TODO
-	return "", errors.New("Not implemented yet")
+	user, err := du.User(login)
+	if err != nil {
+		return "", err
+	}
+	return user.Tokens[pid], nil
 }

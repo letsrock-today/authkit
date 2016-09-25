@@ -147,6 +147,7 @@ func Callback(c echo.Context) error {
 	// if possible (facebook).
 	//TODO: check if it is relevant, use link below to implement
 	//TODO: https://github.com/golang/oauth2/issues/154
+	//TODO: actually, returned token expires in about a day, it would be great to exchange it for long-lived one
 
 	// Save external provider's token in the users DB.
 	if err = updateToken(p.Email, pid, token); err != nil {

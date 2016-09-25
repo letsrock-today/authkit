@@ -26,7 +26,10 @@ func main() {
 	defer u.Close()
 	handler.Users = u
 
-	p := profile.New()
+	p, err := profile.New()
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer p.Close()
 	handler.Profiles = p
 
