@@ -6,13 +6,13 @@ import (
 )
 
 type Profile struct {
-	Email         string
-	FormattedName string
-	Location      string
-	Picture       string
-	Birthday      string
-	Gender        string
-	Phones        []string
+	Email         string   `json:"email"`
+	FormattedName string   `json:"formatted_name"`
+	Location      string   `json:"location"`
+	Picture       string   `json:"picture"`
+	Birthday      string   `json:"birthday"`
+	Gender        string   `json:"gender"`
+	Phones        []string `json:"phones"`
 }
 
 type ProfileAPI interface {

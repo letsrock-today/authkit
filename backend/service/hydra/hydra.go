@@ -113,6 +113,16 @@ func IssueToken() (*oauth2.Token, error) {
 	return transport.Source.Token()
 }
 
+func ValidateAccessToken(token string) error {
+	//TODO
+	return nil
+}
+
+func CheckAccessTokenPermission(token, method, uri string) bool {
+	//TODO
+	return true
+}
+
 func getKey(set, kid string) (interface{}, error) {
 	c := config.Get()
 	conf := c.HydraClientCredentials

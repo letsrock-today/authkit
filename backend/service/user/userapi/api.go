@@ -4,6 +4,8 @@ import (
 	"errors"
 	"io"
 	"time"
+
+	"golang.org/x/oauth2"
 )
 
 type UserAPI interface {
@@ -27,17 +29,21 @@ type UserAPI interface {
 	Enable(login string) error
 
 	// save token
-	UpdateToken(login, pid, token string) error
+	UpdateToken(login, pid string, token *oauth2.Token) error
 
 	// return token
-	Token(login, pid string) (string, error)
+	Token(login, pid string) (*oauth2.Token, error)
+
+	// return user by token
+	// token_field is one of [accesstoken, refreshtoken]
+	UserByToken(pid, token_field, token string) (*User, error)
 }
 
 type User struct {
 	Email        string
 	PasswordHash string
-	Disabled     *time.Time        `bson:",omitempty"`
-	Tokens       map[string]string // pid -> token
+	Disabled     *time.Time               `bson:",omitempty"`
+	Tokens       map[string]*oauth2.Token // pid -> token
 }
 
 var (

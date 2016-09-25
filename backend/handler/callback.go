@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -83,7 +82,7 @@ func Callback(c echo.Context) error {
 	}
 
 	if pid == config.PrivPID {
-		if err = updateToken(claims.Audience, config.PrivPID, token); err != nil {
+		if err = Users.UpdateToken(claims.Audience, config.PrivPID, token); err != nil {
 			return err
 		}
 		// our trusted provider, just return access token to client
@@ -150,32 +149,27 @@ func Callback(c echo.Context) error {
 	//TODO: actually, returned token expires in about a day, it would be great to exchange it for long-lived one
 
 	// Save external provider's token in the users DB.
-	if err = updateToken(p.Email, pid, token); err != nil {
+	if err = Users.UpdateToken(p.Email, pid, token); err != nil {
 		return err
 	}
 
 	// Issue new hydra token for the user.
-	strtoken, err := Users.Token(p.Email, config.PrivPID)
+	hydratoken, err := Users.Token(p.Email, config.PrivPID)
 	if err != nil {
 		return err
 	}
-	var hydratoken *oauth2.Token
 	issueToken := func() (err error) {
 		hydratoken, err = hydra.IssueToken()
 		if err != nil {
 			return err
 		}
-		return updateToken(p.Email, config.PrivPID, hydratoken)
+		return Users.UpdateToken(p.Email, config.PrivPID, hydratoken)
 	}
-	if strtoken == "" {
+	if hydratoken == nil {
 		if err = issueToken(); err != nil {
 			return err
 		}
 	} else {
-		hydratoken = new(oauth2.Token)
-		if err := json.Unmarshal([]byte(strtoken), hydratoken); err != nil {
-			return err
-		}
 		if !hydratoken.Valid() {
 			if err = issueToken(); err != nil {
 				return err
@@ -205,13 +199,4 @@ func createCookie(accessToken string) *echo.Cookie {
 	cookie.SetValue(accessToken)
 	cookie.SetSecure(true)
 	return cookie
-}
-
-func updateToken(login, pid string, token *oauth2.Token) error {
-	b, err := json.Marshal(token)
-	if err != nil {
-		return err
-	}
-	Users.UpdateToken(login, pid, string(b))
-	return err
 }

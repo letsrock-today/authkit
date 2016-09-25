@@ -35,7 +35,7 @@ func main() {
 
 	e := echo.New()
 
-	route.Init(e)
+	route.Init(e, u)
 
 	c := config.Get()
 

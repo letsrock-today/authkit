@@ -6,10 +6,11 @@ import (
 	"github.com/letsrock-today/hydra-sample/backend/handler"
 )
 
-func initAPI(e *echo.Echo) {
+func initAPI(e *echo.Echo, restricted *echo.Group) {
 	e.GET("/api/auth-providers", handler.AuthProviders)
 	e.GET("/api/auth-code-urls", handler.AuthCodeURLs)
-	e.GET("/api/profile", handler.Profile)
+
+	restricted.GET("/profile", handler.Profile)
 
 	e.POST("/api/login", handler.Login)
 	e.POST("/api/login-priv", handler.LoginPriv)

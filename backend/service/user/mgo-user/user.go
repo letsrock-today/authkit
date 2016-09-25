@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"golang.org/x/oauth2"
+
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
@@ -151,7 +153,7 @@ func (ua userapi) Enable(login string) error {
 	return err
 }
 
-func (ua userapi) UpdateToken(login, pid, token string) error {
+func (ua userapi) UpdateToken(login, pid string, token *oauth2.Token) error {
 	err := ua.users.Update(
 		bson.M{
 			"email": login,
@@ -167,12 +169,31 @@ func (ua userapi) UpdateToken(login, pid, token string) error {
 	return err
 }
 
-func (ua userapi) Token(login, pid string) (string, error) {
+func (ua userapi) Token(login, pid string) (*oauth2.Token, error) {
 	user, err := ua.User(login)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	return user.Tokens[pid], nil
+}
+
+func (ua userapi) UserByToken(pid, token_field, token string) (*api.User, error) {
+	user := api.User{}
+	err := ua.users.Find(
+		bson.M{
+			"tokens." + pid + "." + token_field: token,
+		}).One(&user)
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			return nil, api.AuthErrorUserNotFound
+		}
+		return nil, err
+	}
+	if err == nil && user.Disabled != nil {
+		return nil, api.AuthErrorDisabled
+	}
+	return &user, nil
+
 }
 
 func hash(pass string) string {

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"golang.org/x/oauth2"
@@ -76,8 +75,6 @@ func (linkedin) Profile(client *http.Client) (*Profile, error) {
 	for _, v := range p.PhoneNumbers.Values {
 		phones = append(phones, v.Number)
 	}
-
-	log.Println("LN >>>>> ", string(b))
 
 	return &Profile{
 		Email:         p.Email,
