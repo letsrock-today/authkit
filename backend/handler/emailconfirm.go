@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo"
 
 	"github.com/letsrock-today/hydra-sample/backend/config"
+	"github.com/letsrock-today/hydra-sample/backend/service/socialprofile"
 	"github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
 	"github.com/letsrock-today/hydra-sample/backend/util/echo-querybinder"
 )
@@ -42,7 +43,14 @@ func EmailConfirm(c echo.Context) error {
 		return err
 	}
 
-	if err := Users.Enable(claims.Audience); err != nil {
+	email := claims.Audience
+
+	// Create empty profile for new user.
+	if err := Profiles.Save(email, &socialprofile.Profile{Email: email}); err != nil {
+		return err
+	}
+
+	if err := Users.Enable(email); err != nil {
 		if err == userapi.AuthErrorUserNotFound {
 			//TODO: format error
 			return c.String(http.StatusOK, err.Error())
