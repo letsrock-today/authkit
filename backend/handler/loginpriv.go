@@ -79,13 +79,6 @@ func LoginPriv(c echo.Context) error {
 		return err
 	}
 
-	/*
-		nonce := make([]byte, 12)
-		if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-			return err
-		}
-	*/
-
 	u, err := url.Parse(cfg.HydraOAuth2Config.Endpoint.AuthURL)
 	if err != nil {
 		return err
@@ -95,7 +88,6 @@ func LoginPriv(c echo.Context) error {
 	v.Set("response_type", "code")
 	v.Set("scope", strings.Join(cfg.HydraOAuth2Config.Scopes, " "))
 	v.Set("state", state)
-	//v.Set("nonce", base64.URLEncoding.EncodeToString(nonce))
 	v.Set("consent", signedTokenString)
 	u.RawQuery = v.Encode()
 

@@ -4,10 +4,11 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -102,15 +103,66 @@ func IssueConsentToken(
 	return token.SignedString(key)
 }
 
-func IssueToken() (*oauth2.Token, error) {
-	c := config.Get()
-	conf := c.HydraClientCredentials
-	client := conf.Client(getHttpContext())
-	transport, ok := client.Transport.(*oauth2.Transport)
-	if !ok {
-		return nil, errors.New("Cannot retrieve token from http.Client")
+func IssueToken(ctx context.Context, login string) (*oauth2.Token, error) {
+	cfg := config.Get()
+	conf := cfg.HydraOAuth2ConfigInt
+	signedTokenString, err := IssueConsentToken(
+		conf.ClientID,
+		conf.Scopes)
+	if err != nil {
+		return nil, err
 	}
-	return transport.Source.Token()
+
+	claims :=
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(cfg.OAuth2State.Expiration).Unix(),
+			Issuer:    cfg.OAuth2State.TokenIssuer,
+			Audience:  login,
+			Subject:   config.PrivPID,
+		}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	state, err := token.SignedString(cfg.OAuth2State.TokenSignKey)
+	if err != nil {
+		return nil, err
+	}
+
+	u, err := url.Parse(conf.Endpoint.AuthURL)
+	if err != nil {
+		return nil, err
+	}
+	v := u.Query()
+	v.Set("client_id", conf.ClientID)
+	v.Set("response_type", "code")
+	v.Set("scope", strings.Join(conf.Scopes, " "))
+	v.Set("state", state)
+	v.Set("consent", signedTokenString)
+	u.RawQuery = v.Encode()
+	redirectURL := u.String()
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: cfg.TLSInsecureSkipVerify,
+			},
+		},
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	resp, err := httpClient.Get(redirectURL)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusFound {
+		return nil, fmt.Errorf("Unexpected response status: %d, %s", resp.StatusCode, resp.Status)
+	}
+	location := resp.Header.Get("Location")
+	u, err = url.Parse(location)
+	if err != nil {
+		return nil, err
+	}
+	v = u.Query()
+	code := v.Get("code")
+	return conf.Exchange(ctx, code)
 }
 
 func ValidateAccessToken(token string) error {

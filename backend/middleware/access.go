@@ -87,7 +87,6 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			//TODO: provide user.ID and use it here
 			c.Set(config.ContextKey, user.Email)
 
-			// TODO: Use Hydra to check token permissions (req.Method(), req.URI()).
 			if ok := hydra.CheckAccessTokenPermission(token, req.Method(), req.URI()); !ok {
 				return echo.NewHTTPError(http.StatusForbidden, "invalid csrf token")
 			}

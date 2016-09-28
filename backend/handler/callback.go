@@ -57,17 +57,18 @@ func Callback(c echo.Context) error {
 
 	var oauth2cfg oauth2.Config
 	ctx := context.Background()
+	hydraCtx := context.WithValue(
+		context.Background(),
+		oauth2.HTTPClient,
+		&http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: cfg.TLSInsecureSkipVerify},
+			}})
 	pid := claims.Subject
 
 	if pid == config.PrivPID {
 		oauth2cfg = cfg.HydraOAuth2ConfigInt
-		ctx = context.WithValue(
-			context.Background(),
-			oauth2.HTTPClient,
-			&http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{InsecureSkipVerify: cfg.TLSInsecureSkipVerify},
-				}})
+		ctx = hydraCtx
 	} else {
 		var ok bool
 		oauth2cfg, ok = cfg.OAuth2Configs[pid]
@@ -159,7 +160,7 @@ func Callback(c echo.Context) error {
 		return err
 	}
 	issueToken := func() (err error) {
-		hydratoken, err = hydra.IssueToken()
+		hydratoken, err = hydra.IssueToken(hydraCtx, p.Email)
 		if err != nil {
 			return err
 		}

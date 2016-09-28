@@ -97,6 +97,7 @@ func (c *Config) initOAuth2Config() error {
 		Scopes:       h.Scopes,
 		TokenURL:     strings.Replace(h.TokenURL, "{base-url}", c.HydraAddr, -1),
 	}
+	//TODO: Probably, we should use client with less priveleges for oauth2 config below (without access to hydra keys etc.)
 	c.HydraOAuth2Config = oauth2.Config{
 		ClientID:     h.ClientId,
 		ClientSecret: h.ClientSecret,
