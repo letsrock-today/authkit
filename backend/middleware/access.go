@@ -49,9 +49,6 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 		panic("UserAPI must be provided")
 	}
 
-	// Initialize
-	//TODO
-
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			req := c.Request()
@@ -66,10 +63,12 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			}
 			token := strings.TrimPrefix(header, prefix)
 
-			// Use Hydra to validate access token.
-			if err := hydra.ValidateAccessToken(token); err != nil {
+			if err := hydra.ValidateAccessTokenPermissions(
+				token,
+				req.Method(),
+				req.URI()); err != nil {
 				log.Println(err)
-				return echo.NewHTTPError(http.StatusForbidden, "invalid token")
+				return echo.NewHTTPError(http.StatusForbidden, "invalid access token or operation is not permitted")
 			}
 
 			// Get user login from DB by access token.
@@ -87,9 +86,6 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			//TODO: provide user.ID and use it here
 			c.Set(config.ContextKey, user.Email)
 
-			if ok := hydra.CheckAccessTokenPermission(token, req.Method(), req.URI()); !ok {
-				return echo.NewHTTPError(http.StatusForbidden, "invalid csrf token")
-			}
 			return next(c)
 		}
 	}

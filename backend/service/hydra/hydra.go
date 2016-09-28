@@ -1,11 +1,14 @@
 package hydra
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -165,14 +168,58 @@ func IssueToken(ctx context.Context, login string) (*oauth2.Token, error) {
 	return conf.Exchange(ctx, code)
 }
 
-func ValidateAccessToken(token string) error {
-	//TODO
-	return nil
-}
+func ValidateAccessTokenPermissions(token, method, uri string) error {
+	c := config.Get()
+	conf := c.HydraClientCredentials
+	client := conf.Client(getHttpContext())
 
-func CheckAccessTokenPermission(token, method, uri string) bool {
-	//TODO
-	return true
+	url := fmt.Sprintf("%s/warden/token/allowed", c.HydraAddr)
+	b, err := json.Marshal(struct {
+		Scopes   []string `json:"scopes"`
+		Token    string   `json:"token"`
+		Action   string   `json:"action"`
+		Resource string   `json:"resource"`
+	}{
+		Scopes: []string{
+			"core",
+		},
+		Token:    token,
+		Action:   method,
+		Resource: uri,
+	})
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("POST", url, bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		log.Println("Hydra returned unexpected status:", resp.StatusCode, resp.Status)
+		return errors.New("unexpected status from Hydra")
+	}
+	var r map[string]interface{}
+	b, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, r)
+	if err != nil {
+		return err
+	}
+	v, ok := r["allowed"]
+	if !ok {
+		return errors.New("unexpected Hydra response format")
+	}
+	if allowed, ok := v.(bool); !ok || !allowed {
+		return errors.New("access denied")
+	}
+	return nil
 }
 
 func getKey(set, kid string) (interface{}, error) {
