@@ -1,5 +1,66 @@
 <profile>
   <div class="page-header">
-      Profile
+    <div class="row">
+      <div if="{ !opts.user.email }" class="col-lg-6">
+          <h4>Please login to view profile</h4>
+      </div>
+
+      <div if="{ opts.user.email }" class="user-picture col-lg-2">
+        <img src="{ opts.user.picture }">
+      </div>
+
+      <div if="{ opts.user.email }" class="form-group col-lg-4">
+        <div>
+          <label class="control-label">User name</label>
+          <input type="text"
+                 name="username"
+                 class="form-control"
+                 placeholder="Formatted user name"
+                 value="{ opts.user.formatted_name }">
+        </div>
+        <div>
+          <label class="control-label">Email address</label>
+          <input type="text"
+                 name="email"
+                 class="form-control"
+                 placeholder="Email"
+                 value="{ opts.user.email }">
+        </div>
+        <div>
+          <label class="control-label">Birthday</label>
+          <input type="text"
+                 name="birthday"
+                 class="form-control"
+                 placeholder="Date of birth"
+                 value="{ opts.user.birthday }">
+        </div>
+        <div>
+          <label class="control-label">Gender</label>
+          <select name="gender" class="form-control">
+            <option value="male" __selected="{ isGenderSelected(1) }">Male</option>
+            <option value="female" __selected="{ isGenderSelected(2) }">Female</option>
+            <option value="nogender" __selected="{ isGenderSelected(0) }}">Not selected</option>
+          </select>
+        </div>
+        <br/>
+        <p><button class="btn btn-default btn-sm" onclick="{ onSave }">Save</button></p>
+      </div>
+    </div>
   </div>
+  <script>
+    let self = this;
+    self.isGenderSelected = (type) => {
+        if (type == 1) {
+          return (opts.user.gender || "").toLowerCase() === "male";
+        } else if (type == 2) {
+          return (opts.user.gender || "").toLowerCase() === "female";
+        } else {
+          return true;
+        }
+    }
+
+    self.onSave = () => {
+        console.log("Save...");
+    }
+  </script>
 </profile>
