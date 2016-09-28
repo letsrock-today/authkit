@@ -38,3 +38,6 @@ button, input {
     color: red;
     font-weight: bold;
 }
+.user-picture {
+    text-align: center;
+}
