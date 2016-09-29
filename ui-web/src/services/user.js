@@ -57,7 +57,7 @@ function _logout() {
     _fetch.setAuthCookieName(authCookieName);
     let token = cookies.parse(document.cookie)[authCookieName];
     if (token) {
-        _fetch.fetch('/api/restricted/profile')
+        _fetch.fetch('/api/profile')
         .then(r => {
             return respHelper.handleStatus(r);
         })

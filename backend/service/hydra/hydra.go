@@ -168,24 +168,24 @@ func IssueToken(ctx context.Context, login string) (*oauth2.Token, error) {
 	return conf.Exchange(ctx, code)
 }
 
-func ValidateAccessTokenPermissions(token, method, uri string) error {
+func ValidateAccessTokenPermissions(
+	token, resource, action string,
+	scopes []string) error {
 	c := config.Get()
 	conf := c.HydraClientCredentials
 	client := conf.Client(getHttpContext())
 
 	url := fmt.Sprintf("%s/warden/token/allowed", c.HydraAddr)
 	b, err := json.Marshal(struct {
-		Scopes   []string `json:"scopes"`
 		Token    string   `json:"token"`
-		Action   string   `json:"action"`
 		Resource string   `json:"resource"`
+		Action   string   `json:"action"`
+		Scopes   []string `json:"scopes"`
 	}{
-		Scopes: []string{
-			"core",
-		},
 		Token:    token,
-		Action:   method,
-		Resource: uri,
+		Resource: resource,
+		Action:   action,
+		Scopes:   scopes,
 	})
 	if err != nil {
 		return err
@@ -208,7 +208,7 @@ func ValidateAccessTokenPermissions(token, method, uri string) error {
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(b, r)
+	err = json.Unmarshal(b, &r)
 	if err != nil {
 		return err
 	}

@@ -26,14 +26,18 @@ hydra clients create -n "test" \
   -c [https://localhost:8080/callback] \
   -g [authorize_code,authorization_code,client_credentials] \
   -r [code,token] \
-  -a [core,hydra.keys.get,hydra.warden] \
+  -a [core,hydra.keys.get,hydra.warden,test.view_profile,test.edit_profile] \
   --skip-tls-verify
 
 hydra policies create --allow -r "rn:hydra:keys:<[^:]+>:public" -s "<.*>" -a "get" --skip-tls-verify
 
 hydra policies create --allow -r "rn:hydra:keys:<[^:]+>:private" -s "<.*>" -a "get" --skip-tls-verify
 
-hydra policies create --allow -r "rn:hydra:warden:token:allowed:<.*>" -s "<.*>" -a "decide" --skip-tls-verify
+hydra policies create --allow -r "rn:hydra:warden:token:allowed" -s "<.*>" -a "decide" --skip-tls-verify
+
+hydra policies create --allow -r "rn:api:profile" -s "<.*>" -a "get" --skip-tls-verify
+
+hydra policies create --allow -r "rn:api:profile" -s "<.*>" -a "edit" --skip-tls-verify
 
 exit
 

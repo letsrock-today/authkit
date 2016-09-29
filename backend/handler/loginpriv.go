@@ -16,8 +16,8 @@ import (
 type (
 	privLoginForm struct {
 		Action   string `form:"action" valid:"required,matches(login|signup)"`
-		Login    string `form:"login" valid:"email,required"`
-		Password string `form:"password" valid:"stringlength(3|10),required"`
+		Login    string `form:"login" valid:"required,email"`
+		Password string `form:"password" valid:"required,stringlength(3|10)"`
 	}
 	privLoginReply struct {
 		RedirectURL string `json:"redirUrl"`

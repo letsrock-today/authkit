@@ -7,8 +7,8 @@ import (
 )
 
 func Init(e *echo.Echo, ua userapi.UserAPI) {
-	restricted := initMiddleware(e, ua)
+	initMiddleware(e)
 	initReverseProxy(e)
 	initStatic(e)
-	initAPI(e, restricted)
+	initAPI(e, ua)
 }
