@@ -58,6 +58,7 @@ func (pa profileapi) Profile(login string) (*socialprofile.Profile, error) {
 }
 
 func (pa profileapi) Save(login string, profile *socialprofile.Profile) error {
+	//TODO save picture
 	_, err := pa.profiles.Upsert(
 		bson.M{
 			"email": login,

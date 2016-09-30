@@ -7,6 +7,7 @@ import cookies from 'cookie';
 
 dispatcher.on(dispatcher.TRY_LOGIN, _login);
 dispatcher.on(dispatcher.DO_LOGOUT, _logout);
+dispatcher.on(dispatcher.DO_USERDATA_UPDATE, _save);
 
 ////////////////////////////////////////////////////
 
@@ -51,6 +52,25 @@ function _logout() {
             username: '',
             authorized: false
         });
+}
+
+function _save(profile) {
+    _fetch.fetch('/api/profile', {
+        method: 'POST',
+        body: profile
+    })
+    .then(r => {
+        return respHelper.handleStatus(r);
+    })
+    .then(data => {
+        const {error} = data;
+        if (error) {
+            console.log(e);
+        }
+    })
+    .catch(e => {
+        console.log(e);
+    });
 }
 
 (window.onpopstate = function () {

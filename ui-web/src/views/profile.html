@@ -1,3 +1,7 @@
+'use strict';
+
+import dispatcher from '../dispatcher'
+
 <profile>
   <div class="page-header">
     <div class="row">
@@ -6,45 +10,47 @@
       </div>
 
       <div if="{ opts.user.email }" class="user-picture col-lg-2">
-        <img src="{ opts.user.picture }">
+        <img name="picture" src="{ opts.user.picture }">
       </div>
 
-      <div if="{ opts.user.email }" class="form-group col-lg-4">
-        <div>
-          <label class="control-label">User name</label>
-          <input type="text"
-                 name="username"
-                 class="form-control"
-                 placeholder="Formatted user name"
-                 value="{ opts.user.formatted_name }">
+      <form if="{ opts.user.email }" name="profile-form">
+        <div class="form-group col-lg-4">
+          <div>
+            <label class="control-label">User name</label>
+            <input type="text"
+                   name="formatted_name"
+                   class="form-control"
+                   placeholder="Formatted user name"
+                   value="{ opts.user.formatted_name }">
+          </div>
+          <div>
+            <label class="control-label">Email address</label>
+            <input type="text"
+                   name="email"
+                   class="form-control"
+                   placeholder="Email"
+                   value="{ opts.user.email }">
+          </div>
+          <div>
+            <label class="control-label">Birthday</label>
+            <input type="text"
+                   name="birthday"
+                   class="form-control"
+                   placeholder="Date of birth"
+                   value="{ opts.user.birthday }">
+          </div>
+          <div>
+            <label class="control-label">Gender</label>
+            <select name="gender" class="form-control">
+              <option value="male" __selected="{ isGenderSelected(1) }">Male</option>
+              <option value="female" __selected="{ isGenderSelected(2) }">Female</option>
+              <option value="nogender" __selected="{ isGenderSelected(0) }}">Not selected</option>
+            </select>
+          </div>
+          <br/>
+          <p><button class="btn btn-default btn-sm" onclick="{ onSave }">Save</button></p>
         </div>
-        <div>
-          <label class="control-label">Email address</label>
-          <input type="text"
-                 name="email"
-                 class="form-control"
-                 placeholder="Email"
-                 value="{ opts.user.email }">
-        </div>
-        <div>
-          <label class="control-label">Birthday</label>
-          <input type="text"
-                 name="birthday"
-                 class="form-control"
-                 placeholder="Date of birth"
-                 value="{ opts.user.birthday }">
-        </div>
-        <div>
-          <label class="control-label">Gender</label>
-          <select name="gender" class="form-control">
-            <option value="male" __selected="{ isGenderSelected(1) }">Male</option>
-            <option value="female" __selected="{ isGenderSelected(2) }">Female</option>
-            <option value="nogender" __selected="{ isGenderSelected(0) }}">Not selected</option>
-          </select>
-        </div>
-        <br/>
-        <p><button class="btn btn-default btn-sm" onclick="{ onSave }">Save</button></p>
-      </div>
+      </form>
     </div>
   </div>
   <script>
@@ -60,7 +66,9 @@
     }
 
     self.onSave = () => {
-        console.log("Save...");
+        let profile = new FormData(self['profile-form']);
+        //profile.append('picture', self.picture.src);
+        dispatcher.trigger(dispatcher.DO_USERDATA_UPDATE, profile);
     }
   </script>
 </profile>
