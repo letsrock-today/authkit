@@ -26,7 +26,7 @@ hydra clients create -n "test" \
   -c [https://localhost:8080/callback] \
   -g [authorization_code,client_credentials,refresh_token] \
   -r [code,token] \
-  -a [core,hydra.keys.get,hydra.warden,test.profile.edit,test.friends.view] \
+  -a [core,hydra.keys.get,hydra.warden,offline,test.profile.edit,test.friends.view] \
   --skip-tls-verify
 
 hydra policies create --allow -r "rn:hydra:keys:<[^:]+>:public" -s "<.*>" -a "get" --skip-tls-verify

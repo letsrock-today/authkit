@@ -25,7 +25,7 @@ csrf-secret: "xxx"
 hydra-clientcredentials:
     client-id: "xxx"
     client-secret: "xxx"
-    scopes: ["core", "hydra.keys.get"]
+    scopes: ["core","hydra.keys.get","hydra.warden","offline","test.profile.edit","test.friends.view"]
     token-url: "{base-url}/oauth2/token"
     auth-url: "{base-url}/oauth2/auth"
 
