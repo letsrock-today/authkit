@@ -23,11 +23,18 @@ func ProfileSave(c echo.Context) error {
 	if err := c.Bind(p); err != nil {
 		return err
 	}
+	p.Email = login // we cannot change email, because it used as user's id
 	if _, err := govalidator.ValidateStruct(p); err != nil {
 		return c.JSON(http.StatusOK, newJsonError(err))
 	}
+	//TODO: preserve fields absent in the html form.
 	if err := Profiles.Save(login, p); err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, struct{}{})
+	// return profile as it saved in store (assume, that store API could modify it)
+	if p, err := Profiles.Profile(login); err != nil {
+		return err
+	} else {
+		return c.JSON(http.StatusOK, p)
+	}
 }

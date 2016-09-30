@@ -82,7 +82,7 @@ func (linkedin) Profile(client *http.Client) (*Profile, error) {
 		Location:      p.MainAddress,
 		Picture:       p.Picture,
 		Birthday:      "", // Requires partner account
-		Gender:        "",
+		Gender:        "-",
 		Phones:        phones,
 	}, nil
 }

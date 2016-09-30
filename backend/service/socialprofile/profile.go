@@ -3,17 +3,17 @@ package socialprofile
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
-//TODO: validation rules
 type Profile struct {
-	Email         string   `json:"email" form:"email" valid:"required, email"`
+	Email         string   `json:"email" form:"email" valid:"required,email"`
 	FormattedName string   `json:"formatted_name" form:"formatted_name" valid:"-"`
 	Location      string   `json:"location" form:"location" valid:"-"`
-	Picture       string   `json:"picture" form:"-" valid:"-"`
+	Picture       string   `json:"picture" form:"picture" valid:"url"`
 	Birthday      string   `json:"birthday" form:"birthday" valid:"-"`
-	Gender        string   `json:"gender" form:"gender" valid:"-"`
-	Phones        []string `json:"phones" form:"phones" valid:"-"`
+	Gender        string   `json:"gender" form:"gender" valid:"matches(male|female|-)"`
+	Phones        []string `json:"phones" form:"phones" valid:"numeric,stringlength(333|15)"`
 }
 
 type ProfileAPI interface {
@@ -35,4 +35,14 @@ func New(pid string) (ProfileAPI, error) {
 var providers = map[string]ProfileAPI{
 	"fb":       facebook{},
 	"linkedin": linkedin{},
+}
+
+func normalizeGender(g string) string {
+	if strings.EqualFold(g, "male") {
+		return "male"
+	}
+	if strings.EqualFold(g, "female") {
+		return "female"
+	}
+	return "-"
 }

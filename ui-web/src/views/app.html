@@ -13,7 +13,7 @@ import dispatcher from '../dispatcher'
   <script>
     let self = this;
     self.user = {login: '', authorized: false};
-    dispatcher.on(dispatcher.USER_DATA_CHANGED, (user) => {
+    dispatcher.on(dispatcher.PROFILE_CHANGED, (user) => {
         self.user = user;
         self.update();
     });

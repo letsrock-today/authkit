@@ -76,7 +76,7 @@ func (facebook) Profile(client *http.Client) (*Profile, error) {
 		Location:      p.Location.Name,
 		Picture:       p.Picture.Url,
 		Birthday:      p.Birthday,
-		Gender:        p.Gender,
+		Gender:        normalizeGender(p.Gender),
 		Phones:        []string{},
 	}, nil
 }
@@ -109,7 +109,7 @@ func (facebook) Friends(client *http.Client) ([]Profile, error) {
 			Location:      p.Location.Name,
 			Picture:       p.Picture.Url,
 			Birthday:      p.Birthday,
-			Gender:        p.Gender,
+			Gender:        normalizeGender(p.Gender),
 			Phones:        []string{},
 		})
 	}
