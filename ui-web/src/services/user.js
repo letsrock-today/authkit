@@ -89,9 +89,7 @@ function _login() {
 const authCookieName = 'X-App-Auth';
 
 function _logout() {
-    document.cookie = cookies.serialize(authCookieName, "", {
-        expires: new Date(0)
-    });
+    document.cookie = cookies.serialize(authCookieName, "", {expires: new Date(0)});
     dispatcher.trigger(
         dispatcher.PROFILE_CHANGED, {
             username: '',
