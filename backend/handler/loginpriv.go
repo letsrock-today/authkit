@@ -48,8 +48,7 @@ func LoginPriv(c echo.Context) error {
 	if err := action(
 		lf.Login,
 		lf.Password); err != nil {
-		if signup &&
-			(err == userapi.AuthErrorDisabled || err == userapi.AuthErrorDup) {
+		if signup && err == userapi.AuthErrorDisabled {
 			if err := sendConfirmationEmail(
 				lf.Login,
 				"",
