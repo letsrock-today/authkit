@@ -190,6 +190,7 @@ func ValidateAccessTokenPermissions(
 	if err != nil {
 		return err
 	}
+	log.Println("#######1", string(b))
 	req, err := http.NewRequest("POST", url, bytes.NewReader(b))
 	if err != nil {
 		return err
@@ -208,6 +209,7 @@ func ValidateAccessTokenPermissions(
 	if err != nil {
 		return err
 	}
+	log.Println("#######2", string(b))
 	err = json.Unmarshal(b, &r)
 	if err != nil {
 		return err

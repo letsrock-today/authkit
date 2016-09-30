@@ -80,14 +80,21 @@ import dispatcher from '../dispatcher';
       <div class="col-lg-6">
         <fieldset>
             <p>To check restricted API press button below.</p>
-            <p>When logged in using Facebook account, you should obtain list of your friends from social network.</p>
             <p>When logged out, you should get a security error.</p>
-            <p>When logged in using login/password or LinkedIn, you should get "Not implemented" error.</p>
+            <p>When logged in, you should obtain list of your friends from social network(s).</p>
+            <p>Notice, currently friends list fetched only from Facebook.</p>
             <p>
               <button class="btn btn-default btn-sm"
                    onclick="{ onFriendsList }">List Friends</button>
             </p>
         </fieldset>
+        <div if="{ friends }">
+            <h4>Friends:</h4>
+            <p each="{ f in friends }">
+              <img src="{ f.picture }" style="max-width:100px">
+              { f.formatted_name }
+            </p>
+        </div>
       </div>
     </div>
   </div>
@@ -107,9 +114,13 @@ import dispatcher from '../dispatcher';
     }
     self.onFriendsList = () => {
         self.error = '';
+        delete self.friends;
         dispatcher.trigger(
                 dispatcher.GET_FRIENDS,
                 (friends, err) => { self.update({friends: friends, error: err}); });
     }
+    dispatcher.on(dispatcher.PROFILE_CHANGED, (user) => {
+        self.update({error: '', friends: undefined});
+    });
   </script>
 </profile>

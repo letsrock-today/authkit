@@ -10,7 +10,7 @@ import (
 	"github.com/letsrock-today/hydra-sample/backend/service/user/userapi"
 )
 
-type callbackFunc func(method, uri string) (scopes []string, resource, action string)
+type callbackFunc func(method, uri string) (scopes []string, resource, action string, err error)
 
 type (
 	AccessTokenConfig struct {
@@ -76,13 +76,18 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			}
 			token := split[1]
 
-			scopes, resource, action := config.Callback(req.Method(), req.URI())
+			scopes, resource, action, err := config.Callback(req.Method(), req.URI())
+			if err != nil {
+				log.Println(err)
+				return echo.NewHTTPError(http.StatusForbidden, "operation is not permitted")
+			}
 
 			if err := hydra.ValidateAccessTokenPermissions(
 				token,
 				resource,
 				action,
 				scopes); err != nil {
+				//TODO: if token is expired, we can try to refresh it, using oauth2 token from DB
 				log.Println(err)
 				return echo.NewHTTPError(http.StatusForbidden, "invalid access token or operation is not permitted")
 			}
