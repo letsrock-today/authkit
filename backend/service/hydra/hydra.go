@@ -36,7 +36,7 @@ type ChallengeClaims struct {
 }
 
 func VerifyConsentChallenge(c string) (*jwt.Token, error) {
-	key, err := getKey("consent.challenge", "public")
+	key, err := getKey("hydra.consent.challenge", "public")
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func GenerateConsentToken(
 	if err != nil {
 		return "", err
 	}
-	key, err := getKey("consent.endpoint", "private")
+	key, err := getKey("hydra.consent.response", "private")
 	if err != nil {
 		return "", err
 	}
@@ -89,7 +89,7 @@ func GenerateConsentToken(
 func IssueConsentToken(
 	client_id string,
 	scopes []string) (string, error) {
-	key, err := getKey("consent.endpoint", "private")
+	key, err := getKey("hydra.consent.response", "private")
 	if err != nil {
 		return "", err
 	}
@@ -190,7 +190,6 @@ func ValidateAccessTokenPermissions(
 	if err != nil {
 		return err
 	}
-	log.Println("#######1", string(b))
 	req, err := http.NewRequest("POST", url, bytes.NewReader(b))
 	if err != nil {
 		return err
@@ -209,7 +208,6 @@ func ValidateAccessTokenPermissions(
 	if err != nil {
 		return err
 	}
-	log.Println("#######2", string(b))
 	err = json.Unmarshal(b, &r)
 	if err != nil {
 		return err
