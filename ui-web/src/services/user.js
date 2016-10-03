@@ -33,6 +33,10 @@ function _saveProfile(profileForm, cb) {
         })
         .catch(e => {
             console.log(e);
+            if (e.error === 'AUTH') {
+                alert('Auth error. Try to re-login');
+                _logout();
+            }
         });
 }
 
@@ -118,6 +122,10 @@ function _logout() {
             })
             .catch(e => {
                 console.log(e);
+                if (e.error === 'AUTH') {
+                    alert('Auth error. Try to re-login');
+                    _logout();
+                }
             });
     }
 })();
