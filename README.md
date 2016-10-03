@@ -41,6 +41,10 @@ umake nodejs
 npm install webpack -g
 ```
 
+## Start Hydra and MongoDB in Docker
+
+We have not created script to automatically start Hydra and MongoDB yet.
+Use ./start-all to copy-paste commands into console.
 
 ## Build project from sources
 

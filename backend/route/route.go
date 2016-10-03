@@ -7,8 +7,8 @@ import (
 )
 
 func Init(e *echo.Echo, ua userapi.UserAPI) {
-	initMiddleware(e)
+	initMiddleware(e, ua)
 	initReverseProxy(e)
 	initStatic(e)
-	initAPI(e, ua)
+	initAPI(e)
 }

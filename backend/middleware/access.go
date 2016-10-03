@@ -1,9 +1,12 @@
 package middleware
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strings"
+
+	"golang.org/x/oauth2"
 
 	"github.com/labstack/echo"
 	"github.com/letsrock-today/hydra-sample/backend/service/hydra"
@@ -26,6 +29,12 @@ type (
 
 		// Callback used to map method and uri to scopes, resource name and action
 		Callback callbackFunc
+
+		// Config used to refresh OAuth2 token
+		OAuth2Config *oauth2.Config
+
+		// Context used to refresh OAuth2 token
+		OAuth2Context context.Context
 	}
 )
 
@@ -82,16 +91,6 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 				return echo.NewHTTPError(http.StatusForbidden, "operation is not permitted")
 			}
 
-			if err := hydra.ValidateAccessTokenPermissions(
-				token,
-				resource,
-				action,
-				scopes); err != nil {
-				//TODO: if token is expired, we can try to refresh it, using oauth2 token from DB
-				log.Println(err)
-				return echo.NewHTTPError(http.StatusForbidden, "invalid access token or operation is not permitted")
-			}
-
 			// Get user login from DB by access token.
 			user, err := config.UserAPI.UserByToken(config.PID, "accesstoken", token)
 			if err != nil {
@@ -100,6 +99,28 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 					return echo.NewHTTPError(http.StatusForbidden, "invalid token")
 				}
 				return echo.NewHTTPError(http.StatusInternalServerError)
+			}
+
+			// Update OAuth2 token and save it in DB.
+			if config.OAuth2Config != nil && config.OAuth2Context != nil {
+				oauth2token := user.Tokens[config.PID]
+				newToken, err := config.OAuth2Config.TokenSource(config.OAuth2Context, oauth2token).Token()
+				if err != nil {
+					log.Println(err)
+					// not critical for login, but should not update token in DB
+				} else if newToken != oauth2token {
+					token = newToken.AccessToken
+					config.UserAPI.UpdateToken(user.Email, config.PID, newToken)
+				}
+			}
+
+			if err := hydra.ValidateAccessTokenPermissions(
+				token,
+				resource,
+				action,
+				scopes); err != nil {
+				log.Println(err)
+				return echo.NewHTTPError(http.StatusForbidden, "invalid access token or operation is not permitted")
 			}
 
 			// Store user login to context.
