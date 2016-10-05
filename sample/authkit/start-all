@@ -26,16 +26,15 @@ hydra clients create -n "test" \
   -c [https://localhost:8080/callback] \
   -g [authorization_code,client_credentials,refresh_token] \
   -r [code,token] \
-  -a [core,hydra.keys.get,hydra.warden,offline,test.profile.edit,test.friends.view] \
+  -a [core,hydra.keys.get,hydra.warden,offline,api.profile.get,api.profile.post,api.friends.get] \
   --skip-tls-verify
 
 hydra policies create --allow -r "rn:hydra:keys:<[^:]+>:public" -s "<.*>" -a "get" --skip-tls-verify
 hydra policies create --allow -r "rn:hydra:keys:<[^:]+>:private" -s "<.*>" -a "get" --skip-tls-verify
 hydra policies create --allow -r "rn:hydra:warden:token:allowed" -s "<.*>" -a "decide" --skip-tls-verify
 
-hydra policies create --allow -r "rn:api" -s "<.*>" -a "get" --skip-tls-verify
-hydra policies create --allow -r "rn:api:friends" -s "<.*>" -a "get" --skip-tls-verify
-hydra policies create --allow -r "rn:api:profile" -s "<.*>" -a "edit" --skip-tls-verify
+hydra policies create --allow -r "rn:api:<[^:]+>" -s "<.*>" -a "get" --skip-tls-verify
+hydra policies create --allow -r "rn:api:profile" -s "<.*>" -a "post" --skip-tls-verify
 
 exit
 
