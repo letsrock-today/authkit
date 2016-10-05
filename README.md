@@ -28,15 +28,15 @@ So, our side in this context controls resource owner, OAuth2 client and provider
 
 This project uses:
 
-- github.com/labstack/echo, as a server framework (to implement routes,
+- https://github.com/labstack/echo, as a server framework (to implement routes,
   http handlers, middleware, etc); "echo" designed to be compatible with
   gorilla, negroni, standard lib, so, it should be possible to use our lib
   with them either;
-- github.com/golang/oauth2, as a client OAuth2 library;
-- github.com/ory-am/hydra, as a OAuth2 provider;
-- github.com/dgrijalva/jwt-go, to create tokens, when we have to;
-- github.com/asaskevich/govalidator, for validation logic;
-- github.com/mitchellh/mapstructure, to convert maps into structures;
+- https://github.com/golang/oauth2, as a client OAuth2 library;
+- https://github.com/ory-am/hydra, as a OAuth2 provider;
+- https://github.com/dgrijalva/jwt-go, to create tokens, when we have to;
+- https://github.com/asaskevich/govalidator, for validation logic;
+- https://github.com/mitchellh/mapstructure, to convert maps into structures;
 - ...
 
 Our aim is to provide:
@@ -58,4 +58,4 @@ ready to open it as it is.
 At the time of writing this text we are using Go 1.7.
 We use Glide to manage dependencies.
 
-To start using this lib, start from the README in the ./sample/authkit folder.
+See ./sample/authkit folder for demo app, README.md in that folder contains instructions how to run it.
