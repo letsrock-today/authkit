@@ -1,85 +1,61 @@
-# hydra-sample
+# authkit
 
-## Prerequisites
+"authkit" is a set of http handlers and middleware to implement auth2
+authorization and SSO in the web application (from the resource owner point of view).
 
-__Ubuntu, ubuntu-make__
+This project is not aimed to create yet another OAuth2 provider or client
+library, it is rather aimed to glue existing implementations, to fill gaps
+between them and to represent demo (blueprint?) solution(s) for particular
+authorization scenario(s). Also, any piece of code (helper, handler, middleware)
+should be customizable and reusable.
 
-Scripts below are valid for Ubuntu, you may need to modify them for other OSes.
+Initially, we are focused on the following task:
 
-See https://wiki.ubuntu.com/ubuntu-make for details on `umake` usage.
+- we have custom http API;
+- we want this API or part of it be available only to authorized users;
+- we want that users be able to authorize using their existing social network
+  accounts (Facebook, Google+, LinkedIn, etc);
+- we want to be able to provide username/password login as well;
+- we want that no matter which type of login user choose, API would be protected
+  using single approach with access token, issued by our side;
+- we want to be able to make our API or parts of it available to third parties
+  via OAuth2 code flow;
+- we want to expose single IP address to our clients (or several equivalent
+  addresses), so, for example, we want to proxy requests to Hydra via Nginx or
+  our own application;
 
-To install `umake` on Ubuntu just use
+So, our side in this context controls resource owner, OAuth2 client and provider.
 
-```
-sudo apt-get install ubuntu-make
-```
+This project uses:
 
-__Go (Golang)__
+- github.com/labstack/echo, as a server framework (to implement routes,
+  http handlers, middleware, etc); "echo" designed to be compatible with
+  gorilla, negroni, standard lib, so, it should be possible to use our lib
+  with them either;
+- github.com/golang/oauth2, as a client OAuth2 library;
+- github.com/ory-am/hydra, as a OAuth2 provider;
+- github.com/dgrijalva/jwt-go, to create tokens, when we have to;
+- github.com/asaskevich/govalidator, for validation logic;
+- github.com/mitchellh/mapstructure, to convert maps into structures;
+- ...
 
-Use `umake` to install or update Golang
+Our aim is to provide:
 
-```
-umake go
-```
+- [ ] a set of server-side primitives (http handlers, routes, middleware, helpers)
+      usable to implement different oauth2 scenarios;
+- [ ] binary auth module for Nginx (see http://nginx.org/en/docs/http/ngx_http_auth_request_module.html);
+- [ ] examples of our library usage in both modes: directly and behind Nginx;
+- [ ] sample web app implementation using Riot.js;
+- [ ] sample Android app implementation;
 
-__Glide__
+Finally, when the lib is ready, we want to migrate our own application
+(https://letsrock.today/) to it and to enjoy benefits of going open-source.
 
-We use Glide to dependency management. You may install it as below, or just use its
-configuration file `./backend/glide.yaml` as a reference of required dependencies.
+Currently almost all of relevant parts are implemented in our closed-source
+application or in samples, but code is a bit messy and scattered, so we are not
+ready to open it as it is.
 
-```
-sudo add-apt-repository ppa:masterminds/glide && sudo apt-get update
-sudo apt-get install glide
-```
+At the time of writing this text we are using Go 1.7.
+We use Glide to manage dependencies.
 
-__NPM, nodejs__
-
-Use `umake` to install or update nodejs, then install webpack
-
-```
-umake nodejs
-npm install webpack -g
-```
-
-## Start Hydra and MongoDB in Docker
-
-We have not created script to automatically start Hydra and MongoDB yet.
-Use ./start-all to copy-paste commands into console.
-
-## Build project from sources
-
-```
-WRK_DIR=$GOPATH/src/github.com/letsrock-today
-mkdir -p $WRK_DIR
-cd $WRK_DIR
-git clone https://github.com/letsrock-today/hydra-sample.git
-cd $WRK_DIR/hydra-sample/backend
-glide up
-
-cd $WRK_DIR/hydra-sample/ui-web
-npm install
-npm run dist
-
-cd $WRK_DIR/hydra-sample/backend
-go run main.go
-
-```
-
-## NB: Troubleshooting
-
-1. Don't use glide in symlinked path!
-
-```
-mkdir -p ~/work
-cd ~/work
-ln -s ~/go/src/github.com/letsrock-today/hydra-sample
-cd ./hydra-sample/backend
-
-# Now we are looking for trouble!
-# glide will make recurcive dependencies on our own subpackages and download
-# their old versions from github.
-glide up
-
-# Guess, which version of subpackages will be used?
-go run main.go
-```
+To start using this lib, start from the README in the ./sample/authkit folder.

@@ -25,12 +25,14 @@ _testmain.go
 
 **/.idea/
 
-*.swp
-backend/vendor
-backend/env/dev.yaml
-backend/env/dev-server.crt
-backend/env/dev-server.key
-ui-web/dist
-ui-web/node_modules
-
 *.bak
+*.swp
+
+**/vendor
+**/node_modules
+
+**/backend/env/dev.yaml
+**/backend/env/dev-server.crt
+**/backend/env/dev-server.key
+**/ui-web/dist
+
