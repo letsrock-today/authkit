@@ -61,7 +61,7 @@ func initMiddleware(e *echo.Echo, ua userapi.UserAPI) {
 type tokenValidator struct{}
 
 func (tokenValidator) Validate(token string, perm interface{}) error {
-	p, ok := perm.(_middleware.DefaultPermission)
+	p, ok := perm.(*_middleware.DefaultPermission)
 	if !ok {
 		return errors.New("invalid permission object")
 	}
@@ -81,7 +81,7 @@ func (u userStore) User(token string) (interface{}, error) {
 }
 
 func (userStore) OAuth2Token(user interface{}) (*oauth2.Token, error) {
-	usr, ok := user.(userapi.User)
+	usr, ok := user.(*userapi.User)
 	if !ok {
 		return nil, errors.New("invalid user object")
 	}
@@ -89,7 +89,7 @@ func (userStore) OAuth2Token(user interface{}) (*oauth2.Token, error) {
 }
 
 func (u userStore) UpdateOAuth2Token(user interface{}, token *oauth2.Token) error {
-	usr, ok := user.(userapi.User)
+	usr, ok := user.(*userapi.User)
 	if !ok {
 		return errors.New("invalid user object")
 	}
@@ -97,7 +97,7 @@ func (u userStore) UpdateOAuth2Token(user interface{}, token *oauth2.Token) erro
 }
 
 func (userStore) Principal(user interface{}) interface{} {
-	usr, ok := user.(userapi.User)
+	usr, ok := user.(*userapi.User)
 	if !ok {
 		return errors.New("invalid user object")
 	}

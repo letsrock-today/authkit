@@ -22,7 +22,14 @@ confirmation-link-lifespan: 60m
 hydra-clientcredentials:
     client-id: "xxx"
     client-secret: "xxx"
-    scopes: ["core","hydra.keys.get","hydra.warden","offline","test.profile.edit","test.friends.view"]
+    scopes:
+        - core
+        - hydra.keys.get
+        - hydra.warden
+        - offline
+        - api.profile.get
+        - api.profile.post
+        - api.friends.get
     token-url: "{base-url}/oauth2/token"
     auth-url: "{base-url}/oauth2/auth"
 
