@@ -192,7 +192,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		cs := cs
 		// e.Any(...) and brothers should not be used in parallel
 		next := nextHandler{
-			checkUserContext: !cs.unprotected,
+			checkPrincipal: !cs.unprotected,
 		}
 		e := echo.New()
 		e.Any("/unprotected", next.next)
@@ -265,14 +265,14 @@ func newGetRestricted(t *testing.T) *http.Request {
 const nextHandlerMsg = "Result from next handler"
 
 type nextHandler struct {
-	hasRun           bool
-	checkUserContext bool
+	hasRun         bool
+	checkPrincipal bool
 }
 
 func (n *nextHandler) next(c echo.Context) error {
 	n.hasRun = true
 	// check if user data is available in context
-	if !n.checkUserContext {
+	if !n.checkPrincipal {
 		return c.String(http.StatusOK, nextHandlerMsg)
 	}
 	u := c.Get(DefaultContextKey)
@@ -323,7 +323,7 @@ func (s *userStore) UpdateOAuth2Token(user interface{}, token *oauth2.Token) err
 	return nil
 }
 
-func (s *userStore) UserContext(user interface{}) interface{} {
+func (s *userStore) Principal(user interface{}) interface{} {
 	return user
 }
 

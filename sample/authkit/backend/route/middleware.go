@@ -96,7 +96,7 @@ func (u userStore) UpdateOAuth2Token(user interface{}, token *oauth2.Token) erro
 	return u.UpdateToken(usr.Email, config.PrivPID, token)
 }
 
-func (userStore) UserContext(user interface{}) interface{} {
+func (userStore) Principal(user interface{}) interface{} {
 	usr, ok := user.(userapi.User)
 	if !ok {
 		return errors.New("invalid user object")

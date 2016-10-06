@@ -34,9 +34,9 @@ type (
 		// UpdateOAuth2Token saves oauth2 token in the store.
 		UpdateOAuth2Token(user interface{}, token *oauth2.Token) error
 
-		// UserContext returns user data to be stored in the echo.Context.
+		// Principal returns user data to be stored in the echo.Context.
 		// It may return same structure which is passed to it or some fields from it.
-		UserContext(user interface{}) interface{}
+		Principal(user interface{}) interface{}
 	}
 
 	// TokenSourceProvider is implemented by oauth2.Config.
@@ -177,7 +177,7 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			}
 
 			// Store user login to context.
-			c.Set(config.ContextKey, config.UserStore.UserContext(user))
+			c.Set(config.ContextKey, config.UserStore.Principal(user))
 			return next(c)
 		}
 	}
