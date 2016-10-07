@@ -3,24 +3,30 @@ package route
 import (
 	"github.com/labstack/echo"
 
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/handler"
+	"github.com/letsrock-today/hydra-sample/authkit/handler"
+	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
+	_handler "github.com/letsrock-today/hydra-sample/sample/authkit/backend/handler"
 )
 
 func initAPI(e *echo.Echo) {
-	e.GET("/api/auth-providers", handler.AuthProviders)
-	e.GET("/api/auth-code-urls", handler.AuthCodeURLs)
 
-	e.GET("/api/profile", handler.Profile, profileMiddleware)
-	e.POST("/api/profile", handler.ProfileSave, profileMiddleware)
-	e.GET("/api/friends", handler.Friends, friendsMiddleware)
+	c := config.GetCfg()
+	h := handler.NewHandler(c)
 
-	e.POST("/api/login", handler.Login)
-	e.POST("/api/login-priv", handler.LoginPriv)
+	e.GET("/api/auth-providers", h.AuthProviders)
+	e.GET("/api/auth-code-urls", h.AuthCodeURLs)
 
-	e.GET("/callback", handler.Callback)
+	e.GET("/api/profile", _handler.Profile, profileMiddleware)
+	e.POST("/api/profile", _handler.ProfileSave, profileMiddleware)
+	e.GET("/api/friends", _handler.Friends, friendsMiddleware)
 
-	e.POST("/password-reset", handler.ResetPassword)
-	e.POST("/password-change", handler.ChangePassword)
+	e.POST("/api/login", _handler.Login)
+	e.POST("/api/login-priv", _handler.LoginPriv)
 
-	e.GET("/email-confirm", handler.EmailConfirm)
+	e.GET("/callback", _handler.Callback)
+
+	e.POST("/password-reset", _handler.ResetPassword)
+	e.POST("/password-change", _handler.ChangePassword)
+
+	e.GET("/email-confirm", _handler.EmailConfirm)
 }

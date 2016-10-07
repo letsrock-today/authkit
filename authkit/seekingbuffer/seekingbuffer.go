@@ -2,21 +2,24 @@ package seekingbuffer
 
 import "io"
 
-type SeekingBuffer struct {
+// SeekingBuffer is an io.ReadSeeker wrapper around the byte slice.
+type seekingBuffer struct {
 	b    []byte
 	off  int64
 	fill func() ([]byte, error)
 }
 
-func New(fill func() ([]byte, error)) *SeekingBuffer {
-	return &SeekingBuffer{
+// New creates an empty buffer. Function fill used to lazily populate buffer at
+// first Read or Seek invocation.
+func New(fill func() ([]byte, error)) io.ReadSeeker {
+	return &seekingBuffer{
 		b:    nil,
 		off:  0,
 		fill: fill,
 	}
 }
 
-func (b *SeekingBuffer) Read(p []byte) (n int, err error) {
+func (b *seekingBuffer) Read(p []byte) (n int, err error) {
 	if b.b == nil {
 		b.b, err = b.fill()
 		if err != nil {
@@ -35,7 +38,7 @@ func (b *SeekingBuffer) Read(p []byte) (n int, err error) {
 	return
 }
 
-func (b *SeekingBuffer) Seek(offset int64, whence int) (n int64, err error) {
+func (b *seekingBuffer) Seek(offset int64, whence int) (n int64, err error) {
 	if b.b == nil {
 		b.b, err = b.fill()
 		if err != nil {

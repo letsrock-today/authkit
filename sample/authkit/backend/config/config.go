@@ -6,6 +6,8 @@ import (
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
+
+	"github.com/letsrock-today/hydra-sample/authkit/config"
 )
 
 const (
@@ -70,4 +72,92 @@ func Get() Config {
 
 func ModTime() time.Time {
 	return Get().modTime
+}
+
+//////////////////////
+
+//TODO: this is temporary adapter, refactoring needed
+
+func GetCfg() config.Config {
+	return _config{Get()}
+}
+
+type _config struct {
+	c Config
+}
+
+func (c _config) OAuth2State() config.OAuth2State {
+	return _oauth2State{c.c.OAuth2State}
+}
+
+func (c _config) OAuth2Configs() map[string]oauth2.Config {
+	return c.c.OAuth2Configs
+}
+
+func (c _config) OAuth2Providers() []config.OAuth2Provider {
+	pp := []config.OAuth2Provider{}
+	for _, p := range c.c.OAuth2Providers {
+		pp = append(pp, _oauth2Provider{p})
+	}
+	return pp
+}
+
+func (c _config) ModTime() time.Time {
+	return c.c.modTime
+}
+
+type _oauth2State struct {
+	s OAuth2State
+}
+
+func (s _oauth2State) TokenIssuer() string {
+	return s.s.TokenIssuer
+}
+
+func (s _oauth2State) TokenSignKey() []byte {
+	return s.s.TokenSignKey
+}
+
+func (s _oauth2State) Expiration() time.Duration {
+	return s.s.Expiration
+}
+
+type _oauth2Provider struct {
+	p OAuth2Provider
+}
+
+func (p _oauth2Provider) ID() string {
+	return p.p.Id
+}
+
+func (p _oauth2Provider) Name() string {
+	return p.p.Name
+}
+
+func (p _oauth2Provider) ClientId() string {
+	return p.p.ClientId
+}
+
+func (p _oauth2Provider) ClientSecret() string {
+	return p.p.ClientSecret
+}
+
+func (p _oauth2Provider) PublicKey() string {
+	return p.p.PublicKey
+}
+
+func (p _oauth2Provider) Scopes() []string {
+	return p.p.Scopes
+}
+
+func (p _oauth2Provider) IconURL() string {
+	return p.p.IconURL
+}
+
+func (p _oauth2Provider) TokenURL() string {
+	return p.p.TokenURL
+}
+
+func (p _oauth2Provider) AuthURL() string {
+	return p.p.AuthURL
 }
