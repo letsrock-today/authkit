@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo"
 
+	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/hydra"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
@@ -47,10 +49,10 @@ func Callback(c echo.Context) error {
 	}
 
 	cfg := config.Get()
-	claims, err := parseStateToken(
-		cfg.OAuth2State.TokenSignKey,
+	state, err := apptoken.ParseStateToken(
 		cfg.OAuth2State.TokenIssuer,
-		cr.State)
+		cr.State,
+		cfg.OAuth2State.TokenSignKey)
 	if err != nil {
 		return err
 	}
@@ -64,16 +66,15 @@ func Callback(c echo.Context) error {
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: cfg.TLSInsecureSkipVerify},
 			}})
-	pid := claims.Subject
 
-	if pid == config.PrivPID {
+	if state.ProviderID() == config.PrivPID {
 		oauth2cfg = cfg.HydraOAuth2ConfigInt
 		ctx = hydraCtx
 	} else {
 		var ok bool
-		oauth2cfg, ok = cfg.OAuth2Configs[pid]
+		oauth2cfg, ok = cfg.OAuth2Configs[state.ProviderID()]
 		if !ok {
-			return fmt.Errorf("Unknown provider: %s", pid)
+			return fmt.Errorf("Unknown provider: %s", state.ProviderID())
 		}
 	}
 
@@ -82,8 +83,11 @@ func Callback(c echo.Context) error {
 		return err
 	}
 
-	if pid == config.PrivPID {
-		if err = Users.UpdateToken(claims.Audience, config.PrivPID, token); err != nil {
+	if state.ProviderID() == config.PrivPID {
+		if state.Login() == "" {
+			return errors.New("illegal state, empty login")
+		}
+		if err = Users.UpdateToken(state.Login(), config.PrivPID, token); err != nil {
 			return err
 		}
 		// our trusted provider, just return access token to client
@@ -100,7 +104,7 @@ func Callback(c echo.Context) error {
 
 	// Make provider-specific call to external provider for user's profile data.
 	// Obtain external user id and profile data.
-	pa, err := socialprofile.New(pid)
+	pa, err := socialprofile.New(state.ProviderID())
 	if err != nil {
 		return err
 	}
@@ -150,7 +154,7 @@ func Callback(c echo.Context) error {
 	//TODO: actually, returned token expires in about a day, it would be great to exchange it for long-lived one
 
 	// Save external provider's token in the users DB.
-	if err = Users.UpdateToken(p.Email, pid, token); err != nil {
+	if err = Users.UpdateToken(p.Email, state.ProviderID(), token); err != nil {
 		return err
 	}
 

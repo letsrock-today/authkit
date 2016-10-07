@@ -1,18 +1,20 @@
-package handler
+package apptoken
 
 import (
-	"errors"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/pkg/errors"
 )
 
-// Note: when used for oaut2 state, pid goes into subject and audience is empty
+var InvalidTokenError = errors.New("invalid token")
+
+// Note: when used for oauth2 state, pid goes into subject and audience is empty
 // when used for confirmation email link, email goes into audience and password hash - into subject
-func newStateToken(
-	tokenSignKey []byte,
+func newToken(
 	tokenIssuer, audience, subject string,
-	tokenExpiration time.Duration) (string, error) {
+	tokenExpiration time.Duration,
+	tokenSignKey []byte) (string, error) {
 	claims :=
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tokenExpiration).Unix(),
@@ -24,9 +26,9 @@ func newStateToken(
 	return token.SignedString(tokenSignKey)
 }
 
-func parseStateToken(
-	tokenSignKey []byte,
-	tokenIssuer, tokenString string) (*jwt.StandardClaims, error) {
+func parseToken(
+	tokenIssuer, tokenString string,
+	tokenSignKey []byte) (*jwt.StandardClaims, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		&jwt.StandardClaims{},
@@ -34,14 +36,14 @@ func parseStateToken(
 			return tokenSignKey, nil
 		})
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "invalid token")
 	}
 	claims, ok := token.Claims.(*jwt.StandardClaims)
 	if !ok || !token.Valid {
-		return nil, errors.New("Invalid token")
+		return nil, errors.WithStack(InvalidTokenError)
 	}
 	if claims.Issuer != tokenIssuer {
-		return nil, errors.New("Invalid issuer")
+		return nil, errors.WithStack(InvalidTokenError)
 	}
 	return claims, nil
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo"
 
+	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
 )
 
@@ -23,12 +24,11 @@ func AuthCodeURLs(c echo.Context) error {
 	reply := authCodeURLsReply{}
 	cfg := config.Get()
 	for pid, conf := range cfg.OAuth2Configs {
-		state, err := newStateToken(
-			cfg.OAuth2State.TokenSignKey,
+		state, err := apptoken.NewStateTokenString(
 			cfg.OAuth2State.TokenIssuer,
-			"",
 			pid,
-			cfg.OAuth2State.Expiration)
+			cfg.OAuth2State.Expiration,
+			cfg.OAuth2State.TokenSignKey)
 		if err != nil {
 			return err
 		}

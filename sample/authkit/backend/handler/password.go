@@ -8,6 +8,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 
+	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/userapi"
 )
@@ -62,10 +63,10 @@ func ChangePassword(c echo.Context) error {
 	}
 
 	cfg := config.Get()
-	claims, err := parseStateToken(
-		cfg.OAuth2State.TokenSignKey,
+	t, err := apptoken.ParseEmailToken(
 		cfg.OAuth2State.TokenIssuer,
-		cp.Token)
+		cp.Token,
+		cfg.OAuth2State.TokenSignKey)
 	if err != nil {
 		if err, ok := err.(jwt.ValidationError); ok {
 			if err.Errors&jwt.ValidationErrorExpired == jwt.ValidationErrorExpired {
@@ -75,14 +76,14 @@ func ChangePassword(c echo.Context) error {
 		return err
 	}
 
-	user, err := Users.User(claims.Audience)
+	user, err := Users.User(t.Login())
 	if err != nil {
 		if err == userapi.AuthErrorUserNotFound {
 			return c.JSON(http.StatusOK, newJsonError(err))
 		}
 		return err
 	}
-	if user.PasswordHash != claims.Subject {
+	if user.PasswordHash != t.PasswordHash() {
 		return c.JSON(http.StatusOK, newJsonError(userapi.AuthError))
 	}
 	err = Users.UpdatePassword(user.Email, cp.Password)

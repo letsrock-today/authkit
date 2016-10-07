@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 
+	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/profile/profileapi"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/userapi"
@@ -32,12 +33,12 @@ func sendConfirmationEmail(
 	urlpath string,
 	resetPassword bool) error {
 	cfg := config.Get()
-	token, err := newStateToken(
-		cfg.OAuth2State.TokenSignKey,
+	token, err := apptoken.NewEmailTokenString(
 		cfg.OAuth2State.TokenIssuer,
 		to,
 		passwordhash,
-		cfg.ConfirmationLinkLifespan)
+		cfg.ConfirmationLinkLifespan,
+		cfg.OAuth2State.TokenSignKey)
 	if err != nil {
 		return err
 	}

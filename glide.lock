@@ -1,8 +1,8 @@
-hash: 735aa539be76a1b6d864cf7e529b1fb25338b7f78b3785def929bce86912b108
-updated: 2016-10-05T23:58:41.360250307+07:00
+hash: e89be26bebd4363b3ea5ba0aaa1691bfae29a38a41bbbb344e10007620163e27
+updated: 2016-10-07T14:07:58.201535688+07:00
 imports:
 - name: cloud.google.com/go
-  version: 31ae667e89ed2a2f9cae09ce4f109f485f9e1b9f
+  version: 86c12b7c8187ffdfe4c155cc6bfca41ad0cabbc5
   subpackages:
   - compute/metadata
   - internal
@@ -38,13 +38,15 @@ imports:
 - name: github.com/mendsley/gojwk
   version: 4d5ec6e58103388d6cb0d7d72bc72649be4f0504
 - name: github.com/mitchellh/mapstructure
-  version: ca63d7c062ee3c9f34db231e352b60012b4fd0c1
+  version: a6ef2f080c66d0a2e94e97cf74f80f772855da63
 - name: github.com/pborman/uuid
   version: a97ce2ca70fa5a848076093f05e639a89ca34d06
+- name: github.com/pkg/errors
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: golang.org/x/net
-  version: ffe101cce3477a6c6d8f0754d103bb0a84ec1266
+  version: 9b4f494e787b16cdbea624b6975b99ddd8cc1ebf
   subpackages:
   - context
   - context/ctxhttp
@@ -67,11 +69,11 @@ imports:
   - uber
   - vk
 - name: golang.org/x/sys
-  version: 8f0908ab3b2457e2e15403d3697c9ef5cb4b57a9
+  version: 8d1157a435470616f975ff9bb013bea8d0962067
   subpackages:
   - unix
 - name: google.golang.org/appengine
-  version: 926995697fa8241be2dc73eb318666e24f44ed51
+  version: 3f4dbbc0ec153a39878fd524ece9f39732bd4998
   subpackages:
   - internal
   - internal/app_identity

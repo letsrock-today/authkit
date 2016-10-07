@@ -7,6 +7,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 
+	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/userapi"
@@ -29,10 +30,10 @@ func EmailConfirm(c echo.Context) error {
 	}
 
 	cfg := config.Get()
-	claims, err := parseStateToken(
-		cfg.OAuth2State.TokenSignKey,
+	t, err := apptoken.ParseEmailToken(
 		cfg.OAuth2State.TokenIssuer,
-		r.Token)
+		r.Token,
+		cfg.OAuth2State.TokenSignKey)
 	if err != nil {
 		if err, ok := err.(jwt.ValidationError); ok {
 			if err.Errors&jwt.ValidationErrorExpired == jwt.ValidationErrorExpired {
@@ -43,14 +44,12 @@ func EmailConfirm(c echo.Context) error {
 		return err
 	}
 
-	email := claims.Audience
-
 	// Create empty profile for new user.
-	if err := Profiles.Save(email, &socialprofile.Profile{Email: email}); err != nil {
+	if err := Profiles.Save(t.Login(), &socialprofile.Profile{Email: t.Login()}); err != nil {
 		return err
 	}
 
-	if err := Users.Enable(email); err != nil {
+	if err := Users.Enable(t.Login()); err != nil {
 		if err == userapi.AuthErrorUserNotFound {
 			//TODO: format error
 			return c.String(http.StatusOK, err.Error())

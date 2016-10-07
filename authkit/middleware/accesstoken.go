@@ -9,6 +9,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -72,16 +73,14 @@ type (
 )
 
 var (
+	InvalidAuthHeaderError = echo.NewHTTPError(http.StatusForbidden, "invalid header format")
+	AccessDeniedError      = echo.NewHTTPError(http.StatusForbidden, "access denied")
+
 	// for use by tests
 	reportEffectiveConfig func(AccessTokenConfig) = nil
 )
 
-const (
-	invalidHeaderFormatMsg = "invalid header format"
-	notPermittedMsg        = "operation is not permitted"
-
-	DefaultContextKey = "user-context"
-)
+const DefaultContextKey = "user-context"
 
 func NewDefaultPermissionMapper() PermissionMapper {
 	return DefaultPermissionMapper{}
@@ -125,30 +124,30 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			auth := req.Header().Get("Authorization")
 			split := strings.SplitN(auth, " ", 2)
 			if len(split) != 2 || !strings.EqualFold(split[0], "bearer") {
-				return echo.NewHTTPError(http.StatusForbidden, invalidHeaderFormatMsg)
+				return InvalidAuthHeaderError
 			}
 			token := strings.TrimSpace(split[1])
 			if token == "" {
-				return echo.NewHTTPError(http.StatusForbidden, invalidHeaderFormatMsg)
+				return InvalidAuthHeaderError
 			}
 
 			// Map request to permission
 			perm, err := config.PermissionMapper.RequiredPermissioin(req.Method(), req.URL().Path())
 			if err != nil {
-				log.Println(err)
-				return echo.NewHTTPError(http.StatusForbidden, notPermittedMsg)
+				log.Println(errors.Wrap(err, "permission mapping failed"))
+				return AccessDeniedError
 			}
 
 			// Find user
 			user, err := config.UserStore.User(token)
 			if err != nil {
-				log.Println(err)
-				return echo.NewHTTPError(http.StatusForbidden, notPermittedMsg)
+				log.Println(errors.Wrap(err, "user retrieving failed"))
+				return AccessDeniedError
 			}
 
 			// Update OAuth2 token and save it in DB
-			err = func() error {
-				if config.OAuth2Config != nil && config.OAuth2Context != nil {
+			if config.OAuth2Config != nil && config.OAuth2Context != nil {
+				err := func() error {
 					oauth2token, err := config.UserStore.OAuth2Token(user)
 					if err != nil {
 						return err
@@ -163,17 +162,18 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 							return err
 						}
 					}
+					return nil
+				}()
+				if err != nil {
+					// Even if we cannot refresh or save token, we may be able to proceed with old one
+					log.Println(errors.Wrap(err, "token refreshing failed"))
 				}
-				return nil
-			}()
-			if err != nil {
-				log.Println(err)
 			}
 
 			// Validate token's permissions
 			if err := config.TokenValidator.Validate(token, perm); err != nil {
-				log.Println(err)
-				return echo.NewHTTPError(http.StatusForbidden, notPermittedMsg)
+				log.Println(errors.Wrap(err, "token validation failed"))
+				return AccessDeniedError
 			}
 
 			// Store user login to context.

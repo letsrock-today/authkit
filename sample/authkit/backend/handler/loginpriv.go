@@ -8,6 +8,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo"
 
+	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/hydra"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/userapi"
@@ -68,12 +69,12 @@ func LoginPriv(c echo.Context) error {
 		return c.JSON(http.StatusOK, newJsonError(err))
 	}
 
-	state, err := newStateToken(
-		cfg.OAuth2State.TokenSignKey,
+	state, err := apptoken.NewStateWithLoginTokenString(
 		cfg.OAuth2State.TokenIssuer,
-		lf.Login,
 		config.PrivPID,
-		cfg.OAuth2State.Expiration)
+		lf.Login,
+		cfg.OAuth2State.Expiration,
+		cfg.OAuth2State.TokenSignKey)
 	if err != nil {
 		return err
 	}

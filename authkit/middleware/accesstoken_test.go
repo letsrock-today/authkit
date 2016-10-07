@@ -76,6 +76,10 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		OAuth2Config:  tokenSourceProvider{},
 		OAuth2Context: context.Background(),
 	}
+
+	invalidHeaderFormatMsg := InvalidAuthHeaderError.Message
+	notPermittedMsg := AccessDeniedError.Message
+
 	cases := []struct {
 		name                 string
 		w                    *httptest.ResponseRecorder
