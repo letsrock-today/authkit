@@ -40,5 +40,5 @@ module.exports = {
 };
 
 let csrfHeaderName = "X-CSRF-Token",
-    csrfCookieName = "csrf",
+    csrfCookieName = "_csrf",
     authCookieName;
