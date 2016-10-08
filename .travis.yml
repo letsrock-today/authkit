@@ -17,6 +17,4 @@ script: glide nv | xargs go test
 
 notifications:
     email: false
-    slack:
-        on_success: always
-        on_failure: always
+    slack: letsrock-today:eG4j11F8dlxEIPmoUq3m8bol
