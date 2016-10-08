@@ -10,11 +10,11 @@ before_install:
     - npm install webpack -g
 install:
     - glide up
-    - pushd $TRAVIS_BUILD_DIR/sample/authkit/web-ui && npm install && popd
+    - pushd $TRAVIS_BUILD_DIR/sample/authkit/ui-web && npm install && popd
 script:
     - glide nv | xargs go test
     - go build -o authkit-sample github.com/letsrock-today/hydra-sample/sample/authkit/backend
-    - pushd $TRAVIS_BUILD_DIR/sample/authkit/web-ui && npm run dist && popd
+    - pushd $TRAVIS_BUILD_DIR/sample/authkit/ui-web && npm run dist && popd
 notifications:
     email: false
     slack:
