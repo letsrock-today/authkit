@@ -47,7 +47,7 @@ Our aim is to provide:
       usable to implement different oauth2 scenarios;
 - [ ] binary auth module for Nginx (see http://nginx.org/en/docs/http/ngx_http_auth_request_module.html);
 - [ ] examples of our library usage in both modes: directly and behind Nginx;
-- [ ] sample web app implementation using Riot.js;
+- [ ] sample web app implementation using [Riot.js](http://riotjs.com/);
 - [ ] sample Android app implementation;
 
 Finally, when the lib is ready, we want to migrate our own application
