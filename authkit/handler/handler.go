@@ -15,6 +15,7 @@ type Handler interface {
 	AuthProviders(echo.Context) error
 }
 
+//TODO: comment where the methods are implemented...
 type handler struct {
 	config config.Config
 }

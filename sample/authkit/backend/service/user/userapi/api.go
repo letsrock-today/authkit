@@ -36,7 +36,7 @@ type UserAPI interface {
 
 	// return user by token
 	// token_field is one of [accesstoken, refreshtoken]
-	UserByToken(pid, token_field, token string) (*User, error)
+	UserByToken(pid, tokenField, token string) (*User, error)
 }
 
 type User struct {

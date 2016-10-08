@@ -1,7 +1,10 @@
 package user
 
 import (
+	"errors"
 	"time"
+
+	"golang.org/x/oauth2"
 
 	api "github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/userapi"
 )
@@ -75,7 +78,7 @@ func (du *dummyuserapi) Enable(login string) error {
 	return nil
 }
 
-func (du *dummyuserapi) UpdateToken(login, pid, token string) error {
+func (du *dummyuserapi) UpdateToken(login, pid string, token *oauth2.Token) error {
 	user, err := du.User(login)
 	if err != nil {
 		return err
@@ -84,10 +87,29 @@ func (du *dummyuserapi) UpdateToken(login, pid, token string) error {
 	return nil
 }
 
-func (du *dummyuserapi) Token(login, pid string) (string, error) {
+func (du *dummyuserapi) Token(login, pid string) (*oauth2.Token, error) {
 	user, err := du.User(login)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	return user.Tokens[pid], nil
+}
+
+func (du *dummyuserapi) UserByToken(pid, tokenField, token string) (*api.User, error) {
+	for _, u := range du.users {
+		t := u.Tokens[pid]
+		switch tokenField {
+		case "accesstoken":
+			if t.AccessToken == token {
+				return &u, nil
+			}
+		case "refreshtoken":
+			if t.RefreshToken == token {
+				return &u, nil
+			}
+		default:
+			return nil, errors.New("unknown token type")
+		}
+	}
+	return nil, api.AuthErrorUserNotFound
 }
