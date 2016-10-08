@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/letsrock-today/hydra-sample.svg?branch=master)](https://travis-ci.org/letsrock-today/hydra-sample)
+
 # authkit
 
 "authkit" is a set of http handlers and middleware to implement auth2
