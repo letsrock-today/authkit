@@ -15,3 +15,8 @@ install:
 
 script: glide nv | xargs go test
 
+notifications:
+    email: false
+    slack:
+        on_success: always
+        on_failure: always
