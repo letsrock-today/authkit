@@ -1,4 +1,5 @@
 var webpack = require('webpack')
+require('es6-promise').polyfill();
 
 module.exports = {
   cache: true,
@@ -21,7 +22,7 @@ module.exports = {
     loaders: [
       { test: /\.css$/, include: /src/, loader: 'style!css' },
       { test: /\.js$|\.html$/, include: /src/, loader: 'babel', query: { presets: 'es2015-riot' } },
-      {test: /\.(png|woff|woff2|eot|ttf|svg)$/, loader: 'url-loader?limit=100000'}
+      { test: /\.(png|woff|woff2|eot|ttf|svg)$/, loader: 'url-loader?limit=100000' }
     ],
   },
   babel: {
