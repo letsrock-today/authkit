@@ -60,4 +60,87 @@ ready to open it as it is.
 At the time of writing this text we are using Go 1.7.
 We use Glide to manage dependencies.
 
-See ./sample/authkit folder for demo app, README.md in that folder contains instructions how to run it.
+See ./sample/authkit folder for the first demo app. Instructions to run samples
+are below.
+
+
+# Getting started
+
+## Prerequisites
+
+See ./.travis.yml for concise test/dev environment description.
+
+Below are listed versions of tools we used in dev equivalent:
+
+- Ubuntu 16.04.1 LTS
+- go 1.7
+- docker 1.11
+- docker-compose 1.8.1
+- glide 0.12.2
+- nodejs 6.7.0
+- npm 3.10.3
+- webpack 1.13.2
+- GNU Make 4.1
+
+Ubuntu users may use following scriptlet to install necessary tools:
+
+
+```
+sudo add-apt-repository ppa:masterminds/glide && sudo apt-get update
+sudo apt-get install make ubuntu-make docker.io glide
+
+umake go
+umake nodejs
+
+npm install webpack -g
+
+sudo -i
+curl -L https://github.com/docker/compose/releases/download/1.8.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+exit
+
+```
+
+
+## Build project from sources
+
+```
+# clone repo
+
+WRK_DIR=$GOPATH/src/github.com/letsrock-today
+mkdir -p $WRK_DIR
+cd $WRK_DIR
+git clone https://github.com/letsrock-today/hydra-sample.git
+
+# update go dependencies
+
+cd $WRK_DIR/hydra-sample
+glide up
+
+# update npm dependencies for every sample
+
+pushd $WRK_DIR/sample/authkit/ui-web
+npm install
+popd
+
+# you should be able to build samples with "make"
+# but to run samples (using "make up") you have to adjust sample apps' configurations
+# see README.md in the correspondent sample's directory
+
+pushd $WRK_DIR/sample/authkit
+
+make up
+
+# App should be running at this point.
+# If browser won't appear automatically, see command output in console for links.
+# https://localhost:8080 - for the sample app with login dialog
+# https://localhost:8080/oauth2/auth?... - for login as a third party to use app's API
+
+make down
+
+popd
+
+#TODO: other samples
+
+```
+

@@ -1,99 +1,52 @@
-# hydra-sample
+# sample/authkit
 
-## Prerequisites
+This sample uses:
+- `authkit` to implement login logic;
+- `echo` for routing, etc;
+- `mongodb` to implement required storages;
+- `hydra` as OAuth2 provider;
 
-__Ubuntu, ubuntu-make__
+Use `make up` to start docker containers and the app, `make down` - to stop them.
 
-Scripts below are valid for Ubuntu, you may need to modify them for other OSes.
+See Makefile and app's settings for exact URLs.
 
-See https://wiki.ubuntu.com/ubuntu-make for details on `umake` usage.
+App demonstrates login via Facebook, LinkedIn or Hydra.
 
-To install `umake` on Ubuntu just use
+Hydra is an open-source on-premise OAuth2 provider app.
+You can run it at your site and it will allow you to be your own OAuth2 provider
+and to grant access to your app's web API to your own client apps or to
+third-party clients. Much like Google or Github do.
 
-```
-sudo apt-get install ubuntu-make
-```
+This app also demonstrates login scenario from third-party point of view (demo
+app's consent page, which third-party app users would see, when login into the
+third-party app using their logins, created at this demo).
+This scenario starts from `https://localhost:8080/oauth2/auth?...` URL.
 
-__Go (Golang)__
+_Note_: we used the same internal client for third-party scenario's URL.
+Actually, new client should be created for every third-party app.
+Third-party should give us a redirect URL for the client and
+we should respond with client_id and client_secret. Then third-party would be
+able to construct correct URL to login, acquire our access token and make
+requests to our API.
 
-Use `umake` to install or update Golang
-
-```
-umake go
-```
-
-__Glide__
-
-We use Glide to dependency management. You may install it as below, or just use its
-configuration file `./backend/glide.yaml` as a reference of required dependencies.
-
-```
-sudo add-apt-repository ppa:masterminds/glide && sudo apt-get update
-sudo apt-get install glide
-```
-
-__NPM, nodejs__
-
-Use `umake` to install or update nodejs, then install webpack
-
-```
-umake nodejs
-npm install webpack -g
-```
-
-## Start Hydra and MongoDB in Docker
-
-We have not created script to automatically start Hydra and MongoDB yet.
-Use ./start-all to copy-paste commands into console.
-
-## Build project from sources
-
-```
-WRK_DIR=$GOPATH/src/github.com/letsrock-today
-mkdir -p $WRK_DIR
-cd $WRK_DIR
-git clone https://github.com/letsrock-today/hydra-sample.git
-cd $WRK_DIR/hydra-sample/backend
-glide up
-
-cd $WRK_DIR/hydra-sample/ui-web
-npm install
-npm run dist
-
-cd $WRK_DIR/hydra-sample/backend
-go run main.go
-
-```
-
-## NB: Troubleshooting
-
-1. Don't use glide in symlinked path!
-
-```
-mkdir -p ~/work
-cd ~/work
-ln -s ~/go/src/github.com/letsrock-today/hydra-sample
-cd ./hydra-sample/backend
-
-# Now we are looking for trouble!
-# glide will make recurcive dependencies on our own subpackages and download
-# their old versions from github.
-glide up
-
-# Guess, which version of subpackages will be used?
-go run main.go
-```
+_Note_: to automate test app setup, we use insecure Hydra settings - options to 
+suppress TLS verification and to enable autologon (human interaction required
+otherwise). Also, all client secrets in the sample configuration file are
+compromised. It's OK for demo app, but should not be used in production.
 
 
+## Configuration
 
+1. Create TLS keys to enable https in browser.  
+    
+        cd ./backend/env
+        openssl req -x509 -nodes -newkey rsa:2048 -keyout dev-server.key -out dev-server.crt -days 3650
+    
+2. Prepare GMail account, to use password confirmations.
+3. Prepare Facebook and LinkedIn developer accounts and setup test applications
+   in them with OAuth2 enabled.
+4. Use sample configuration file as template and provide secrets
+   (search for "xxx" pattern).
 
-
-
-######################
-
-#0. Install docker, docker-compose
-#1. Setup apps in FB and LN and copy-paste client IDs and secrets to app's yaml.
-#2. Store mail server's credentials in app's yaml.
-#5. Start docker-compose up.
-#
-#NB: comment that all setup is very insecure due hardcoded secrets and switched off TLS.
+        cp ./backend/env/dev-sample.yaml ./backend/env/dev.yaml
+        vim ./backend/env/dev.yaml

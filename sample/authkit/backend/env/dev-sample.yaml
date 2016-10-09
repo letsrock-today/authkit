@@ -1,7 +1,7 @@
 listen-addr: ":8080"
 
 # use command below to generate self-signed certificate files:
-# openssl req -x509 -nodes -newkey rsa:2048 -keyout server.rsa.key -out server.rsa.crt -days 3650
+# openssl req -x509 -nodes -newkey rsa:2048 -keyout dev-server.key -out dev-server.crt -days 3650
 tls-cert-file: "./env/dev-server.crt"
 tls-key-file: "./env/dev-server.key"
 #TODO: use real certeficates in PROD and remove transport replacement (change setting bellow to false)
@@ -20,8 +20,8 @@ confirmation-link-lifespan: 60m
 
 # hydra secrets (returned when client created via CLI)
 hydra-clientcredentials:
-    client-id: "xxx"
-    client-secret: "xxx"
+    client-id: "a8a9bffa-d748-440d-9d67-bd161018a495"
+    client-secret: "mUn,rc-K6=bHA5XSN&9nYEhGVx"
     scopes:
         - core
         - hydra.keys.get
