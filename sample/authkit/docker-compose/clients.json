@@ -1,0 +1,13 @@
+{
+    "id": "a8a9bffa-d748-440d-9d67-bd161018a495",
+    "client_name": "test",
+    "client_secret": "mUn,rc-K6=bHA5XSN&9nYEhGVx",
+    "redirect_uris": ["https://localhost:8080/callback"],
+    "grant_types": ["authorization_code", "client_credentials", "refresh_token"],
+    "response_types": ["code","token"],
+    "scope": "core hydra.keys.get hydra.warden offline api.profile.get api.profile.post api.friends.get"
+}
+
+
+
+

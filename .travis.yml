@@ -2,6 +2,8 @@ language: go
 go:
     - 1.7
 sudo: required
+services:
+    - docker
 before_install:
     - curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
     - sudo add-apt-repository -y ppa:masterminds/glide
@@ -13,8 +15,7 @@ install:
     - pushd $TRAVIS_BUILD_DIR/sample/authkit/ui-web && npm install && popd
 script:
     - glide nv | xargs go test
-    - go build -o authkit-sample github.com/letsrock-today/hydra-sample/sample/authkit/backend
-    - pushd $TRAVIS_BUILD_DIR/sample/authkit/ui-web && npm run dist && popd
+    - pushd $TRAVIS_BUILD_DIR/sample/authkit/ && make up && make down
 notifications:
     email: false
     slack:

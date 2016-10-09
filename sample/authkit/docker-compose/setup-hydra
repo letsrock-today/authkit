@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# combersome, but enough for sample
+sleep 30
+
+cfg=/etc/service/hydra/.hydra.yml
+
+/go/bin/hydra clients import /clients.json \
+    --config="$cfg" \
+    --skip-tls-verify
+
+/go/bin/hydra policies create \
+    --allow \
+    -r "rn:hydra:keys:<[^:]+>:public" \
+    -s "<.*>" \
+    -a "get" \
+    --config="$cfg" \
+    --skip-tls-verify
+
+/go/bin/hydra policies create \
+    --allow \
+    -r "rn:hydra:keys:<[^:]+>:private" \
+    -s "<.*>" \
+    -a "get" \
+    --config="$cfg" \
+    --skip-tls-verify
+
+/go/bin/hydra policies create \
+    --allow \
+    -r "rn:hydra:warden:token:allowed" \
+    -s "<.*>" \
+    -a "decide" \
+    --config="$cfg" \
+    --skip-tls-verify
+
+
+/go/bin/hydra policies create \
+    --allow \
+    -r "rn:api:<[^:]+>" \
+    -s "<.*>" \
+    -a "get" \
+    --config="$cfg" \
+    --skip-tls-verify
+
+/go/bin/hydra policies create \
+    --allow \
+    -r "rn:api:profile" \
+    -s "<.*>" \
+    -a "post" \
+    --config="$cfg" \
+    --skip-tls-verify
+
+echo "Setup finished."
+
+# wait for termination, Hydra runs as a service
+sleep infinity

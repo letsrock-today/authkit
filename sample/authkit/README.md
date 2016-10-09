@@ -83,3 +83,17 @@ glide up
 # Guess, which version of subpackages will be used?
 go run main.go
 ```
+
+
+
+
+
+
+######################
+
+#0. Install docker, docker-compose
+#1. Setup apps in FB and LN and copy-paste client IDs and secrets to app's yaml.
+#2. Store mail server's credentials in app's yaml.
+#5. Start docker-compose up.
+#
+#NB: comment that all setup is very insecure due hardcoded secrets and switched off TLS.

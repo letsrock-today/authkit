@@ -1,0 +1,32 @@
+version: '2'
+services:
+    build-hydra:
+        image: oryam/hydra
+        container_name: hs-build-hydra
+        volumes:
+            - go:/go/
+        entrypoint: echo "Build finished."
+    hydra:
+        image: phusion/baseimage
+        container_name: hs-hydra
+        working_dir: /go/src/github.com/ory-am/hydra
+        command: /sbin/my_init -- /setup-hydra
+        ports:
+            - "4444:4444"
+        volumes:
+            - go:/go/:ro
+            - ./start-hydra:/etc/service/hydra/run:ro
+            - ./setup-hydra:/setup-hydra:ro
+            - ./clients.json:/clients.json:ro
+        environment:
+            CONSENT_URL: "https://localhost:8080/login"
+        depends_on:
+            - build-hydra
+    db:
+        image: mongo
+        container_name: hs-mongo
+        ports:
+            - "27017:27017"
+volumes:
+    go:
+        external: false

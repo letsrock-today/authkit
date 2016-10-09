@@ -30,6 +30,7 @@ _testmain.go
 
 **/vendor
 **/node_modules
+**/.build/
 
 **/backend/env/dev.yaml
 **/backend/env/dev-server.crt
