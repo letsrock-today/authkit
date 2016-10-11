@@ -20,6 +20,7 @@ clean:
 build:
 	@echo "Build"
 	@glide nv | xargs go test
+	@-glide nv | xargs go vet
 	@-glide nv | xargs golint
 	@rm -rf ./.build
 	@mkdir -p ./.build
