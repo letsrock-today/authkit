@@ -58,6 +58,8 @@ func initMiddleware(e *echo.Echo, ua userapi.UserAPI) {
 		})
 }
 
+//TODO: refactoring required
+
 type tokenValidator struct{}
 
 func (tokenValidator) Validate(token string, perm interface{}) error {

@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
@@ -134,14 +133,14 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			// Map request to permission
 			perm, err := config.PermissionMapper.RequiredPermissioin(req.Method(), req.URL().Path())
 			if err != nil {
-				log.Println(errors.Wrap(err, "permission mapping failed"))
+				c.Logger().Debug(errors.WithStack(err))
 				return AccessDeniedError
 			}
 
 			// Find user
 			user, err := config.UserStore.User(token)
 			if err != nil {
-				log.Println(errors.Wrap(err, "user retrieving failed"))
+				c.Logger().Debug(errors.WithStack(err))
 				return AccessDeniedError
 			}
 
@@ -166,13 +165,13 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 				}()
 				if err != nil {
 					// Even if we cannot refresh or save token, we may be able to proceed with old one
-					log.Println(errors.Wrap(err, "token refreshing failed"))
+					c.Logger().Warn(errors.WithStack(err))
 				}
 			}
 
 			// Validate token's permissions
 			if err := config.TokenValidator.Validate(token, perm); err != nil {
-				log.Println(errors.Wrap(err, "token validation failed"))
+				c.Logger().Debug(errors.WithStack(err))
 				return AccessDeniedError
 			}
 

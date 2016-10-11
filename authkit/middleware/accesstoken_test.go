@@ -81,114 +81,114 @@ func TestAccessTokenWithConfig(t *testing.T) {
 	notPermittedMsg := AccessDeniedError.Message
 
 	cases := []struct {
-		name                 string
-		w                    *httptest.ResponseRecorder
-		r                    *http.Request
-		accessTokenConfig    AccessTokenConfig
-		accessTokenHeader    string
-		expectedResponseCode int
-		expectedResponseBody string
-		unprotected          bool
+		name              string
+		w                 *httptest.ResponseRecorder
+		r                 *http.Request
+		accessTokenConfig AccessTokenConfig
+		accessTokenHeader string
+		expStatusCode     int
+		expRespBody       string
+		unprotected       bool
 	}{
 		{
-			name:                 "Unprotected resource, header empty",
-			w:                    httptest.NewRecorder(),
-			r:                    newGetUnprotected(t),
-			accessTokenConfig:    accessTokenConfig,
-			accessTokenHeader:    "",
-			expectedResponseCode: http.StatusOK,
-			expectedResponseBody: nextHandlerMsg,
-			unprotected:          true,
+			name:              "Unprotected resource, header empty",
+			w:                 httptest.NewRecorder(),
+			r:                 newGetUnprotected(t),
+			accessTokenConfig: accessTokenConfig,
+			accessTokenHeader: "",
+			expStatusCode:     http.StatusOK,
+			expRespBody:       nextHandlerMsg,
+			unprotected:       true,
 		},
 		{
-			name:                 "Protected resource, header empty",
-			w:                    httptest.NewRecorder(),
-			r:                    newGetRestricted(t),
-			accessTokenConfig:    accessTokenConfig,
-			accessTokenHeader:    "",
-			expectedResponseCode: http.StatusForbidden,
-			expectedResponseBody: invalidHeaderFormatMsg,
+			name:              "Protected resource, header empty",
+			w:                 httptest.NewRecorder(),
+			r:                 newGetRestricted(t),
+			accessTokenConfig: accessTokenConfig,
+			accessTokenHeader: "",
+			expStatusCode:     http.StatusForbidden,
+			expRespBody:       invalidHeaderFormatMsg,
 		},
 		{
-			name:                 "Protected resource, invalid header format (no 'bearer')",
-			w:                    httptest.NewRecorder(),
-			r:                    newGetRestricted(t),
-			accessTokenConfig:    accessTokenConfig,
-			accessTokenHeader:    "zzz",
-			expectedResponseCode: http.StatusForbidden,
-			expectedResponseBody: invalidHeaderFormatMsg,
+			name:              "Protected resource, invalid header format (no 'bearer')",
+			w:                 httptest.NewRecorder(),
+			r:                 newGetRestricted(t),
+			accessTokenConfig: accessTokenConfig,
+			accessTokenHeader: "zzz",
+			expStatusCode:     http.StatusForbidden,
+			expRespBody:       invalidHeaderFormatMsg,
 		},
 		{
-			name:                 "Protected resource, invalid header format (no token after 'bearer')",
-			w:                    httptest.NewRecorder(),
-			r:                    newGetRestricted(t),
-			accessTokenConfig:    accessTokenConfig,
-			accessTokenHeader:    "bearer   ",
-			expectedResponseCode: http.StatusForbidden,
-			expectedResponseBody: invalidHeaderFormatMsg,
+			name:              "Protected resource, invalid header format (no token after 'bearer')",
+			w:                 httptest.NewRecorder(),
+			r:                 newGetRestricted(t),
+			accessTokenConfig: accessTokenConfig,
+			accessTokenHeader: "bearer   ",
+			expStatusCode:     http.StatusForbidden,
+			expRespBody:       invalidHeaderFormatMsg,
 		},
 		{
-			name:                 "Restricted resource, valid token",
-			w:                    httptest.NewRecorder(),
-			r:                    newGetRestricted(t),
-			accessTokenConfig:    accessTokenConfig,
-			accessTokenHeader:    "bearer xxx",
-			expectedResponseCode: http.StatusForbidden,
-			expectedResponseBody: notPermittedMsg,
+			name:              "Restricted resource, valid token",
+			w:                 httptest.NewRecorder(),
+			r:                 newGetRestricted(t),
+			accessTokenConfig: accessTokenConfig,
+			accessTokenHeader: "bearer xxx",
+			expStatusCode:     http.StatusForbidden,
+			expRespBody:       notPermittedMsg,
 		},
 		{
-			name:                 "Permitted resource, valid token, GET",
-			w:                    httptest.NewRecorder(),
-			r:                    newGetPermitted(t),
-			accessTokenConfig:    accessTokenConfig,
-			accessTokenHeader:    "bearer xxx",
-			expectedResponseCode: http.StatusOK,
-			expectedResponseBody: nextHandlerMsg,
+			name:              "Permitted resource, valid token, GET",
+			w:                 httptest.NewRecorder(),
+			r:                 newGetPermitted(t),
+			accessTokenConfig: accessTokenConfig,
+			accessTokenHeader: "bearer xxx",
+			expStatusCode:     http.StatusOK,
+			expRespBody:       nextHandlerMsg,
 		},
 		{
-			name:                 "Permitted resource, valid token, POST",
-			w:                    httptest.NewRecorder(),
-			r:                    newPostPermitted(t),
-			accessTokenConfig:    accessTokenConfig,
-			accessTokenHeader:    "bearer xxx",
-			expectedResponseCode: http.StatusOK,
-			expectedResponseBody: nextHandlerMsg,
+			name:              "Permitted resource, valid token, POST",
+			w:                 httptest.NewRecorder(),
+			r:                 newPostPermitted(t),
+			accessTokenConfig: accessTokenConfig,
+			accessTokenHeader: "bearer xxx",
+			expStatusCode:     http.StatusOK,
+			expRespBody:       nextHandlerMsg,
 		},
 		{
-			name:                 "Permitted resource, invalid token",
-			w:                    httptest.NewRecorder(),
-			r:                    newGetPermitted(t),
-			accessTokenConfig:    accessTokenConfig,
-			accessTokenHeader:    "bearer zzz",
-			expectedResponseCode: http.StatusForbidden,
-			expectedResponseBody: notPermittedMsg,
+			name:              "Permitted resource, invalid token",
+			w:                 httptest.NewRecorder(),
+			r:                 newGetPermitted(t),
+			accessTokenConfig: accessTokenConfig,
+			accessTokenHeader: "bearer zzz",
+			expStatusCode:     http.StatusForbidden,
+			expRespBody:       notPermittedMsg,
 		},
 		{
-			name:                 "Permitted resource, unknown token",
-			w:                    httptest.NewRecorder(),
-			r:                    newGetPermitted(t),
-			accessTokenConfig:    accessTokenConfig,
-			accessTokenHeader:    "bearer yyy", // token with permission, but without user
-			expectedResponseCode: http.StatusForbidden,
-			expectedResponseBody: notPermittedMsg,
+			name:              "Permitted resource, unknown token",
+			w:                 httptest.NewRecorder(),
+			r:                 newGetPermitted(t),
+			accessTokenConfig: accessTokenConfig,
+			accessTokenHeader: "bearer yyy", // token with permission, but without user
+			expStatusCode:     http.StatusForbidden,
+			expRespBody:       notPermittedMsg,
 		},
 		{
-			name:                 "Permitted only get resource, valid token, GET",
-			w:                    httptest.NewRecorder(),
-			r:                    newGetPermittedOnlyGet(t),
-			accessTokenConfig:    accessTokenConfig,
-			accessTokenHeader:    "bearer xxx",
-			expectedResponseCode: http.StatusOK,
-			expectedResponseBody: nextHandlerMsg,
+			name:              "Permitted only get resource, valid token, GET",
+			w:                 httptest.NewRecorder(),
+			r:                 newGetPermittedOnlyGet(t),
+			accessTokenConfig: accessTokenConfig,
+			accessTokenHeader: "bearer xxx",
+			expStatusCode:     http.StatusOK,
+			expRespBody:       nextHandlerMsg,
 		},
 		{
-			name:                 "Permitted only get resource, valid token, POST",
-			w:                    httptest.NewRecorder(),
-			r:                    newPostPermittedOnlyGet(t),
-			accessTokenConfig:    accessTokenConfig,
-			accessTokenHeader:    "bearer xxx",
-			expectedResponseCode: http.StatusForbidden,
-			expectedResponseBody: notPermittedMsg,
+			name:              "Permitted only get resource, valid token, POST",
+			w:                 httptest.NewRecorder(),
+			r:                 newPostPermittedOnlyGet(t),
+			accessTokenConfig: accessTokenConfig,
+			accessTokenHeader: "bearer xxx",
+			expStatusCode:     http.StatusForbidden,
+			expRespBody:       notPermittedMsg,
 		},
 	}
 
@@ -221,8 +221,8 @@ func TestAccessTokenWithConfig(t *testing.T) {
 			e.ServeHTTP(
 				standard.NewRequest(r, e.Logger()),
 				standard.NewResponse(w, e.Logger()))
-			assert.Equal(cs.expectedResponseCode, w.Code)
-			assert.Equal(cs.expectedResponseBody, string(w.Body.Bytes()))
+			assert.Equal(cs.expStatusCode, w.Code)
+			assert.Equal(cs.expRespBody, string(w.Body.Bytes()))
 			if !cs.unprotected && w.Code == http.StatusOK {
 				assert.True(cs.accessTokenConfig.UserStore.(*userStore).tokenRefreshed)
 			}

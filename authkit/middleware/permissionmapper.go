@@ -3,10 +3,9 @@ package middleware
 import (
 	"errors"
 	"net/url"
+	"strings"
 	"unicode"
 )
-
-import "strings"
 
 type (
 

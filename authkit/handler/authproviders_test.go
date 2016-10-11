@@ -34,7 +34,7 @@ func TestAuthProviders(t *testing.T) {
 		},
 	}
 
-	h := NewHandler(cfg)
+	h := handler{config: cfg}
 
 	err := h.AuthProviders(c)
 	assert.NoError(err)

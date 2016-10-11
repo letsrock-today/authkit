@@ -50,7 +50,7 @@ func TestAuthCodeURLs(t *testing.T) {
 		},
 	}
 
-	h := NewHandler(cfg)
+	h := handler{config: cfg}
 
 	err := h.AuthCodeURLs(c)
 	assert.NoError(err)

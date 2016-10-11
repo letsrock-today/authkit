@@ -2,11 +2,11 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 
 	"github.com/letsrock-today/hydra-sample/authkit/seekingbuffer"
 )
@@ -39,7 +39,7 @@ func (h handler) AuthProviders(c echo.Context) error {
 
 				b, err := json.Marshal(p)
 				if err != nil {
-					log.Println("Error at AuthProviders, json.Marshal():", err)
+					c.Logger().Error(errors.WithStack(err))
 				}
 				return b, err
 			}),

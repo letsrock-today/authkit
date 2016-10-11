@@ -7,8 +7,12 @@ import (
 )
 
 // NewHandler returns default Handler implemetation.
-func NewHandler(c config.Config) Handler {
-	return handler{c}
+func NewHandler(
+	c config.Config,
+	ec ErrorCustomizer,
+	as AuthService,
+	us UserService) Handler {
+	return handler{c, ec, as, us}
 }
 
 //TODO: describe API in swagger format.
@@ -28,6 +32,9 @@ type Handler interface {
 	// application. Response could be used by web UI to represent a list of
 	// providers with names and icons. Response could be cached.
 	AuthProviders(echo.Context) error
+
+	// ConsentLogin handles login requests from the consent page.
+	ConsentLogin(echo.Context) error
 }
 
 //TODO: currently handler marshals response as JSON; we may provide setting
@@ -36,5 +43,8 @@ type Handler interface {
 // handler implements Handler interface.
 // Note: methods are implemented in separate files.
 type handler struct {
-	config config.Config
+	config          config.Config
+	errorCustomizer ErrorCustomizer
+	auth            AuthService
+	users           UserService
 }

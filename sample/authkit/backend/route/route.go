@@ -10,5 +10,5 @@ func Init(e *echo.Echo, ua userapi.UserAPI) {
 	initMiddleware(e, ua)
 	initReverseProxy(e)
 	initStatic(e)
-	initAPI(e)
+	initAPI(e, ua)
 }
