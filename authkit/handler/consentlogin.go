@@ -9,34 +9,33 @@ import (
 )
 
 type (
-	loginForm struct {
-		Action    string   `form:"action" valid:"required,matches(login|signup)"`
+	consentLoginForm struct {
+		P         loginForm
 		Challenge string   `form:"challenge" valid:"required"`
-		Login     string   `form:"login" valid:"required,email"`
-		Password  string   `form:"password" valid:"required,stringlength(3|30)"`
 		Scopes    []string `form:"scopes" valid:"required,stringlength(1|500)"`
 	}
 
-	loginReply struct {
+	consentLoginReply struct {
 		Consent string `json:"consent"`
 	}
 )
 
 func (h handler) ConsentLogin(c echo.Context) error {
-	var lf loginForm
+	var lf consentLoginForm
 	if err := c.Bind(&lf); err != nil {
 		c.Logger().Debug(errors.WithStack(err))
 		return err
 	}
 
 	if _, err := govalidator.ValidateStruct(lf); err != nil {
+		c.Logger().Debug(errors.WithStack(err))
 		return c.JSON(
 			http.StatusUnauthorized,
 			h.errorCustomizer.InvalidRequestParameterError(err))
 	}
 
 	signedTokenString, err := h.auth.GenerateConsentToken(
-		lf.Login,
+		lf.P.Login,
 		lf.Scopes,
 		lf.Challenge)
 	if err != nil {
@@ -51,7 +50,7 @@ func (h handler) ConsentLogin(c echo.Context) error {
 		errorCustomizer func(error) interface{}
 	)
 
-	signup := lf.Action == "signup"
+	signup := lf.P.Action == "signup"
 
 	//TODO: remove assamption login == email?
 
@@ -63,20 +62,18 @@ func (h handler) ConsentLogin(c echo.Context) error {
 		errorCustomizer = h.errorCustomizer.UserAuthenticationError
 	}
 
-	if err := action(
-		lf.Login,
-		lf.Password); err != nil {
-		if signup &&
-			(err.IsAccountDisabled() || err.IsDuplicateUser()) {
-			if err := h.users.RequestEmailConfirmation(lf.Login); err != nil {
+	if err := action(lf.P.Login, lf.P.Password); err != nil {
+		if signup && err.IsAccountDisabled() {
+			if err := h.users.RequestEmailConfirmation(lf.P.Login); err != nil {
 				c.Logger().Error(errors.WithStack(err))
 				return err
 			}
 		}
+		c.Logger().Debug(errors.WithStack(err))
 		return c.JSON(http.StatusUnauthorized, errorCustomizer(err))
 	}
 
-	reply := loginReply{
+	reply := consentLoginReply{
 		Consent: signedTokenString,
 	}
 	return c.JSON(http.StatusOK, reply)

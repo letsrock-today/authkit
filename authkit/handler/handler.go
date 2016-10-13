@@ -35,6 +35,9 @@ type Handler interface {
 
 	// ConsentLogin handles login requests from the consent page.
 	ConsentLogin(echo.Context) error
+
+	// Login handles login requests from the application's login page.
+	Login(echo.Context) error
 }
 
 //TODO: currently handler marshals response as JSON; we may provide setting

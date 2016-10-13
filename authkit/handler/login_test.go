@@ -12,34 +12,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConsentLogin(t *testing.T) {
+func TestPrivateLogin(t *testing.T) {
 
 	as := new(testAuthService)
 	as.On(
-		"GenerateConsentToken",
-		"valid@login.ok",
-		[]string{"valid_scope"},
-		"unknown_challenge").Return("", errors.New("invalid challenge"))
+		"IssueConsentToken",
+		"some_client_id",
+		[]string{"some_scope"}).Return("valid_token", nil)
 	as.On(
-		"GenerateConsentToken",
-		"valid@login.ok",
-		[]string{"valid_scope"},
-		"valid_challenge").Return("valid_token", nil)
-	as.On(
-		"GenerateConsentToken",
-		"new.valid@login.ok",
-		[]string{"valid_scope"},
-		"valid_challenge").Return("valid_token", nil)
-	as.On(
-		"GenerateConsentToken",
-		"old.valid@login.ok",
-		[]string{"valid_scope"},
-		"valid_challenge").Return("valid_token", nil)
-	as.On(
-		"GenerateConsentToken",
-		"broken.valid@login.ok",
-		[]string{"valid_scope"},
-		"valid_challenge").Return("valid_token", nil)
+		"IssueConsentToken",
+		"unknown_client_id",
+		[]string{"some_scope"}).Return("", errors.New("unknown_client"))
 
 	us := new(testUserService)
 	us.On(
@@ -77,14 +60,36 @@ func TestConsentLogin(t *testing.T) {
 		errorCustomizer: testErrorCustomizer{},
 		auth:            as,
 		users:           us,
+		config: &testConfig{
+			privateOAuth2Provider: testOAuth2Provider{
+				id:       "some_id",
+				clientID: "some_client_id",
+				scopes:   []string{"some_scope"},
+			},
+		},
+	}
+
+	h2 := handler{
+		errorCustomizer: testErrorCustomizer{},
+		auth:            as,
+		users:           us,
+		config: &testConfig{
+			privateOAuth2Provider: testOAuth2Provider{
+				id:       "some_id",
+				clientID: "unknown_client_id",
+				scopes:   []string{"some_scope"},
+			},
+		},
 	}
 
 	cases := []struct {
-		name          string
-		params        url.Values
-		expStatusCode int
-		expBody       string
-		internalError bool
+		name                  string
+		params                url.Values
+		expStatusCode         int
+		expBody               string
+		expBodyRegex          bool
+		internalError         bool
+		failIssueConsentToken bool
 	}{
 		{
 			name:          "No params",
@@ -93,25 +98,11 @@ func TestConsentLogin(t *testing.T) {
 			expBody:       `{"Code":"invalid req param"}`,
 		},
 		{
-			name: "Login: Unknown challenge",
-			params: url.Values{
-				"action":    []string{"login"},
-				"challenge": []string{"unknown_challenge"},
-				"login":     []string{"valid@login.ok"},
-				"password":  []string{"valid_password"},
-				"scopes":    []string{"valid_scope"},
-			},
-			expStatusCode: http.StatusUnauthorized,
-			expBody:       `{"Code":"user auth err"}`,
-		},
-		{
 			name: "Login: invalid password",
 			params: url.Values{
-				"action":    []string{"login"},
-				"challenge": []string{"valid_challenge"},
-				"login":     []string{"valid@login.ok"},
-				"password":  []string{"invalid_password"},
-				"scopes":    []string{"valid_scope"},
+				"action":   []string{"login"},
+				"login":    []string{"valid@login.ok"},
+				"password": []string{"invalid_password"},
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `{"Code":"user auth err"}`,
@@ -119,23 +110,20 @@ func TestConsentLogin(t *testing.T) {
 		{
 			name: "Login: OK",
 			params: url.Values{
-				"action":    []string{"login"},
-				"challenge": []string{"valid_challenge"},
-				"login":     []string{"valid@login.ok"},
-				"password":  []string{"valid_password"},
-				"scopes":    []string{"valid_scope"},
+				"action":   []string{"login"},
+				"login":    []string{"valid@login.ok"},
+				"password": []string{"valid_password"},
 			},
 			expStatusCode: http.StatusOK,
-			expBody:       `{"consent":"valid_token"}`,
+			expBodyRegex:  true,
+			expBody:       `\{"redirUrl":".*consent=valid_token.*"\}`,
 		},
 		{
 			name: "Signup: OK",
 			params: url.Values{
-				"action":    []string{"signup"},
-				"challenge": []string{"valid_challenge"},
-				"login":     []string{"new.valid@login.ok"},
-				"password":  []string{"valid_password"},
-				"scopes":    []string{"valid_scope"},
+				"action":   []string{"signup"},
+				"login":    []string{"new.valid@login.ok"},
+				"password": []string{"valid_password"},
 			},
 			// account disabled until user confirms it
 			expStatusCode: http.StatusUnauthorized,
@@ -144,11 +132,9 @@ func TestConsentLogin(t *testing.T) {
 		{
 			name: "Signup: duplicate",
 			params: url.Values{
-				"action":    []string{"signup"},
-				"challenge": []string{"valid_challenge"},
-				"login":     []string{"old.valid@login.ok"},
-				"password":  []string{"valid_password"},
-				"scopes":    []string{"valid_scope"},
+				"action":   []string{"signup"},
+				"login":    []string{"old.valid@login.ok"},
+				"password": []string{"valid_password"},
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `{"Code":"dup user"}`,
@@ -156,13 +142,21 @@ func TestConsentLogin(t *testing.T) {
 		{
 			name: "Signup: cannot send email",
 			params: url.Values{
-				"action":    []string{"signup"},
-				"challenge": []string{"valid_challenge"},
-				"login":     []string{"broken.valid@login.ok"},
-				"password":  []string{"valid_password"},
-				"scopes":    []string{"valid_scope"},
+				"action":   []string{"signup"},
+				"login":    []string{"broken.valid@login.ok"},
+				"password": []string{"valid_password"},
 			},
 			internalError: true,
+		},
+		{
+			name: "Login: fail IssueConsentToken",
+			params: url.Values{
+				"action":   []string{"login"},
+				"login":    []string{"valid@login.ok"},
+				"password": []string{"valid_password"},
+			},
+			internalError:         true,
+			failIssueConsentToken: true,
 		},
 	}
 
@@ -183,13 +177,21 @@ func TestConsentLogin(t *testing.T) {
 					standard.NewResponse(rec, e.Logger()))
 				ctx.Request().Header().Set("Content-Type", enc.contentType)
 
-				err = h.ConsentLogin(ctx)
+				if c.failIssueConsentToken {
+					err = h2.Login(ctx)
+				} else {
+					err = h.Login(ctx)
+				}
 				if enc.invalid || c.internalError {
 					assert.Error(err)
 				} else {
 					assert.NoError(err)
 					assert.Equal(c.expStatusCode, rec.Code)
-					assert.Equal(c.expBody, string(rec.Body.Bytes()))
+					if c.expBodyRegex {
+						assert.Regexp(c.expBody, string(rec.Body.Bytes()))
+					} else {
+						assert.Equal(c.expBody, string(rec.Body.Bytes()))
+					}
 				}
 			})
 		}

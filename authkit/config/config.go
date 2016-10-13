@@ -10,6 +10,8 @@ type Config interface {
 	OAuth2State() OAuth2State
 	OAuth2Configs() map[string]oauth2.Config
 	OAuth2Providers() []OAuth2Provider
+	PrivateOAuth2Provider() OAuth2Provider
+	PrivateOAuth2Config() oauth2.Config
 	ModTime() time.Time
 }
 
@@ -22,7 +24,7 @@ type OAuth2State interface {
 type OAuth2Provider interface {
 	ID() string
 	Name() string
-	ClientId() string
+	ClientID() string
 	ClientSecret() string
 	PublicKey() string
 	Scopes() []string

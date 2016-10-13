@@ -81,21 +81,17 @@ import jwt from 'jwt-decode';
                 return respHelper.handleStatus(r);
             })
             .then(data => {
-                const {consent, error} = data;
-                if (error) {
-                    self.error = self.errMsgPrefix + error;
-                    self.showAuth = true;
-                    self.update();
-                } else {
-                    window.location.href = urlParams.updateUrlParameter(
-                        self.decodedChallenge.redir,
-                        'consent',
-                        consent);
-                }
+                const {consent} = data;
+                window.location.href = urlParams.updateUrlParameter(
+                    self.decodedChallenge.redir,
+                    'consent',
+                    consent);
             })
             .catch(e => {
-                console.log(e);
                 self.error = self.errMsgPrefix;
+                if (e.msg) {
+                    self.error += e.msg;
+                }
                 self.showAuth = true;
                 self.update();
             });

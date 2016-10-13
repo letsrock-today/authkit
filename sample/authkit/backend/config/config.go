@@ -102,6 +102,14 @@ func (c _config) OAuth2Providers() []config.OAuth2Provider {
 	return pp
 }
 
+func (c _config) PrivateOAuth2Config() oauth2.Config {
+	return c.c.HydraOAuth2Config
+}
+
+func (c _config) PrivateOAuth2Provider() config.OAuth2Provider {
+	return _oauth2Provider{c.c.HydraOAuth2Provider}
+}
+
 func (c _config) ModTime() time.Time {
 	return c.c.modTime
 }
@@ -134,7 +142,7 @@ func (p _oauth2Provider) Name() string {
 	return p.p.Name
 }
 
-func (p _oauth2Provider) ClientId() string {
+func (p _oauth2Provider) ClientID() string {
 	return p.p.ClientId
 }
 

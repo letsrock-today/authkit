@@ -71,16 +71,14 @@ import respHelper from '../util/response-helper';
                 return respHelper.handleStatus(r);
             })
             .then(data => {
-                const {redirUrl, error} = data;
-                if (error) {
-                    self.error = errMsgPrefix + error;
-                    self.update();
-                } else {
-                    window.location.href = redirUrl;
-                }
+                const {redirUrl} = data;
+                window.location.href = redirUrl;
             })
             .catch(e => {
                 self.error = errMsgPrefix;
+                if (e.msg) {
+                    self.error += e.msg;
+                }
                 self.update();
             });
         }

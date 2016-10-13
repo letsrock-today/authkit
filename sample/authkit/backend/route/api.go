@@ -27,7 +27,7 @@ func initAPI(e *echo.Echo, ua userapi.UserAPI) {
 	e.GET("/api/friends", _handler.Friends, friendsMiddleware)
 
 	e.POST("/api/login", h.ConsentLogin)
-	e.POST("/api/login-priv", _handler.LoginPriv)
+	e.POST("/api/login-priv", h.Login)
 
 	e.GET("/callback", _handler.Callback)
 
@@ -75,6 +75,12 @@ func (as) GenerateConsentToken(
 	scopes []string,
 	challenge string) (string, error) {
 	return hydra.GenerateConsentToken(subj, scopes, challenge)
+}
+
+func (as) IssueConsentToken(
+	clientID string,
+	scopes []string) (string, error) {
+	return hydra.IssueConsentToken(clientID, scopes)
 }
 
 type us struct {

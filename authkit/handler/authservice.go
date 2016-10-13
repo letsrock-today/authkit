@@ -6,4 +6,7 @@ type AuthService interface {
 		subj string,
 		scopes []string,
 		challenge string) (string, error)
+	IssueConsentToken(
+		clientID string,
+		scopes []string) (string, error)
 }
