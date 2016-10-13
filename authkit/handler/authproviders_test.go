@@ -39,6 +39,5 @@ func TestAuthProviders(t *testing.T) {
 	err := h.AuthProviders(c)
 	assert.NoError(err)
 	assert.Equal(http.StatusOK, rec.Code)
-	//TODO: check json in body
-	//t.Log(string(rec.Body.Bytes()))
+	assert.Regexp(`\{"providers":\[.*\{"id":"bbb","name":"Bbb","iconUrl":"http://bbb.bb/icon.png"\}\].*\}`, string(rec.Body.Bytes()))
 }

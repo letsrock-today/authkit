@@ -12,7 +12,6 @@ import (
 )
 
 type (
-
 	// TokenValidator used to validate token and to check if token has required permission.
 	TokenValidator interface {
 
@@ -72,38 +71,36 @@ type (
 )
 
 var (
-	InvalidAuthHeaderError = echo.NewHTTPError(http.StatusForbidden, "invalid header format")
-	AccessDeniedError      = echo.NewHTTPError(http.StatusForbidden, "access denied")
-
 	// for use by tests
-	reportEffectiveConfig func(AccessTokenConfig) = nil
+	errInvalidAuthHeader  = echo.NewHTTPError(http.StatusForbidden, "invalid header format")
+	errAccessDenied       = echo.NewHTTPError(http.StatusForbidden, "access denied")
+	reportEffectiveConfig func(AccessTokenConfig)
 )
 
+// DefaultContextKey declares default key which is used to store principal in the echo.Context.
 const DefaultContextKey = "user-context"
 
-func NewDefaultPermissionMapper() PermissionMapper {
-	return DefaultPermissionMapper{}
-}
-
+// AccessToken used to create middleware with mostly default configuration.
 func AccessToken(us UserStore, tv TokenValidator) echo.MiddlewareFunc {
 	c := AccessTokenConfig{
 		ContextKey:       DefaultContextKey,
-		PermissionMapper: NewDefaultPermissionMapper(),
+		PermissionMapper: DefaultPermissionMapper{},
 	}
 	c.UserStore = us
 	c.TokenValidator = tv
 	return AccessTokenWithConfig(c)
 }
 
+// AccessTokenWithConfig used to create middleware with provided configuration.
 func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
-	// Defaults
+	// Defaults.
 	if config.ContextKey == "" {
 		config.ContextKey = DefaultContextKey
 	}
 	if config.PermissionMapper == nil {
-		config.PermissionMapper = NewDefaultPermissionMapper()
+		config.PermissionMapper = DefaultPermissionMapper{}
 	}
-	// Required
+	// Required.
 	if config.UserStore == nil {
 		panic("UserStore must be provided")
 	}
@@ -123,60 +120,61 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			auth := req.Header().Get("Authorization")
 			split := strings.SplitN(auth, " ", 2)
 			if len(split) != 2 || !strings.EqualFold(split[0], "bearer") {
-				return InvalidAuthHeaderError
+				return errInvalidAuthHeader
 			}
 			token := strings.TrimSpace(split[1])
 			if token == "" {
-				return InvalidAuthHeaderError
+				return errInvalidAuthHeader
 			}
 
-			// Map request to permission
+			// Map request to permission.
 			perm, err := config.PermissionMapper.RequiredPermissioin(req.Method(), req.URL().Path())
 			if err != nil {
 				c.Logger().Debug(errors.WithStack(err))
-				return AccessDeniedError
+				return errAccessDenied
 			}
 
-			// Find user
+			// Find user.
 			user, err := config.UserStore.User(token)
 			if err != nil {
 				c.Logger().Debug(errors.WithStack(err))
-				return AccessDeniedError
+				return errAccessDenied
 			}
 
-			// Update OAuth2 token and save it in DB
+			// Update OAuth2 token and save it in DB (asynchronously).
+			// Possible errors are irrelevant for the main code flow.
+			sync := make(chan struct{})
 			if config.OAuth2Config != nil && config.OAuth2Context != nil {
-				err := func() error {
+				go func() {
 					oauth2token, err := config.UserStore.OAuth2Token(user)
 					if err != nil {
-						return err
+						c.Logger().Warn(errors.WithStack(err))
 					}
 					newToken, err := config.OAuth2Config.TokenSource(config.OAuth2Context, oauth2token).Token()
 					if err != nil {
-						return err
+						c.Logger().Warn(errors.WithStack(err))
 					}
 					if newToken != oauth2token {
 						err = config.UserStore.UpdateOAuth2Token(user, newToken)
 						if err != nil {
-							return err
+							c.Logger().Warn(errors.WithStack(err))
 						}
 					}
-					return nil
+					sync <- struct{}{}
 				}()
-				if err != nil {
-					// Even if we cannot refresh or save token, we may be able to proceed with old one
-					c.Logger().Warn(errors.WithStack(err))
-				}
 			}
 
-			// Validate token's permissions
+			// Validate token's permissions.
 			if err := config.TokenValidator.Validate(token, perm); err != nil {
 				c.Logger().Debug(errors.WithStack(err))
-				return AccessDeniedError
+				return errAccessDenied
 			}
 
 			// Store user login to context.
 			c.Set(config.ContextKey, config.UserStore.Principal(user))
+
+			// Make the whole call synchronouse.
+			<-sync
 			return next(c)
 		}
 	}

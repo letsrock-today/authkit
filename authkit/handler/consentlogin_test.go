@@ -45,7 +45,7 @@ func TestConsentLogin(t *testing.T) {
 	us.On(
 		"Authenticate",
 		"valid@login.ok",
-		"invalid_password").Return(testUserServiceError{isUserNotFound: true})
+		"invalid_password").Return(newTestUserNotFoundError())
 	us.On(
 		"Authenticate",
 		"valid@login.ok",
@@ -53,15 +53,15 @@ func TestConsentLogin(t *testing.T) {
 	us.On(
 		"Create",
 		"new.valid@login.ok",
-		"valid_password").Return(testUserServiceError{isAccountDisabled: true})
+		"valid_password").Return(newTestAccountDisabledError())
 	us.On(
 		"Create",
 		"broken.valid@login.ok",
-		"valid_password").Return(testUserServiceError{isAccountDisabled: true})
+		"valid_password").Return(newTestAccountDisabledError())
 	us.On(
 		"Create",
 		"old.valid@login.ok",
-		"valid_password").Return(testUserServiceError{isDuplicateUser: true})
+		"valid_password").Return(newTestDuplicateUserError())
 	us.On(
 		"RequestEmailConfirmation",
 		"new.valid@login.ok").Return(nil)
@@ -70,8 +70,7 @@ func TestConsentLogin(t *testing.T) {
 		"old.valid@login.ok").Return(nil)
 	us.On(
 		"RequestEmailConfirmation",
-		"broken.valid@login.ok").Return(
-		testUserServiceError{errors.New("cannot send email"), false, false, false})
+		"broken.valid@login.ok").Return(UserServiceError(errors.New("cannot send email")))
 
 	h := handler{
 		errorCustomizer: testErrorCustomizer{},

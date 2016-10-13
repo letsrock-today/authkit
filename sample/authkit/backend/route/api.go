@@ -51,15 +51,11 @@ func (ec) InvalidRequestParameterError(e error) interface{} {
 }
 
 func (ec) UserCreationError(e error) interface{} {
-	err, ok := e.(handler.UserServiceError)
-	if ok {
-		if err.IsAccountDisabled() {
-			return jsonError{"account_disabled", e.Error()}
-		}
-		if err.IsDuplicateUser() {
-			return jsonError{"duplicate_account", e.Error()}
-
-		}
+	switch e.(type) {
+	case handler.AccountDisabledError:
+		return jsonError{"account_disabled", e.Error()}
+	case handler.DuplicateUserError:
+		return jsonError{"duplicate_account", e.Error()}
 	}
 	return jsonError{"unknown_err", e.Error()}
 }

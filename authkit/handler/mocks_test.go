@@ -164,25 +164,6 @@ var bodyEncoders = []struct {
 	},
 }
 
-type testUserServiceError struct {
-	error
-	isDuplicateUser   bool
-	isUserNotFound    bool
-	isAccountDisabled bool
-}
-
-func (e testUserServiceError) IsDuplicateUser() bool {
-	return e.isDuplicateUser
-}
-
-func (e testUserServiceError) IsUserNotFound() bool {
-	return e.isUserNotFound
-}
-
-func (e testUserServiceError) IsAccountDisabled() bool {
-	return e.isAccountDisabled
-}
-
 type testErrorCustomizer struct{}
 
 func (testErrorCustomizer) InvalidRequestParameterError(error) interface{} {
@@ -194,13 +175,15 @@ func (testErrorCustomizer) InvalidRequestParameterError(error) interface{} {
 }
 
 func (testErrorCustomizer) UserCreationError(e error) interface{} {
-	msg := "user creation err"
-	if err, ok := e.(UserServiceError); ok {
-		if err.IsAccountDisabled() {
-			msg = "acc disabled"
-		} else if err.IsDuplicateUser() {
-			msg = "dup user"
-		}
+	var msg string
+	err := e.(testUserServiceError)
+	switch {
+	case err.IsDuplicateUser():
+		msg = "dup user"
+	case err.IsAccountDisabled():
+		msg = "acc disabled"
+	default:
+		msg = "general error"
 	}
 	return struct {
 		Code string
@@ -265,4 +248,44 @@ func (m *testUserService) RequestEmailConfirmation(login string) UserServiceErro
 		return nil
 	}
 	return err.(UserServiceError)
+}
+
+type testUserServiceError struct {
+	isUserNotFound    bool
+	isDuplicateUser   bool
+	isAccountDisabled bool
+}
+
+func (testUserServiceError) Error() string {
+	return "user service error"
+}
+
+func (e testUserServiceError) IsUserNotFound() bool {
+	return e.isUserNotFound
+}
+
+func (e testUserServiceError) IsDuplicateUser() bool {
+	return e.isDuplicateUser
+}
+
+func (e testUserServiceError) IsAccountDisabled() bool {
+	return e.isAccountDisabled
+}
+
+func newTestUserNotFoundError() UserServiceError {
+	return testUserServiceError{
+		isUserNotFound: true,
+	}
+}
+
+func newTestDuplicateUserError() UserServiceError {
+	return testUserServiceError{
+		isDuplicateUser: true,
+	}
+}
+
+func newTestAccountDisabledError() UserServiceError {
+	return testUserServiceError{
+		isAccountDisabled: true,
+	}
 }

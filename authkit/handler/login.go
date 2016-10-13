@@ -13,11 +13,14 @@ import (
 )
 
 type (
+	//TODO: remove assamption login == email?
+
 	loginForm struct {
 		Action   string `form:"action" valid:"required,matches(login|signup)"`
 		Login    string `form:"login" valid:"required,email"`
 		Password string `form:"password" valid:"required,stringlength(3|30)"`
 	}
+
 	loginReply struct {
 		RedirectURL string `json:"redirUrl"`
 	}
@@ -54,10 +57,12 @@ func (h handler) Login(c echo.Context) error {
 	}
 
 	if err := action(lf.Login, lf.Password); err != nil {
-		if signup && err.IsAccountDisabled() {
-			if err := h.users.RequestEmailConfirmation(lf.Login); err != nil {
-				c.Logger().Error(errors.WithStack(err))
-				return err
+		if signup {
+			if err, ok := err.(AccountDisabledError); ok && err.IsAccountDisabled() {
+				if err := h.users.RequestEmailConfirmation(lf.Login); err != nil {
+					c.Logger().Error(errors.WithStack(err))
+					return err
+				}
 			}
 		}
 		c.Logger().Debug(errors.WithStack(err))

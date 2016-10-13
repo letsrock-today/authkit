@@ -48,11 +48,22 @@ type (
 		// RootResName used for root path ("/").
 		RootResName string
 
-		// DefaultScopes, ScopePrefix and RootResName are ignored when explicite mapping exists for route.
+		// DefaultScopes, ScopePrefix and RootResName are ignored when explicit
+		// mapping exists for route.
 		Mapping map[Route]DefaultPermission
 	}
 )
 
+// RequiredPermissioin maps method and path to Resource, Action and Scopes
+// according to following rules.
+// Resource is created from path with "rn:" prefix and slashes replaced to colons.
+// Root resource replaced with "rn:root" or with "rn:" + RootResName.
+// Scopes added to slice of DefaultScopes.
+// Scope names created from path with slashes replaced with dots.
+// Every created scope name is prefixed with ScopePrefix and postfixed with
+// lower-cased http method name.
+// Action is a lower-cased method name.
+// See tests for examples.
 func (m DefaultPermissionMapper) RequiredPermissioin(method, path string) (interface{}, error) {
 	if method == "" || path == "" {
 		return nil, errors.New("illegal arguments")

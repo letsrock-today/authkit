@@ -26,7 +26,7 @@ func TestConfigValidation(t *testing.T) {
 	})
 
 	// Ensure that defaults are used if non-obligatory settings are not set
-	var effcfg *AccessTokenConfig = nil
+	var effcfg *AccessTokenConfig
 	reportEffectiveConfig = func(c AccessTokenConfig) {
 		effcfg = &c
 	}
@@ -39,7 +39,7 @@ func TestConfigValidation(t *testing.T) {
 	})
 	assert.NotNil(effcfg)
 	assert.Equal(DefaultContextKey, effcfg.ContextKey)
-	assert.Equal(NewDefaultPermissionMapper(), effcfg.PermissionMapper)
+	assert.Equal(DefaultPermissionMapper{}, effcfg.PermissionMapper)
 
 	// Ensure that defaults are used in AccessToken except fields set explicitly
 	effcfg = nil
@@ -51,7 +51,7 @@ func TestConfigValidation(t *testing.T) {
 		tokenValidator{})
 	assert.NotNil(effcfg)
 	assert.Equal(DefaultContextKey, effcfg.ContextKey)
-	assert.Equal(NewDefaultPermissionMapper(), effcfg.PermissionMapper)
+	assert.Equal(DefaultPermissionMapper{}, effcfg.PermissionMapper)
 	assert.NotNil(effcfg.UserStore)
 	assert.NotNil(effcfg.TokenValidator)
 }
@@ -77,8 +77,8 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		OAuth2Context: context.Background(),
 	}
 
-	invalidHeaderFormatMsg := InvalidAuthHeaderError.Message
-	notPermittedMsg := AccessDeniedError.Message
+	invalidHeaderFormatMsg := errInvalidAuthHeader.Error()
+	notPermittedMsg := errAccessDenied.Error()
 
 	cases := []struct {
 		name              string
@@ -280,12 +280,12 @@ func (n *nextHandler) next(c echo.Context) error {
 		return c.String(http.StatusOK, nextHandlerMsg)
 	}
 	u := c.Get(DefaultContextKey)
-	if u, ok := u.(user); !ok {
+	user, ok := u.(user)
+	if !ok {
 		return errors.New("no user in context")
-	} else {
-		if u.Name != "name" {
-			return errors.New("invalid user in context")
-		}
+	}
+	if user.Name != "name" {
+		return errors.New("invalid user in context")
 	}
 	return c.String(http.StatusOK, nextHandlerMsg)
 }

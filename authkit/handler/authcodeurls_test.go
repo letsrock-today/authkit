@@ -55,6 +55,5 @@ func TestAuthCodeURLs(t *testing.T) {
 	err := h.AuthCodeURLs(c)
 	assert.NoError(err)
 	assert.Equal(http.StatusOK, rec.Code)
-	//TODO: check json in body
-	//t.Log(string(rec.Body.Bytes()))
+	assert.Regexp(`\{"urls":\[.*"id":"bbb","url":"https://bbb.bb/auth.*\]\}`, string(rec.Body.Bytes()))
 }

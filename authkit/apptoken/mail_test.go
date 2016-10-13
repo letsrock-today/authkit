@@ -48,7 +48,7 @@ func TestEmailToken(t *testing.T) {
 			"some hash",
 			1 * time.Hour,
 			"some secret",
-			InvalidTokenError,
+			ErrInvalidToken,
 		},
 	}
 

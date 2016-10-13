@@ -58,7 +58,7 @@ func TestStateToken(t *testing.T) {
 			"",
 			1 * time.Hour,
 			"some secret",
-			InvalidTokenError,
+			ErrInvalidToken,
 		},
 	}
 

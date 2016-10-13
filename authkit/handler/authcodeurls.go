@@ -10,7 +10,7 @@ import (
 
 type (
 	authCodeURL struct {
-		Id  string `json:"id"`
+		ID  string `json:"id"`
 		URL string `json:"url"`
 	}
 

@@ -9,6 +9,8 @@ import (
 )
 
 type (
+	//TODO: remove assamption login == email?
+
 	consentLoginForm struct {
 		P         loginForm
 		Challenge string   `form:"challenge" valid:"required"`
@@ -52,8 +54,6 @@ func (h handler) ConsentLogin(c echo.Context) error {
 
 	signup := lf.P.Action == "signup"
 
-	//TODO: remove assamption login == email?
-
 	if signup {
 		action = h.users.Create
 		errorCustomizer = h.errorCustomizer.UserCreationError
@@ -63,10 +63,12 @@ func (h handler) ConsentLogin(c echo.Context) error {
 	}
 
 	if err := action(lf.P.Login, lf.P.Password); err != nil {
-		if signup && err.IsAccountDisabled() {
-			if err := h.users.RequestEmailConfirmation(lf.P.Login); err != nil {
-				c.Logger().Error(errors.WithStack(err))
-				return err
+		if signup {
+			if err, ok := err.(AccountDisabledError); ok && err.IsAccountDisabled() {
+				if err := h.users.RequestEmailConfirmation(lf.P.Login); err != nil {
+					c.Logger().Error(errors.WithStack(err))
+					return err
+				}
 			}
 		}
 		c.Logger().Debug(errors.WithStack(err))

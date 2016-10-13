@@ -7,15 +7,21 @@ import (
 )
 
 // StateToken represents state token.
-type StateToken interface {
+type (
+	StateToken interface {
 
-	// ProviderID is an ID of OAuth2 provider, used to initiate auth request.
-	ProviderID() string
+		// ProviderID is an ID of OAuth2 provider, used to initiate auth request.
+		ProviderID() string
 
-	// User's login if known at state creation (like in case of form-based auth)
-	Login() string
-}
+		// User's login if known at state creation (like in case of form-based auth)
+		Login() string
+	}
 
+	stateToken jwt.StandardClaims
+)
+
+// NewStateTokenString creates new jwt token and converts it to signed string.
+// It can be used to create state token for OAuth2 code flow.
 func NewStateTokenString(
 	issuer, providerID string,
 	expiration time.Duration,
@@ -23,6 +29,10 @@ func NewStateTokenString(
 	return newToken(issuer, "", providerID, expiration, signKey)
 }
 
+// NewStateWithLoginTokenString creates new jwt token and converts it to signed string.
+// It can be used to create state token for OAuth2 code flow.
+// This method additionally packs login into token, which is useful in case of
+// login/password authentication via application's own login form.
 func NewStateWithLoginTokenString(
 	issuer, providerID, login string,
 	expiration time.Duration,
@@ -30,6 +40,7 @@ func NewStateWithLoginTokenString(
 	return newToken(issuer, login, providerID, expiration, signKey)
 }
 
+// ParseStateToken can parse jwt tokens from strings created by NewStateTokenString or NewStateWithLoginTokenString.
 func ParseStateToken(
 	issuer, token string,
 	signKey []byte) (StateToken, error) {
@@ -40,8 +51,6 @@ func ParseStateToken(
 	t := stateToken(*s)
 	return &t, nil
 }
-
-type stateToken jwt.StandardClaims
 
 func (s *stateToken) ProviderID() string {
 	return s.Subject

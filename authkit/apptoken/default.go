@@ -7,7 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-var InvalidTokenError = errors.New("invalid token")
+// ErrInvalidToken error returned when token cannot be parsed.
+var ErrInvalidToken = errors.New("invalid token")
 
 // Note: when used for oauth2 state, pid goes into subject and audience is empty
 // when used for confirmation email link, email goes into audience and password hash - into subject
@@ -40,10 +41,10 @@ func parseToken(
 	}
 	claims, ok := token.Claims.(*jwt.StandardClaims)
 	if !ok || !token.Valid {
-		return nil, errors.WithStack(InvalidTokenError)
+		return nil, errors.WithStack(ErrInvalidToken)
 	}
 	if claims.Issuer != tokenIssuer {
-		return nil, errors.WithStack(InvalidTokenError)
+		return nil, errors.WithStack(ErrInvalidToken)
 	}
 	return claims, nil
 }
