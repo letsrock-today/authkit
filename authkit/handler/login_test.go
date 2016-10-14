@@ -93,7 +93,7 @@ func TestLogin(t *testing.T) {
 		{
 			name:          "No params",
 			params:        make(url.Values),
-			expStatusCode: http.StatusUnauthorized,
+			expStatusCode: http.StatusBadRequest,
 			expBody:       `{"Code":"invalid req param"}`,
 		},
 		{

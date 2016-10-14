@@ -16,8 +16,9 @@ type (
 	//TODO: remove assamption login == email?
 
 	loginForm struct {
-		Action   string `form:"action" valid:"required,matches(login|signup)"`
-		Login    string `form:"login" valid:"required,email"`
+		Action string `form:"action" valid:"required,matches(login|signup)"`
+		Login  string `form:"login" valid:"required,email"`
+		//TODO: rigorous password rules (digits, different case, etc.)
 		Password string `form:"password" valid:"required,stringlength(3|30)"`
 	}
 
@@ -37,7 +38,7 @@ func (h handler) Login(c echo.Context) error {
 	if _, err := govalidator.ValidateStruct(lf); err != nil {
 		c.Logger().Debug(errors.WithStack(err))
 		return c.JSON(
-			http.StatusUnauthorized,
+			http.StatusBadRequest,
 			h.errorCustomizer.InvalidRequestParameterError(err))
 	}
 
@@ -76,12 +77,13 @@ func (h handler) Login(c echo.Context) error {
 		return err
 	}
 
+	s := h.config.OAuth2State()
 	state, err := apptoken.NewStateWithLoginTokenString(
-		h.config.OAuth2State().TokenIssuer(),
+		s.TokenIssuer(),
 		pp.ID(),
 		lf.Login,
-		h.config.OAuth2State().Expiration(),
-		h.config.OAuth2State().TokenSignKey())
+		s.Expiration(),
+		s.TokenSignKey())
 	if err != nil {
 		c.Logger().Debug(errors.WithStack(err))
 		return err

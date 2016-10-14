@@ -39,6 +39,14 @@ type (
 
 		// Login handles login requests from the application's login page.
 		Login(echo.Context) error
+
+		// RestorePassword handles request to restore password
+		// ("forgot password" link in the login form).
+		RestorePassword(echo.Context) error
+
+		// ChangePassword handles request to actually change password from the
+		// confirmation form.
+		ChangePassword(echo.Context) error
 	}
 
 	//TODO: currently handler marshals response as JSON; we may provide setting

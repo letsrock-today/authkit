@@ -32,7 +32,7 @@ func (h handler) ConsentLogin(c echo.Context) error {
 	if _, err := govalidator.ValidateStruct(lf); err != nil {
 		c.Logger().Debug(errors.WithStack(err))
 		return c.JSON(
-			http.StatusUnauthorized,
+			http.StatusBadRequest,
 			h.errorCustomizer.InvalidRequestParameterError(err))
 	}
 

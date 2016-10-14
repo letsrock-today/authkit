@@ -241,8 +241,35 @@ func (m *testUserService) Authenticate(login, password string) UserServiceError 
 	return err.(UserServiceError)
 }
 
+func (m *testUserService) User(login string) (User, UserServiceError) {
+	args := m.Called(login)
+	err := args.Get(1)
+	if err == nil {
+		return args.Get(0).(User), nil
+	}
+	return nil, err.(UserServiceError)
+}
+
+func (m *testUserService) UpdatePassword(login, oldPasswordHash, newPassword string) UserServiceError {
+	args := m.Called(login, oldPasswordHash, newPassword)
+	err := args.Get(0)
+	if err == nil {
+		return nil
+	}
+	return err.(UserServiceError)
+}
+
 func (m *testUserService) RequestEmailConfirmation(login string) UserServiceError {
 	args := m.Called(login)
+	err := args.Get(0)
+	if err == nil {
+		return nil
+	}
+	return err.(UserServiceError)
+}
+
+func (m *testUserService) RequestPasswordChangeConfirmation(login, passwordHash string) UserServiceError {
+	args := m.Called(login, passwordHash)
 	err := args.Get(0)
 	if err == nil {
 		return nil
@@ -288,4 +315,22 @@ func newTestAccountDisabledError() UserServiceError {
 	return testUserServiceError{
 		isAccountDisabled: true,
 	}
+}
+
+type testUser struct {
+	login        string
+	email        string
+	passwordHash string
+}
+
+func (u testUser) Login() string {
+	return u.login
+}
+
+func (u testUser) Email() string {
+	return u.email
+}
+
+func (u testUser) PasswordHash() string {
+	return u.passwordHash
 }

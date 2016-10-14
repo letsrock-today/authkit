@@ -10,14 +10,11 @@ type (
 		// Authenticate authenticates user, returns nil, if account exists and enabled.
 		Authenticate(login, password string) UserServiceError
 
-		// RequestEmailConfirmation requests user to confirm email address.
-		RequestEmailConfirmation(login string) UserServiceError
+		// User returns user by login.
+		User(login string) (User, UserServiceError)
 
-		// return user by login
-		//	User(login string) (User, UserServiceError)
-
-		// update password
-		//	UpdatePassword(login, password string) UserServiceError
+		// UpdatePassword updates user's password.
+		UpdatePassword(login, oldPasswordHash, newPassword string) UserServiceError
 
 		// enable account
 		//	Enable(login string) UserServiceError
@@ -31,13 +28,19 @@ type (
 		// return user by token
 		// token_field is one of [accesstoken, refreshtoken]
 		//	UserByToken(pid, tokenField, token string) (User, UserServiceError)
+
+		// RequestEmailConfirmation requests user to confirm email address.
+		RequestEmailConfirmation(login string) UserServiceError
+
+		// RequestPasswordChangeConfirmation requests user confirmation to change password (via email).
+		RequestPasswordChangeConfirmation(login, passwordHash string) UserServiceError
 	}
 
 	// User provides basic information about user, required for login logic.
 	User interface {
 		Login() string
 		Email() string
-		//	PasswordHash string
+		PasswordHash() string
 		//	Disabled     *time.Time
 		//	Tokens       map[string]*oauth2.Token // pid -> token
 	}

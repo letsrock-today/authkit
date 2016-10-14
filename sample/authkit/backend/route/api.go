@@ -31,8 +31,8 @@ func initAPI(e *echo.Echo, ua userapi.UserAPI) {
 
 	e.GET("/callback", _handler.Callback)
 
-	e.POST("/password-reset", _handler.ResetPassword)
-	e.POST("/password-change", _handler.ChangePassword)
+	e.POST("/password-reset", h.RestorePassword)
+	e.POST("/password-change", h.ChangePassword)
 
 	e.GET("/email-confirm", _handler.EmailConfirm)
 }
@@ -85,37 +85,99 @@ type us struct {
 
 func (us us) Create(login, password string) handler.UserServiceError {
 	err := us.UserAPI.Create(login, password)
-	return userServiceError{err}
+	if err != nil {
+		return userServiceError{err}
+	}
+	return nil
 }
 
 func (us us) Authenticate(login, password string) handler.UserServiceError {
 	err := us.UserAPI.Authenticate(login, password)
-	return userServiceError{err}
+	if err != nil {
+		return userServiceError{err}
+	}
+	return nil
+}
+
+func (us us) User(login string) (handler.User, handler.UserServiceError) {
+	u, err := us.UserAPI.User(login)
+	if err != nil {
+		return nil, userServiceError{err}
+	}
+	return user{u}, nil
+}
+
+func (us us) UpdatePassword(login, oldPasswordHash, newPassword string) handler.UserServiceError {
+	u, err := us.UserAPI.User(login)
+	if err != nil {
+		return userServiceError{err}
+	}
+	//TODO: move this into store in one request to DB
+	if u.PasswordHash != oldPasswordHash {
+		return userServiceError{userapi.AuthError}
+	}
+	err = us.UserAPI.UpdatePassword(login, newPassword)
+	if err != nil {
+		return userServiceError{err}
+	}
+	return nil
 }
 
 func (us us) RequestEmailConfirmation(login string) handler.UserServiceError {
 	err := sendConfirmationEmail(login, "", confirmEmailURL, false)
-	return userServiceError{err}
+	if err != nil {
+		return userServiceError{err}
+	}
+	return nil
+}
+
+func (us us) RequestPasswordChangeConfirmation(login, passwordHash string) handler.UserServiceError {
+	err := sendConfirmationEmail(login, passwordHash, confirmPasswordURL, false)
+	if err != nil {
+		return userServiceError{err}
+	}
+	return nil
+}
+
+type user struct {
+	user *userapi.User
+}
+
+func (u user) Login() string {
+	return u.user.Email
+}
+
+func (u user) Email() string {
+	return u.user.Email
+}
+
+func (u user) PasswordHash() string {
+	return u.user.PasswordHash
 }
 
 type userServiceError struct {
-	error
+	e error
+}
+
+func (e userServiceError) Error() string {
+	return e.e.Error()
 }
 
 func (e userServiceError) IsDuplicateUser() bool {
-	return e == userapi.AuthErrorDup
+	return e.e == userapi.AuthErrorDup
 }
 
 func (e userServiceError) IsUserNotFound() bool {
-	return e == userapi.AuthErrorUserNotFound
+	return e.e == userapi.AuthErrorUserNotFound
 }
 
 func (e userServiceError) IsAccountDisabled() bool {
-	return e == userapi.AuthErrorDisabled
+	return e.e == userapi.AuthErrorDisabled
 }
 
 //TODO: this const is better stay in this package, but refactor
 const confirmEmailURL = "/email-confirm"
+const confirmPasswordURL = "/password-confirm"
 
 //TODO: it's temporary, remove it completely from this package
 func sendConfirmationEmail(

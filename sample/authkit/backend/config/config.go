@@ -135,7 +135,7 @@ type _oauth2Provider struct {
 }
 
 func (p _oauth2Provider) ID() string {
-	return p.p.Id
+	return PrivPID
 }
 
 func (p _oauth2Provider) Name() string {
