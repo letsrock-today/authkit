@@ -143,7 +143,7 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 
 			// Update OAuth2 token and save it in DB (asynchronously).
 			// Possible errors are irrelevant for the main code flow.
-			sync := make(chan struct{})
+			sync := make(chan struct{}, 1)
 			if config.OAuth2Config != nil && config.OAuth2Context != nil {
 				go func() {
 					oauth2token, err := config.UserStore.OAuth2Token(user)

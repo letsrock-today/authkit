@@ -6,9 +6,12 @@ import (
 	"mime/multipart"
 	"net/url"
 	"strings"
+	"testing"
 	"time"
 
+	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 	"github.com/letsrock-today/hydra-sample/authkit/config"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/oauth2"
 )
@@ -226,55 +229,59 @@ type testUserService struct {
 func (m *testUserService) Create(login, password string) UserServiceError {
 	args := m.Called(login, password)
 	err := args.Get(0)
-	if err == nil {
-		return nil
+	if err != nil {
+		return err.(UserServiceError)
 	}
-	return err.(UserServiceError)
+	return nil
 }
 
 func (m *testUserService) Authenticate(login, password string) UserServiceError {
 	args := m.Called(login, password)
 	err := args.Get(0)
-	if err == nil {
-		return nil
+	if err != nil {
+		return err.(UserServiceError)
 	}
-	return err.(UserServiceError)
+	return nil
 }
 
 func (m *testUserService) User(login string) (User, UserServiceError) {
 	args := m.Called(login)
 	err := args.Get(1)
-	if err == nil {
-		return args.Get(0).(User), nil
+	if err != nil {
+		return nil, err.(UserServiceError)
 	}
-	return nil, err.(UserServiceError)
+	return args.Get(0).(User), nil
 }
 
 func (m *testUserService) UpdatePassword(login, oldPasswordHash, newPassword string) UserServiceError {
 	args := m.Called(login, oldPasswordHash, newPassword)
 	err := args.Get(0)
-	if err == nil {
-		return nil
+	if err != nil {
+		return err.(UserServiceError)
 	}
-	return err.(UserServiceError)
+	return nil
+}
+func (m *testUserService) Enable(login string) UserServiceError {
+	args := m.Called(login)
+	return args.Error(0)
 }
 
 func (m *testUserService) RequestEmailConfirmation(login string) UserServiceError {
 	args := m.Called(login)
 	err := args.Get(0)
-	if err == nil {
-		return nil
+	if err != nil {
+		return err.(UserServiceError)
 	}
-	return err.(UserServiceError)
+	return nil
 }
 
 func (m *testUserService) RequestPasswordChangeConfirmation(login, passwordHash string) UserServiceError {
 	args := m.Called(login, passwordHash)
 	err := args.Get(0)
-	if err == nil {
-		return nil
+	if err != nil {
+		return err.(UserServiceError)
 	}
-	return err.(UserServiceError)
+	return nil
 }
 
 type testUserServiceError struct {
@@ -333,4 +340,32 @@ func (u testUser) Email() string {
 
 func (u testUser) PasswordHash() string {
 	return u.passwordHash
+}
+
+type testProfileService struct {
+	mock.Mock
+}
+
+func (m *testProfileService) EnsureExists(login string) error {
+	args := m.Called(login)
+	return args.Error(0)
+}
+
+func newEmailTokenString(
+	t *testing.T,
+	config config.Config,
+	email, passwordHash string,
+	expired ...bool) []string {
+	exp := 1 * time.Hour
+	if len(expired) > 0 && expired[0] {
+		exp = -1 * time.Hour
+	}
+	s, err := apptoken.NewEmailTokenString(
+		config.OAuth2State().TokenIssuer(),
+		email,
+		passwordHash,
+		exp,
+		config.OAuth2State().TokenSignKey())
+	assert.NoError(t, err)
+	return []string{s}
 }

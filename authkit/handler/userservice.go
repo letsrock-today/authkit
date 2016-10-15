@@ -16,8 +16,8 @@ type (
 		// UpdatePassword updates user's password.
 		UpdatePassword(login, oldPasswordHash, newPassword string) UserServiceError
 
-		// enable account
-		//	Enable(login string) UserServiceError
+		// Enable enables user account.
+		Enable(login string) UserServiceError
 
 		// save token
 		//	UpdateToken(login, pid string, token *oauth2.Token) UserServiceError

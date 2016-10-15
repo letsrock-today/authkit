@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"html/template"
+	"io"
 	"log"
 
 	"github.com/labstack/echo"
@@ -34,8 +36,14 @@ func main() {
 	handler.Profiles = p
 
 	e := echo.New()
+	e.SetDebug(true)
+	e.SetLogLevel(0)
 
-	route.Init(e, u)
+	route.Init(e, u, p)
+
+	e.SetRenderer(&Renderer{
+		templates: template.Must(template.ParseGlob("../ui-web/templates/*.html")),
+	})
 
 	c := config.Get()
 
@@ -48,4 +56,14 @@ func main() {
 		TLSCertFile: c.TLSCertFile,
 		TLSKeyFile:  c.TLSKeyFile,
 	}))
+}
+
+//TODO: refactoring required
+
+type Renderer struct {
+	templates *template.Template
+}
+
+func (t *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
 }

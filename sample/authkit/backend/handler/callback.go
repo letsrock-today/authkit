@@ -19,7 +19,6 @@ import (
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/hydra"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/userapi"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/util/echo-querybinder"
 )
 
 type (
@@ -35,7 +34,7 @@ const authCookieName = "X-App-Auth"
 
 func Callback(c echo.Context) error {
 	var cr callbackRequest
-	if err := querybinder.New().Bind(&cr, c); err != nil {
+	if err := c.Bind(&cr); err != nil {
 		return err
 	}
 

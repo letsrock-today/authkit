@@ -10,9 +10,6 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
-	"github.com/letsrock-today/hydra-sample/authkit/config"
 )
 
 func TestForgotPassword(t *testing.T) {
@@ -263,23 +260,4 @@ func TestChangePassword(t *testing.T) {
 			})
 		}
 	}
-}
-
-func newEmailTokenString(
-	t *testing.T,
-	config config.Config,
-	email, passwordHash string,
-	expired ...bool) []string {
-	exp := 1 * time.Hour
-	if len(expired) > 0 && expired[0] {
-		exp = -1 * time.Hour
-	}
-	s, err := apptoken.NewEmailTokenString(
-		config.OAuth2State().TokenIssuer(),
-		email,
-		passwordHash,
-		exp,
-		config.OAuth2State().TokenSignKey())
-	assert.NoError(t, err)
-	return []string{s}
 }

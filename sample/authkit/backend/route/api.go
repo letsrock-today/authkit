@@ -10,14 +10,16 @@ import (
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
 	_handler "github.com/letsrock-today/hydra-sample/sample/authkit/backend/handler"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/hydra"
+	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/profile/profileapi"
+	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/userapi"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/util/email"
 )
 
-func initAPI(e *echo.Echo, ua userapi.UserAPI) {
+func initAPI(e *echo.Echo, ua userapi.UserAPI, pa profileapi.ProfileAPI) {
 
 	c := config.GetCfg()
-	h := handler.NewHandler(c, ec{}, as{}, us{ua})
+	h := handler.NewHandler(c, ec{}, as{}, us{ua}, ps{pa})
 
 	e.GET("/api/auth-providers", h.AuthProviders)
 	e.GET("/api/auth-code-urls", h.AuthCodeURLs)
@@ -34,7 +36,7 @@ func initAPI(e *echo.Echo, ua userapi.UserAPI) {
 	e.POST("/password-reset", h.RestorePassword)
 	e.POST("/password-change", h.ChangePassword)
 
-	e.GET("/email-confirm", _handler.EmailConfirm)
+	e.GET("/email-confirm", h.ConfirmEmail)
 }
 
 //TODO: refactoring required
@@ -117,6 +119,14 @@ func (us us) UpdatePassword(login, oldPasswordHash, newPassword string) handler.
 		return userServiceError{userapi.AuthError}
 	}
 	err = us.UserAPI.UpdatePassword(login, newPassword)
+	if err != nil {
+		return userServiceError{err}
+	}
+	return nil
+}
+
+func (us us) Enable(login string) handler.UserServiceError {
+	err := us.UserAPI.Enable(login)
 	if err != nil {
 		return userServiceError{err}
 	}
@@ -206,4 +216,12 @@ func sendConfirmationEmail(
 		topic = "Confirm account creation"
 	}
 	return email.Send(to, topic, text)
+}
+
+type ps struct {
+	ps profileapi.ProfileAPI
+}
+
+func (ps ps) EnsureExists(login string) error {
+	return ps.ps.Save(login, &socialprofile.Profile{Email: login})
 }

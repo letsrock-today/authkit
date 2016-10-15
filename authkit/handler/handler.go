@@ -11,8 +11,9 @@ func NewHandler(
 	c config.Config,
 	ec ErrorCustomizer,
 	as AuthService,
-	us UserService) Handler {
-	return handler{c, ec, as, us}
+	us UserService,
+	ps ProfileService) Handler {
+	return handler{c, ec, as, us, ps}
 }
 
 type (
@@ -24,8 +25,8 @@ type (
 		// AuthCodeURLs responds with auth code URLs for OAuth2.
 		// Handler takes slice of oauth2.Config from configuration supplied
 		// to NewHandler() func and renders list of URLs to response body.
-		// Web UI could use this request to update its list of providers with fresh
-		// URLs (re-generate state query parameter in them).
+		// Web UI could use this request to update its list of providers with
+		// fresh URLs (re-generate state query parameter in them).
 		// Response should not be cached.
 		AuthCodeURLs(echo.Context) error
 
@@ -47,6 +48,13 @@ type (
 		// ChangePassword handles request to actually change password from the
 		// confirmation form.
 		ChangePassword(echo.Context) error
+
+		// ConfirmEmail handles request to confirm email (which is produced
+		// by the link sent to the user in the confirmation email).
+		// Response for the user created with template named
+		// "authkit.EmailConfirm.response". This template should be registered
+		// in the echo.Context. I18n can be achieved with custom renderer.
+		ConfirmEmail(echo.Context) error
 	}
 
 	//TODO: currently handler marshals response as JSON; we may provide setting
@@ -59,5 +67,9 @@ type (
 		errorCustomizer ErrorCustomizer
 		auth            AuthService
 		users           UserService
+		profiles        ProfileService
 	}
 )
+
+// ConfirmEmailTemplateName is a template name for ConfirmEmail response.
+const ConfirmEmailTemplateName = "authkit-ConfirmEmail-response.html"

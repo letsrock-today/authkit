@@ -29,6 +29,7 @@ build:
 		github.com/letsrock-today/hydra-sample/sample/authkit/backend
 	@cd ./ui-web && npm run dist -- --output-path ../.build/ui-web/dist
 	@cp -r ./ui-web/html ./.build/ui-web
+	@cp -r ./ui-web/templates ./.build/ui-web
 	@cp -r ./backend/env ./.build/backend
 	@echo "Build Done."
 
