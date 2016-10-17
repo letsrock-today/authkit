@@ -25,8 +25,7 @@ type (
 func (h handler) ConsentLogin(c echo.Context) error {
 	var lf consentLoginForm
 	if err := c.Bind(&lf); err != nil {
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 
 	if _, err := govalidator.ValidateStruct(lf); err != nil {
@@ -66,8 +65,7 @@ func (h handler) ConsentLogin(c echo.Context) error {
 		if signup {
 			if err, ok := err.(AccountDisabledError); ok && err.IsAccountDisabled() {
 				if err := h.users.RequestEmailConfirmation(lf.P.Login); err != nil {
-					c.Logger().Error(errors.WithStack(err))
-					return err
+					return errors.WithStack(err)
 				}
 			}
 		}

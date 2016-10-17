@@ -97,7 +97,7 @@ func (c *Config) initOAuth2Config() error {
 		TokenURL:     strings.Replace(h.TokenURL, "{base-url}", c.HydraAddr, -1),
 	}
 	//TODO: Probably, we should use client with less priveleges for oauth2 config below (without access to hydra keys etc.)
-	c.HydraOAuth2Config = oauth2.Config{
+	h.OAuth2Config = &oauth2.Config{
 		ClientID:     h.ClientId,
 		ClientSecret: h.ClientSecret,
 		Scopes:       h.Scopes,
@@ -117,13 +117,12 @@ func (c *Config) initOAuth2Config() error {
 		},
 		RedirectURL: c.OAuth2RedirectURL,
 	}
-	c.OAuth2Configs = make(map[string]oauth2.Config)
 	for _, p := range c.OAuth2Providers {
 		endpoint, ok := endpoints[p.Id]
 		if !ok {
 			return errors.New("Illegal OAuth2 configuration")
 		}
-		c.OAuth2Configs[p.Id] = oauth2.Config{
+		p.OAuth2Config = &oauth2.Config{
 			ClientID:     p.ClientId,
 			ClientSecret: p.ClientSecret,
 			Scopes:       p.Scopes,

@@ -30,8 +30,7 @@ var errEmailInvalid = errors.New("email is invalid or not registered in the app"
 func (h handler) RestorePassword(c echo.Context) error {
 	var rp restorePasswordForm
 	if err := c.Bind(&rp); err != nil {
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 	if _, err := govalidator.ValidateStruct(rp); err != nil {
 		c.Logger().Debug(errors.WithStack(err))
@@ -48,15 +47,13 @@ func (h handler) RestorePassword(c echo.Context) error {
 				http.StatusUnauthorized,
 				h.errorCustomizer.UserAuthenticationError(err))
 		}
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 
 	if err := h.users.RequestPasswordChangeConfirmation(
 		user.Email(),
 		user.PasswordHash()); err != nil {
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 	return c.JSON(http.StatusOK, struct{}{})
 }
@@ -64,8 +61,7 @@ func (h handler) RestorePassword(c echo.Context) error {
 func (h handler) ChangePassword(c echo.Context) error {
 	var cp changePasswordForm
 	if err := c.Bind(&cp); err != nil {
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 	if _, err := govalidator.ValidateStruct(cp); err != nil {
 		c.Logger().Debug(errors.WithStack(err))
@@ -86,8 +82,7 @@ func (h handler) ChangePassword(c echo.Context) error {
 				http.StatusUnauthorized,
 				h.errorCustomizer.UserAuthenticationError(err))
 		}
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 
 	if err = h.users.UpdatePassword(
@@ -100,8 +95,7 @@ func (h handler) ChangePassword(c echo.Context) error {
 				http.StatusUnauthorized,
 				h.errorCustomizer.UserAuthenticationError(err))
 		}
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 	return c.JSON(http.StatusOK, struct{}{})
 }

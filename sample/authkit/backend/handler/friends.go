@@ -18,16 +18,16 @@ func Friends(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	cfg := config.Get()
+	cfg := config.GetCfg()
 	friends := []socialprofile.Profile{}
 	// iterate over all available social networks and geather all friends
-	for pid, oauth2cfg := range cfg.OAuth2Configs {
-		token, ok := u.Tokens[pid]
+	for p := range cfg.OAuth2Providers() {
+		token, ok := u.Tokens[p.ID()]
 		if !ok {
 			// no token? skip this provider
 			continue
 		}
-		pa, err := socialprofile.New(pid)
+		pa, err := socialprofile.New(p.ID())
 		if err != nil {
 			// strange, should be implemented for every network
 			// skip, if not implemented
@@ -35,7 +35,7 @@ func Friends(c echo.Context) error {
 			continue
 		}
 		ctx := context.Background()
-		client := oauth2cfg.Client(ctx, token)
+		client := p.OAuth2Config().Client(ctx, token)
 		fl, err := pa.Friends(client)
 		if err != nil {
 			// method not implemented, or other error - just skip it

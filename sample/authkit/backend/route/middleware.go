@@ -32,16 +32,16 @@ func initMiddleware(e *echo.Echo, ua userapi.UserAPI) {
 	e.Use(middleware.Secure())
 	e.Use(middleware.CSRF())
 
-	cfg := config.Get()
+	cfg := config.GetCfg()
 	ctx := context.WithValue(
 		context.Background(),
 		oauth2.HTTPClient,
 		&http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: cfg.TLSInsecureSkipVerify},
+					InsecureSkipVerify: cfg.TLSInsecureSkipVerify()},
 			}})
-	oauth2cfg := &cfg.HydraOAuth2Config
+	oauth2cfg := cfg.PrivateOAuth2Provider().OAuth2Config()
 	profileMiddleware = _middleware.AccessTokenWithConfig(
 		_middleware.AccessTokenConfig{
 			TokenValidator: tokenValidator{},

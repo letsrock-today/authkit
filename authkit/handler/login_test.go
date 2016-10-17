@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"testing"
 
+	"golang.org/x/oauth2"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
@@ -61,9 +63,11 @@ func TestLogin(t *testing.T) {
 		users:           us,
 		config: &testConfig{
 			privateOAuth2Provider: testOAuth2Provider{
-				id:       "some_id",
-				clientID: "some_client_id",
-				scopes:   []string{"some_scope"},
+				id: "some_id",
+				oauth2Config: &oauth2.Config{
+					ClientID: "some_client_id",
+					Scopes:   []string{"some_scope"},
+				},
 			},
 		},
 	}
@@ -74,9 +78,11 @@ func TestLogin(t *testing.T) {
 		users:           us,
 		config: &testConfig{
 			privateOAuth2Provider: testOAuth2Provider{
-				id:       "some_id",
-				clientID: "unknown_client_id",
-				scopes:   []string{"some_scope"},
+				id: "some_id",
+				oauth2Config: &oauth2.Config{
+					ClientID: "unknown_client_id",
+					Scopes:   []string{"some_scope"},
+				},
 			},
 		},
 	}
@@ -174,7 +180,7 @@ func TestLogin(t *testing.T) {
 				ctx := e.NewContext(
 					standard.NewRequest(req, e.Logger()),
 					standard.NewResponse(rec, e.Logger()))
-				ctx.Request().Header().Set("Content-Type", enc.contentType)
+				ctx.Request().Header().Set(echo.HeaderContentType, enc.contentType)
 
 				if c.failIssueConsentToken {
 					err = h2.Login(ctx)

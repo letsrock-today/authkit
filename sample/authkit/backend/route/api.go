@@ -31,7 +31,7 @@ func initAPI(e *echo.Echo, ua userapi.UserAPI, pa profileapi.ProfileAPI) {
 	e.POST("/api/login", h.ConsentLogin)
 	e.POST("/api/login-priv", h.Login)
 
-	e.GET("/callback", _handler.Callback)
+	e.GET("/callback", h.Callback)
 
 	e.POST("/password-reset", h.RestorePassword)
 	e.POST("/password-change", h.ChangePassword)

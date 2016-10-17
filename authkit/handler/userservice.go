@@ -1,11 +1,16 @@
 package handler
 
+import "golang.org/x/oauth2"
+
 type (
 	// UserService provides methods to persist users.
 	UserService interface {
 
 		// Create creates new disabled user.
 		Create(login, password string) UserServiceError
+
+		// CreateEnabled creates new enabled user.
+		CreateEnabled(login, password string) UserServiceError
 
 		// Authenticate authenticates user, returns nil, if account exists and enabled.
 		Authenticate(login, password string) UserServiceError
@@ -19,11 +24,11 @@ type (
 		// Enable enables user account.
 		Enable(login string) UserServiceError
 
-		// save token
-		//	UpdateToken(login, pid string, token *oauth2.Token) UserServiceError
+		// UpdateToken saves or updates oauth2 token for user and provider.
+		UpdateToken(login, providerID string, token *oauth2.Token) UserServiceError
 
-		// return token
-		//	Token(login, pid string) (*oauth2.Token, UserServiceError)
+		// Token returns OAuth2 token by login and OAuth2 provider ID.
+		Token(login, providerID string) (*oauth2.Token, UserServiceError)
 
 		// return user by token
 		// token_field is one of [accesstoken, refreshtoken]

@@ -2,55 +2,67 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
-	"github.com/letsrock-today/hydra-sample/authkit/config"
+	context2 "golang.org/x/net/context"
+	"golang.org/x/oauth2"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"golang.org/x/oauth2"
+
+	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
+	"github.com/letsrock-today/hydra-sample/authkit/config"
 )
 
 type testConfig struct {
 	oauth2State           testOAuth2State
-	oauth2Configs         map[string]oauth2.Config
 	oauth2Providers       []testOAuth2Provider
 	privateOAuth2Provider testOAuth2Provider
-	privateOAuth2Config   oauth2.Config
 	modTime               time.Time
+	tlsInsecureSkipVerify bool
 }
 
-func (c testConfig) OAuth2State() config.OAuth2State {
-	return c.oauth2State
+func (c testConfig) OAuth2Providers() chan config.OAuth2Provider {
+	ch := make(chan config.OAuth2Provider)
+	go func() {
+		for _, p := range c.oauth2Providers {
+			ch <- p
+		}
+		close(ch)
+	}()
+	return ch
 }
 
-func (c testConfig) OAuth2Configs() map[string]oauth2.Config {
-	return c.oauth2Configs
-}
-
-func (c testConfig) OAuth2Providers() []config.OAuth2Provider {
-	r := []config.OAuth2Provider{}
+func (c testConfig) OAuth2ProviderByID(id string) config.OAuth2Provider {
 	for _, p := range c.oauth2Providers {
-		r = append(r, p)
+		if id == p.ID() {
+			return p
+		}
 	}
-	return r
+	return nil
 }
 
 func (c testConfig) PrivateOAuth2Provider() config.OAuth2Provider {
 	return c.privateOAuth2Provider
 }
 
-func (c testConfig) PrivateOAuth2Config() oauth2.Config {
-	return c.privateOAuth2Config
+func (c testConfig) OAuth2State() config.OAuth2State {
+	return c.oauth2State
 }
 
 func (c testConfig) ModTime() time.Time {
 	return c.modTime
+}
+
+func (c testConfig) AuthCookieName() string {
+	return "xxx-auth-cookie"
 }
 
 type testOAuth2State struct {
@@ -72,15 +84,11 @@ func (s testOAuth2State) Expiration() time.Duration {
 }
 
 type testOAuth2Provider struct {
-	id           string
-	name         string
-	clientID     string
-	clientSecret string
-	publicKey    string
-	scopes       []string
-	iconURL      string
-	tokenURL     string
-	authURL      string
+	id               string
+	name             string
+	iconURL          string
+	oauth2Config     config.OAuth2Config
+	privOAuth2Config config.OAuth2Config
 }
 
 func (p testOAuth2Provider) ID() string {
@@ -91,32 +99,16 @@ func (p testOAuth2Provider) Name() string {
 	return p.name
 }
 
-func (p testOAuth2Provider) ClientID() string {
-	return p.clientID
-}
-
-func (p testOAuth2Provider) ClientSecret() string {
-	return p.clientSecret
-}
-
-func (p testOAuth2Provider) PublicKey() string {
-	return p.publicKey
-}
-
-func (p testOAuth2Provider) Scopes() []string {
-	return p.scopes
-}
-
 func (p testOAuth2Provider) IconURL() string {
 	return p.iconURL
 }
 
-func (p testOAuth2Provider) TokenURL() string {
-	return p.tokenURL
+func (p testOAuth2Provider) OAuth2Config() config.OAuth2Config {
+	return p.oauth2Config
 }
 
-func (p testOAuth2Provider) AuthURL() string {
-	return p.authURL
+func (p testOAuth2Provider) PrivateOAuth2Config() config.OAuth2Config {
+	return p.privOAuth2Config
 }
 
 type bodyEncoderFunc func(v url.Values) io.Reader
@@ -222,6 +214,13 @@ func (m *testAuthService) IssueConsentToken(
 	return args.String(0), args.Error(1)
 }
 
+func (m *testAuthService) IssueToken(
+	c context.Context,
+	login string) (*oauth2.Token, error) {
+	args := m.Called(c, login)
+	return args.Get(0).(*oauth2.Token), args.Error(1)
+}
+
 type testUserService struct {
 	mock.Mock
 }
@@ -235,7 +234,17 @@ func (m *testUserService) Create(login, password string) UserServiceError {
 	return nil
 }
 
-func (m *testUserService) Authenticate(login, password string) UserServiceError {
+func (m *testUserService) CreateEnabled(login, password string) UserServiceError {
+	args := m.Called(login, password)
+	err := args.Get(0)
+	if err != nil {
+		return err.(UserServiceError)
+	}
+	return nil
+}
+
+func (m *testUserService) Authenticate(
+	login, password string) UserServiceError {
 	args := m.Called(login, password)
 	err := args.Get(0)
 	if err != nil {
@@ -253,7 +262,8 @@ func (m *testUserService) User(login string) (User, UserServiceError) {
 	return args.Get(0).(User), nil
 }
 
-func (m *testUserService) UpdatePassword(login, oldPasswordHash, newPassword string) UserServiceError {
+func (m *testUserService) UpdatePassword(
+	login, oldPasswordHash, newPassword string) UserServiceError {
 	args := m.Called(login, oldPasswordHash, newPassword)
 	err := args.Get(0)
 	if err != nil {
@@ -266,7 +276,20 @@ func (m *testUserService) Enable(login string) UserServiceError {
 	return args.Error(0)
 }
 
-func (m *testUserService) RequestEmailConfirmation(login string) UserServiceError {
+func (m *testUserService) UpdateToken(
+	login, providerID string, token *oauth2.Token) UserServiceError {
+	args := m.Called(login, providerID, token)
+	return args.Error(0)
+}
+
+func (m *testUserService) Token(
+	login, providerID string) (*oauth2.Token, UserServiceError) {
+	args := m.Called(login, providerID)
+	return args.Get(0).(*oauth2.Token), args.Error(1)
+}
+
+func (m *testUserService) RequestEmailConfirmation(
+	login string) UserServiceError {
 	args := m.Called(login)
 	err := args.Get(0)
 	if err != nil {
@@ -275,7 +298,8 @@ func (m *testUserService) RequestEmailConfirmation(login string) UserServiceErro
 	return nil
 }
 
-func (m *testUserService) RequestPasswordChangeConfirmation(login, passwordHash string) UserServiceError {
+func (m *testUserService) RequestPasswordChangeConfirmation(
+	login, passwordHash string) UserServiceError {
 	args := m.Called(login, passwordHash)
 	err := args.Get(0)
 	if err != nil {
@@ -351,6 +375,11 @@ func (m *testProfileService) EnsureExists(login string) error {
 	return args.Error(0)
 }
 
+func (m *testProfileService) Save(p Profile) error {
+	args := m.Called(p)
+	return args.Error(0)
+}
+
 func newEmailTokenString(
 	t *testing.T,
 	config config.Config,
@@ -368,4 +397,70 @@ func newEmailTokenString(
 		config.OAuth2State().TokenSignKey())
 	assert.NoError(t, err)
 	return []string{s}
+}
+
+func newStateTokenString(
+	t *testing.T,
+	config config.Config,
+	pid, login string,
+	expired ...bool) []string {
+	exp := 1 * time.Hour
+	if len(expired) > 0 && expired[0] {
+		exp = -1 * time.Hour
+	}
+	if login == "" {
+		s, err := apptoken.NewStateTokenString(
+			config.OAuth2State().TokenIssuer(),
+			pid,
+			exp,
+			config.OAuth2State().TokenSignKey())
+		assert.NoError(t, err)
+		return []string{s}
+	}
+	s, err := apptoken.NewStateWithLoginTokenString(
+		config.OAuth2State().TokenIssuer(),
+		pid,
+		login,
+		exp,
+		config.OAuth2State().TokenSignKey())
+	assert.NoError(t, err)
+	return []string{s}
+}
+
+type testOAuth2Config struct {
+	mock.Mock
+	oauth2.Config
+}
+
+func (m *testOAuth2Config) Exchange(c context2.Context, code string) (*oauth2.Token, error) {
+	args := m.Called(c, code)
+	return args.Get(0).(*oauth2.Token), args.Error(1)
+}
+
+type testSocialProfileServices struct {
+	mock.Mock
+}
+
+func (m *testSocialProfileServices) SocialProfileService(
+	providerID string) (SocialProfileService, error) {
+	args := m.Called(providerID)
+	return args.Get(0).(SocialProfileService), args.Error(1)
+}
+
+type testSocialProfileService struct {
+	mock.Mock
+}
+
+func (m *testSocialProfileService) SocialProfile(
+	client *http.Client) (Profile, error) {
+	args := m.Called(client)
+	return args.Get(0).(Profile), args.Error(1)
+}
+
+type testProfile struct {
+	login string
+}
+
+func (p testProfile) Login() string {
+	return p.login
 }

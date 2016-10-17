@@ -29,7 +29,7 @@ func (h handler) AuthProviders(c echo.Context) error {
 		seekingbuffer.New(
 			func() ([]byte, error) {
 				p := providersReply{}
-				for _, pp := range h.config.OAuth2Providers() {
+				for pp := range h.config.OAuth2Providers() {
 					p.Providers = append(p.Providers, oauth2Provider{
 						ID:      pp.ID(),
 						Name:    pp.Name(),
@@ -39,7 +39,7 @@ func (h handler) AuthProviders(c echo.Context) error {
 
 				b, err := json.Marshal(p)
 				if err != nil {
-					c.Logger().Error(errors.WithStack(err))
+					err = errors.WithStack(err)
 				}
 				return b, err
 			}),

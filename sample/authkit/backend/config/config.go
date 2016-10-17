@@ -28,9 +28,7 @@ type Config struct {
 	ConfirmationLinkLifespan time.Duration            `yaml:"confirmation-link-lifespan"`
 	EmailConfig              EmailConfig              `yaml:"email-config"`
 	HydraClientCredentials   clientcredentials.Config `yaml:"-"`
-	HydraOAuth2Config        oauth2.Config            `yaml:"-"`
 	HydraOAuth2ConfigInt     oauth2.Config            `yaml:"-"`
-	OAuth2Configs            map[string]oauth2.Config `yaml:"-"`
 	modTime                  time.Time                `yaml:"-"`
 	TLSInsecureSkipVerify    bool                     `yaml:"tls-insecure-skip-verify"`
 }
@@ -43,15 +41,16 @@ type OAuth2State struct {
 }
 
 type OAuth2Provider struct {
-	Id           string   `json:"id" yaml:"id"`
-	Name         string   `json:"name" yaml:"name"`
-	ClientId     string   `json:"-" yaml:"client-id"`
-	ClientSecret string   `json:"-" yaml:"client-secret"`
-	PublicKey    string   `json:"-" yaml:"public-key"`
-	Scopes       []string `json:"-" yaml:"scopes"`
-	IconURL      string   `json:"iconUrl" yaml:"icon"`
-	TokenURL     string   `json:"-" yaml:"token-url"`
-	AuthURL      string   `json:"-" yaml:"auth-url"`
+	Id           string         `json:"id" yaml:"id"`
+	Name         string         `json:"name" yaml:"name"`
+	ClientId     string         `json:"-" yaml:"client-id"`
+	ClientSecret string         `json:"-" yaml:"client-secret"`
+	PublicKey    string         `json:"-" yaml:"public-key"`
+	Scopes       []string       `json:"-" yaml:"scopes"`
+	IconURL      string         `json:"iconUrl" yaml:"icon"`
+	TokenURL     string         `json:"-" yaml:"token-url"`
+	AuthURL      string         `json:"-" yaml:"auth-url"`
+	OAuth2Config *oauth2.Config `json:"-" yaml:"-"`
 }
 
 type EmailConfig struct {
@@ -90,20 +89,15 @@ func (c _config) OAuth2State() config.OAuth2State {
 	return _oauth2State{c.c.OAuth2State}
 }
 
-func (c _config) OAuth2Configs() map[string]oauth2.Config {
-	return c.c.OAuth2Configs
-}
-
-func (c _config) OAuth2Providers() []config.OAuth2Provider {
-	pp := []config.OAuth2Provider{}
-	for _, p := range c.c.OAuth2Providers {
-		pp = append(pp, _oauth2Provider{p})
-	}
-	return pp
-}
-
-func (c _config) PrivateOAuth2Config() oauth2.Config {
-	return c.c.HydraOAuth2Config
+func (c _config) OAuth2Providers() chan config.OAuth2Provider {
+	ch := make(chan config.OAuth2Provider)
+	go func() {
+		for _, p := range c.c.OAuth2Providers {
+			ch <- _oauth2Provider{p}
+		}
+		close(ch)
+	}()
+	return ch
 }
 
 func (c _config) PrivateOAuth2Provider() config.OAuth2Provider {
@@ -112,6 +106,10 @@ func (c _config) PrivateOAuth2Provider() config.OAuth2Provider {
 
 func (c _config) ModTime() time.Time {
 	return c.c.modTime
+}
+
+func (c _config) TLSInsecureSkipVerify() bool {
+	return c.c.TLSInsecureSkipVerify
 }
 
 type _oauth2State struct {
@@ -168,4 +166,8 @@ func (p _oauth2Provider) TokenURL() string {
 
 func (p _oauth2Provider) AuthURL() string {
 	return p.p.AuthURL
+}
+
+func (p _oauth2Provider) OAuth2Config() *oauth2.Config {
+	return p.p.OAuth2Config
 }

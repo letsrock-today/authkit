@@ -20,12 +20,10 @@ type (
 func (h handler) ConfirmEmail(c echo.Context) error {
 	var r confirmationRequest
 	if err := c.Bind(&r); err != nil {
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 	if _, err := govalidator.ValidateStruct(r); err != nil {
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 
 	t, err := apptoken.ParseEmailToken(
@@ -42,8 +40,7 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 					h.errorCustomizer.UserAuthenticationError(err))
 			}
 		}
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 
 	// Create empty profile for new user.
@@ -65,12 +62,11 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 				ConfirmEmailTemplateName,
 				h.errorCustomizer.UserAuthenticationError(err))
 		}
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 
 	if err := <-ch; err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	return c.Render(http.StatusOK, ConfirmEmailTemplateName, nil)

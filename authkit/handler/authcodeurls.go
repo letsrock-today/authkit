@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 
 	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 )
@@ -21,17 +22,19 @@ type (
 
 func (h handler) AuthCodeURLs(c echo.Context) error {
 	reply := authCodeURLsReply{}
-	for pid, conf := range h.config.OAuth2Configs() {
+	for p := range h.config.OAuth2Providers() {
 		s := h.config.OAuth2State()
 		state, err := apptoken.NewStateTokenString(
 			s.TokenIssuer(),
-			pid,
+			p.ID(),
 			s.Expiration(),
 			s.TokenSignKey())
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
-		reply.URLs = append(reply.URLs, authCodeURL{pid, conf.AuthCodeURL(state)})
+		reply.URLs = append(reply.URLs, authCodeURL{
+			p.ID(),
+			p.OAuth2Config().AuthCodeURL(state)})
 	}
 	return c.JSON(http.StatusOK, reply)
 }

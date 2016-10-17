@@ -26,26 +26,32 @@ func TestAuthCodeURLs(t *testing.T) {
 			tokenSignKey: []byte("xxx"),
 			expiration:   1 * time.Hour,
 		},
-		oauth2Configs: map[string]oauth2.Config{
-			"aaa": oauth2.Config{
-				ClientID:     "aaa-id",
-				ClientSecret: "aaa-secret",
-				Scopes:       []string{"111", "222"},
-				Endpoint: oauth2.Endpoint{
-					TokenURL: "https://aaa.aa/token",
-					AuthURL:  "https://aaa.aa/auth",
+		oauth2Providers: []testOAuth2Provider{
+			{
+				id: "aaa",
+				oauth2Config: &oauth2.Config{
+					ClientID:     "aaa-id",
+					ClientSecret: "aaa-secret",
+					Scopes:       []string{"111", "222"},
+					Endpoint: oauth2.Endpoint{
+						TokenURL: "https://aaa.aa/token",
+						AuthURL:  "https://aaa.aa/auth",
+					},
+					RedirectURL: "https://aaa.aa/redirect",
 				},
-				RedirectURL: "https://aaa.aa/redirect",
 			},
-			"bbb": oauth2.Config{
-				ClientID:     "bbb-id",
-				ClientSecret: "bbb-secret",
-				Scopes:       []string{"111", "222"},
-				Endpoint: oauth2.Endpoint{
-					TokenURL: "https://bbb.bb/token",
-					AuthURL:  "https://bbb.bb/auth",
+			{
+				id: "bbb",
+				oauth2Config: &oauth2.Config{
+					ClientID:     "bbb-id",
+					ClientSecret: "bbb-secret",
+					Scopes:       []string{"111", "222"},
+					Endpoint: oauth2.Endpoint{
+						TokenURL: "https://bbb.bb/token",
+						AuthURL:  "https://bbb.bb/auth",
+					},
+					RedirectURL: "https://bbb.bb/redirect",
 				},
-				RedirectURL: "https://bbb.bb/redirect",
 			},
 		},
 	}

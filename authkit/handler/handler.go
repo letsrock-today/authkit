@@ -7,13 +7,24 @@ import (
 )
 
 // NewHandler returns default Handler implemetation.
+// ErrorCustomizer, AuthService, UserService, ProfileService must be provided.
+// If ContextCreator is nil, then DefaultContextCreator is used.
 func NewHandler(
 	c config.Config,
 	ec ErrorCustomizer,
 	as AuthService,
 	us UserService,
-	ps ProfileService) Handler {
-	return handler{c, ec, as, us, ps}
+	ps ProfileService,
+	sps SocialProfileServices,
+	cc ContextCreator) Handler {
+	if ec == nil || as == nil || us == nil || ps == nil || sps == nil {
+		// Better to crash sooner.
+		return nil
+	}
+	if cc == nil {
+		cc = DefaultContextCreator{}
+	}
+	return handler{c, ec, as, us, ps, sps, cc}
 }
 
 type (
@@ -55,6 +66,9 @@ type (
 		// "authkit.EmailConfirm.response". This template should be registered
 		// in the echo.Context. I18n can be achieved with custom renderer.
 		ConfirmEmail(echo.Context) error
+
+		// Callback handles OAuth2 code flow callback requests.
+		//Callback(echo.Context) error
 	}
 
 	//TODO: currently handler marshals response as JSON; we may provide setting
@@ -68,6 +82,8 @@ type (
 		auth            AuthService
 		users           UserService
 		profiles        ProfileService
+		socialProfiles  SocialProfileServices
+		contextCreator  ContextCreator
 	}
 )
 

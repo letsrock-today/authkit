@@ -106,7 +106,7 @@ func TestForgotPassword(t *testing.T) {
 				ctx := e.NewContext(
 					standard.NewRequest(req, e.Logger()),
 					standard.NewResponse(rec, e.Logger()))
-				ctx.Request().Header().Set("Content-Type", enc.contentType)
+				ctx.Request().Header().Set(echo.HeaderContentType, enc.contentType)
 
 				err = h.RestorePassword(ctx)
 				if enc.invalid || c.internalError {
@@ -247,7 +247,7 @@ func TestChangePassword(t *testing.T) {
 				ctx := e.NewContext(
 					standard.NewRequest(req, e.Logger()),
 					standard.NewResponse(rec, e.Logger()))
-				ctx.Request().Header().Set("Content-Type", enc.contentType)
+				ctx.Request().Header().Set(echo.HeaderContentType, enc.contentType)
 
 				err = h.ChangePassword(ctx)
 				if enc.invalid || c.internalError {

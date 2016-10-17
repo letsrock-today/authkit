@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"strings"
 
+	"golang.org/x/oauth2"
+
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
@@ -31,8 +33,7 @@ type (
 func (h handler) Login(c echo.Context) error {
 	var lf loginForm
 	if err := c.Bind(&lf); err != nil {
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 
 	if _, err := govalidator.ValidateStruct(lf); err != nil {
@@ -61,8 +62,7 @@ func (h handler) Login(c echo.Context) error {
 		if signup {
 			if err, ok := err.(AccountDisabledError); ok && err.IsAccountDisabled() {
 				if err := h.users.RequestEmailConfirmation(lf.Login); err != nil {
-					c.Logger().Error(errors.WithStack(err))
-					return err
+					return errors.WithStack(err)
 				}
 			}
 		}
@@ -71,10 +71,10 @@ func (h handler) Login(c echo.Context) error {
 	}
 
 	pp := h.config.PrivateOAuth2Provider()
-	t, err := h.auth.IssueConsentToken(pp.ClientID(), pp.Scopes())
+	cfg := pp.OAuth2Config().(*oauth2.Config)
+	t, err := h.auth.IssueConsentToken(cfg.ClientID, cfg.Scopes)
 	if err != nil {
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 
 	s := h.config.OAuth2State()
@@ -85,19 +85,17 @@ func (h handler) Login(c echo.Context) error {
 		s.Expiration(),
 		s.TokenSignKey())
 	if err != nil {
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 
-	u, err := url.Parse(h.config.PrivateOAuth2Config().Endpoint.AuthURL)
+	u, err := url.Parse(cfg.Endpoint.AuthURL)
 	if err != nil {
-		c.Logger().Debug(errors.WithStack(err))
-		return err
+		return errors.WithStack(err)
 	}
 	v := u.Query()
-	v.Set("client_id", pp.ClientID())
+	v.Set("client_id", cfg.ClientID)
 	v.Set("response_type", "code")
-	v.Set("scope", strings.Join(pp.Scopes(), " "))
+	v.Set("scope", strings.Join(cfg.Scopes, " "))
 	v.Set("state", state)
 	v.Set("consent", t)
 	u.RawQuery = v.Encode()
