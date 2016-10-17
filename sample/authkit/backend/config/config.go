@@ -7,7 +7,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 
-	"github.com/letsrock-today/hydra-sample/authkit/config"
+	"github.com/letsrock-today/hydra-sample/authkit"
 )
 
 const (
@@ -78,7 +78,7 @@ func ModTime() time.Time {
 
 //TODO: this is temporary adapter, refactoring needed
 
-func GetCfg() config.Config {
+func GetCfg() authkit.Config {
 	return _config{Get()}
 }
 
@@ -86,12 +86,12 @@ type _config struct {
 	c Config
 }
 
-func (c _config) OAuth2State() config.OAuth2State {
+func (c _config) OAuth2State() authkit.OAuth2State {
 	return _oauth2State{c.c.OAuth2State}
 }
 
-func (c _config) OAuth2Providers() chan config.OAuth2Provider {
-	ch := make(chan config.OAuth2Provider)
+func (c _config) OAuth2Providers() chan authkit.OAuth2Provider {
+	ch := make(chan authkit.OAuth2Provider)
 	go func() {
 		for _, p := range c.c.OAuth2Providers {
 			ch <- _oauth2Provider{p}
@@ -101,11 +101,11 @@ func (c _config) OAuth2Providers() chan config.OAuth2Provider {
 	return ch
 }
 
-func (c _config) PrivateOAuth2Provider() config.OAuth2Provider {
+func (c _config) PrivateOAuth2Provider() authkit.OAuth2Provider {
 	return _oauth2Provider{c.c.HydraOAuth2Provider}
 }
 
-func (c _config) OAuth2ProviderByID(id string) config.OAuth2Provider {
+func (c _config) OAuth2ProviderByID(id string) authkit.OAuth2Provider {
 	for _, p := range c.c.OAuth2Providers {
 		if p.Id == id {
 			return _oauth2Provider{p}
@@ -182,10 +182,10 @@ func (p _oauth2Provider) AuthURL() string {
 	return p.p.AuthURL
 }
 
-func (p _oauth2Provider) OAuth2Config() config.OAuth2Config {
+func (p _oauth2Provider) OAuth2Config() authkit.OAuth2Config {
 	return p.p.OAuth2Config
 }
 
-func (p _oauth2Provider) PrivateOAuth2Config() config.OAuth2Config {
+func (p _oauth2Provider) PrivateOAuth2Config() authkit.OAuth2Config {
 	return p.p.PrivateOAuth2Config
 }

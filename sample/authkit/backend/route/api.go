@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo"
 
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 	"github.com/letsrock-today/hydra-sample/authkit/handler"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
@@ -19,7 +20,7 @@ import (
 func initAPI(e *echo.Echo, ua userapi.UserAPI, pa profileapi.ProfileAPI) {
 
 	c := config.GetCfg()
-	h := handler.NewHandler(c, ec{}, as{}, us{ua}, ps{pa})
+	h := handler.NewHandler(c, ec{}, as{}, us{ua}, ps{pa}, sps{}, cc{})
 
 	e.GET("/api/auth-providers", h.AuthProviders)
 	e.GET("/api/auth-code-urls", h.AuthCodeURLs)
@@ -54,9 +55,9 @@ func (ec) InvalidRequestParameterError(e error) interface{} {
 
 func (ec) UserCreationError(e error) interface{} {
 	switch e.(type) {
-	case handler.AccountDisabledError:
+	case authkit.AccountDisabledError:
 		return jsonError{"account_disabled", e.Error()}
-	case handler.DuplicateUserError:
+	case authkit.DuplicateUserError:
 		return jsonError{"duplicate_account", e.Error()}
 	}
 	return jsonError{"unknown_err", e.Error()}
@@ -85,7 +86,7 @@ type us struct {
 	userapi.UserAPI
 }
 
-func (us us) Create(login, password string) handler.UserServiceError {
+func (us us) Create(login, password string) authkit.UserServiceError {
 	err := us.UserAPI.Create(login, password)
 	if err != nil {
 		return userServiceError{err}
@@ -93,7 +94,7 @@ func (us us) Create(login, password string) handler.UserServiceError {
 	return nil
 }
 
-func (us us) Authenticate(login, password string) handler.UserServiceError {
+func (us us) Authenticate(login, password string) authkit.UserServiceError {
 	err := us.UserAPI.Authenticate(login, password)
 	if err != nil {
 		return userServiceError{err}
@@ -101,7 +102,7 @@ func (us us) Authenticate(login, password string) handler.UserServiceError {
 	return nil
 }
 
-func (us us) User(login string) (handler.User, handler.UserServiceError) {
+func (us us) User(login string) (authkit.User, authkit.UserServiceError) {
 	u, err := us.UserAPI.User(login)
 	if err != nil {
 		return nil, userServiceError{err}
@@ -109,7 +110,7 @@ func (us us) User(login string) (handler.User, handler.UserServiceError) {
 	return user{u}, nil
 }
 
-func (us us) UpdatePassword(login, oldPasswordHash, newPassword string) handler.UserServiceError {
+func (us us) UpdatePassword(login, oldPasswordHash, newPassword string) authkit.UserServiceError {
 	u, err := us.UserAPI.User(login)
 	if err != nil {
 		return userServiceError{err}
@@ -125,7 +126,7 @@ func (us us) UpdatePassword(login, oldPasswordHash, newPassword string) handler.
 	return nil
 }
 
-func (us us) Enable(login string) handler.UserServiceError {
+func (us us) Enable(login string) authkit.UserServiceError {
 	err := us.UserAPI.Enable(login)
 	if err != nil {
 		return userServiceError{err}
@@ -133,7 +134,7 @@ func (us us) Enable(login string) handler.UserServiceError {
 	return nil
 }
 
-func (us us) RequestEmailConfirmation(login string) handler.UserServiceError {
+func (us us) RequestEmailConfirmation(login string) authkit.UserServiceError {
 	err := sendConfirmationEmail(login, "", confirmEmailURL, false)
 	if err != nil {
 		return userServiceError{err}
@@ -141,7 +142,7 @@ func (us us) RequestEmailConfirmation(login string) handler.UserServiceError {
 	return nil
 }
 
-func (us us) RequestPasswordChangeConfirmation(login, passwordHash string) handler.UserServiceError {
+func (us us) RequestPasswordChangeConfirmation(login, passwordHash string) authkit.UserServiceError {
 	err := sendConfirmationEmail(login, passwordHash, confirmPasswordURL, false)
 	if err != nil {
 		return userServiceError{err}
