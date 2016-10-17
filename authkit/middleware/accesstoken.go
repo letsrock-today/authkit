@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"golang.org/x/net/context"
-
 	"github.com/labstack/echo"
 	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/pkg/errors"
@@ -37,9 +35,9 @@ type (
 		// Optional. Default value is nil, which disables token refresh.
 		OAuth2Config authkit.TokenSourceProvider
 
-		// Context used to refresh OAuth2 token.
+		// ContextCreator used to obtain context to store and refresh OAuth2 token.
 		// Optional. Default value is nil, which disables token refresh.
-		OAuth2Context context.Context
+		ContextCreator authkit.ContextCreator
 	}
 )
 
@@ -123,7 +121,7 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			// Update OAuth2 token and save it in DB (asynchronously).
 			// Possible errors are irrelevant for the main code flow.
 			sync := make(chan struct{}, 1)
-			if config.OAuth2Config != nil && config.OAuth2Context != nil {
+			if config.OAuth2Config != nil && config.ContextCreator != nil {
 				go func() {
 					defer func() { sync <- struct{}{} }()
 					oauth2token, err := config.UserService.OAuth2Token(
@@ -134,7 +132,7 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 						return
 					}
 					newToken, err := config.OAuth2Config.TokenSource(
-						config.OAuth2Context,
+						config.ContextCreator.CreateContext(config.PrivateProviderID),
 						oauth2token).Token()
 					if err != nil {
 						c.Logger().Warn(errors.WithStack(err))

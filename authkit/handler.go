@@ -45,5 +45,5 @@ type Handler interface {
 	ConfirmEmail(echo.Context) error
 
 	// Callback handles OAuth2 code flow callback requests.
-	//Callback(echo.Context) error
+	Callback(echo.Context) error
 }

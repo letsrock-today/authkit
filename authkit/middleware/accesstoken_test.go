@@ -90,8 +90,8 @@ func TestAccessTokenWithConfig(t *testing.T) {
 				"GET:/permitted-get:yyy": true,
 			},
 		},
-		OAuth2Config:  testTokenSourceProvider{},
-		OAuth2Context: context.Background(),
+		OAuth2Config:   testTokenSourceProvider{},
+		ContextCreator: authkit.DefaultContextCreator{},
 	}
 
 	invalidHeaderFormatMsg := errInvalidAuthHeader.Error()
