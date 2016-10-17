@@ -45,6 +45,6 @@ up: clean \
 
 down:
 	@echo "Stopping App"
-	@pkill authkit-sample
+	@-pkill authkit-sample
 	@cd ./docker-compose && sudo docker-compose down -v --rmi local
 	@echo "App is stopped."
