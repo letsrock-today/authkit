@@ -5,64 +5,37 @@ import (
 	"strings"
 
 	"golang.org/x/net/context"
-	"golang.org/x/oauth2"
 
 	"github.com/labstack/echo"
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/pkg/errors"
 )
 
 type (
-	// TokenValidator used to validate token and to check if token has required permission.
-	TokenValidator interface {
-
-		// Validate checks if token is valid and has required permission.
-		Validate(accessToken string, permissionDescriptor interface{}) error
-	}
-
-	// UserStore allows to find user data by access token.
-	// If access token passed validation, user data stores in the echo.Context.
-	// Also, UserStore may update refreshed OAuth2 token.
-	UserStore interface {
-
-		// User returns user data by access token.
-		User(accessToken string) (interface{}, error)
-
-		// OAuth2Token retrieves oauth2 token for user from store (or from user data).
-		OAuth2Token(user interface{}) (*oauth2.Token, error)
-
-		// UpdateOAuth2Token saves oauth2 token in the store.
-		UpdateOAuth2Token(user interface{}, token *oauth2.Token) error
-
-		// Principal returns user data to be stored in the echo.Context.
-		// It may return same structure which is passed to it or some fields from it.
-		Principal(user interface{}) interface{}
-	}
-
-	// TokenSourceProvider is implemented by oauth2.Config.
-	// This interface extracted for testability.
-	TokenSourceProvider interface {
-		TokenSource(ctx context.Context, t *oauth2.Token) oauth2.TokenSource
-	}
 
 	// AccessTokenConfig is a configuration for AccessTokenWithConfig middleware.
 	AccessTokenConfig struct {
+
+		// OAuth2 provider ID used to store and retrieve token from UserService.
+		// Required.
+		PrivateProviderID string
 
 		// Context key to store user info into context.
 		// Optional. Default value is "user-context".
 		ContextKey string
 
 		// Optional. Default value is DefaultPermissionMapper
-		PermissionMapper PermissionMapper
+		PermissionMapper authkit.PermissionMapper
 
 		// Required.
-		TokenValidator TokenValidator
+		TokenValidator authkit.TokenValidator
 
 		// Required.
-		UserStore UserStore
+		UserService authkit.MiddlewareUserService
 
 		// Config used to refresh OAuth2 token.
 		// Optional. Default value is nil, which disables token refresh.
-		OAuth2Config TokenSourceProvider
+		OAuth2Config authkit.TokenSourceProvider
 
 		// Context used to refresh OAuth2 token.
 		// Optional. Default value is nil, which disables token refresh.
@@ -81,12 +54,16 @@ var (
 const DefaultContextKey = "user-context"
 
 // AccessToken used to create middleware with mostly default configuration.
-func AccessToken(us UserStore, tv TokenValidator) echo.MiddlewareFunc {
+func AccessToken(
+	privateProviderID string,
+	us authkit.MiddlewareUserService,
+	tv authkit.TokenValidator) echo.MiddlewareFunc {
 	c := AccessTokenConfig{
-		ContextKey:       DefaultContextKey,
-		PermissionMapper: DefaultPermissionMapper{},
+		PrivateProviderID: privateProviderID,
+		ContextKey:        DefaultContextKey,
+		PermissionMapper:  DefaultPermissionMapper{},
 	}
-	c.UserStore = us
+	c.UserService = us
 	c.TokenValidator = tv
 	return AccessTokenWithConfig(c)
 }
@@ -101,8 +78,8 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 		config.PermissionMapper = DefaultPermissionMapper{}
 	}
 	// Required.
-	if config.UserStore == nil {
-		panic("UserStore must be provided")
+	if config.UserService == nil {
+		panic("UserService must be provided")
 	}
 	if config.TokenValidator == nil {
 		panic("TokenValidator must be provided")
@@ -128,14 +105,16 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			}
 
 			// Map request to permission.
-			perm, err := config.PermissionMapper.RequiredPermissioin(req.Method(), req.URL().Path())
+			perm, err := config.PermissionMapper.RequiredPermissioin(
+				req.Method(),
+				req.URL().Path())
 			if err != nil {
 				c.Logger().Debug(errors.WithStack(err))
 				return errAccessDenied
 			}
 
 			// Find user.
-			user, err := config.UserStore.User(token)
+			user, err := config.UserService.UserByAccessToken(token)
 			if err != nil {
 				c.Logger().Debug(errors.WithStack(err))
 				return errAccessDenied
@@ -146,21 +125,30 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			sync := make(chan struct{}, 1)
 			if config.OAuth2Config != nil && config.OAuth2Context != nil {
 				go func() {
-					oauth2token, err := config.UserStore.OAuth2Token(user)
+					defer func() { sync <- struct{}{} }()
+					oauth2token, err := config.UserService.OAuth2Token(
+						user.Login(),
+						config.PrivateProviderID)
 					if err != nil {
 						c.Logger().Warn(errors.WithStack(err))
+						return
 					}
-					newToken, err := config.OAuth2Config.TokenSource(config.OAuth2Context, oauth2token).Token()
+					newToken, err := config.OAuth2Config.TokenSource(
+						config.OAuth2Context,
+						oauth2token).Token()
 					if err != nil {
 						c.Logger().Warn(errors.WithStack(err))
+						return
 					}
 					if newToken != oauth2token {
-						err = config.UserStore.UpdateOAuth2Token(user, newToken)
+						err = config.UserService.UpdateOAuth2Token(
+							user.Login(),
+							config.PrivateProviderID,
+							newToken)
 						if err != nil {
 							c.Logger().Warn(errors.WithStack(err))
 						}
 					}
-					sync <- struct{}{}
 				}()
 			}
 
@@ -171,7 +159,7 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			}
 
 			// Store user login to context.
-			c.Set(config.ContextKey, config.UserStore.Principal(user))
+			c.Set(config.ContextKey, config.UserService.Principal(user))
 
 			// Make the whole call synchronouse.
 			<-sync

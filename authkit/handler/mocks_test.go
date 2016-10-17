@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
-	"github.com/letsrock-today/hydra-sample/authkit/config"
 )
 
 type testConfig struct {
@@ -29,8 +29,8 @@ type testConfig struct {
 	tlsInsecureSkipVerify bool
 }
 
-func (c testConfig) OAuth2Providers() chan config.OAuth2Provider {
-	ch := make(chan config.OAuth2Provider)
+func (c testConfig) OAuth2Providers() chan authkit.OAuth2Provider {
+	ch := make(chan authkit.OAuth2Provider)
 	go func() {
 		for _, p := range c.oauth2Providers {
 			ch <- p
@@ -40,7 +40,7 @@ func (c testConfig) OAuth2Providers() chan config.OAuth2Provider {
 	return ch
 }
 
-func (c testConfig) OAuth2ProviderByID(id string) config.OAuth2Provider {
+func (c testConfig) OAuth2ProviderByID(id string) authkit.OAuth2Provider {
 	for _, p := range c.oauth2Providers {
 		if id == p.ID() {
 			return p
@@ -49,20 +49,20 @@ func (c testConfig) OAuth2ProviderByID(id string) config.OAuth2Provider {
 	return nil
 }
 
-func (c testConfig) PrivateOAuth2Provider() config.OAuth2Provider {
+func (c testConfig) PrivateOAuth2Provider() authkit.OAuth2Provider {
 	return c.privateOAuth2Provider
 }
 
-func (c testConfig) OAuth2State() config.OAuth2State {
+func (c testConfig) OAuth2State() authkit.OAuth2State {
 	return c.oauth2State
-}
-
-func (c testConfig) ModTime() time.Time {
-	return c.modTime
 }
 
 func (c testConfig) AuthCookieName() string {
 	return "xxx-auth-cookie"
+}
+
+func (c testConfig) ModTime() time.Time {
+	return c.modTime
 }
 
 type testOAuth2State struct {
@@ -87,8 +87,8 @@ type testOAuth2Provider struct {
 	id               string
 	name             string
 	iconURL          string
-	oauth2Config     config.OAuth2Config
-	privOAuth2Config config.OAuth2Config
+	oauth2Config     authkit.OAuth2Config
+	privOAuth2Config authkit.OAuth2Config
 }
 
 func (p testOAuth2Provider) ID() string {
@@ -103,60 +103,12 @@ func (p testOAuth2Provider) IconURL() string {
 	return p.iconURL
 }
 
-func (p testOAuth2Provider) OAuth2Config() config.OAuth2Config {
+func (p testOAuth2Provider) OAuth2Config() authkit.OAuth2Config {
 	return p.oauth2Config
 }
 
-func (p testOAuth2Provider) PrivateOAuth2Config() config.OAuth2Config {
+func (p testOAuth2Provider) PrivateOAuth2Config() authkit.OAuth2Config {
 	return p.privOAuth2Config
-}
-
-type bodyEncoderFunc func(v url.Values) io.Reader
-
-var bodyEncoders = []struct {
-	name        string
-	contentType string
-	invalid     bool
-	encoder     bodyEncoderFunc
-}{
-	{
-		name:        "invalid payload",
-		contentType: "application/json",
-		invalid:     true,
-		encoder: func(v url.Values) io.Reader {
-			return strings.NewReader("zzz")
-		},
-	},
-	{
-		name:        "form payload",
-		contentType: "application/x-www-form-urlencoded",
-		encoder: func(v url.Values) io.Reader {
-			return strings.NewReader(v.Encode())
-		},
-	},
-	{
-		name:        "multipart payload",
-		contentType: "multipart/form-data; boundary=---",
-		encoder: func(v url.Values) io.Reader {
-			var b bytes.Buffer
-			w := multipart.NewWriter(&b)
-			w.SetBoundary("---")
-			for n, v := range v {
-				for _, v := range v {
-					fw, err := w.CreateFormField(n)
-					if err != nil {
-						panic(err)
-					}
-					_, err = fw.Write([]byte(v))
-					if err != nil {
-						panic(err)
-					}
-				}
-			}
-			w.Close()
-			return &b
-		},
-	},
 }
 
 type testErrorCustomizer struct{}
@@ -225,85 +177,89 @@ type testUserService struct {
 	mock.Mock
 }
 
-func (m *testUserService) Create(login, password string) UserServiceError {
-	args := m.Called(login, password)
-	err := args.Get(0)
-	if err != nil {
-		return err.(UserServiceError)
-	}
-	return nil
-}
-
-func (m *testUserService) CreateEnabled(login, password string) UserServiceError {
-	args := m.Called(login, password)
-	err := args.Get(0)
-	if err != nil {
-		return err.(UserServiceError)
-	}
-	return nil
-}
-
-func (m *testUserService) Authenticate(
-	login, password string) UserServiceError {
-	args := m.Called(login, password)
-	err := args.Get(0)
-	if err != nil {
-		return err.(UserServiceError)
-	}
-	return nil
-}
-
-func (m *testUserService) User(login string) (User, UserServiceError) {
-	args := m.Called(login)
-	err := args.Get(1)
-	if err != nil {
-		return nil, err.(UserServiceError)
-	}
-	return args.Get(0).(User), nil
-}
-
-func (m *testUserService) UpdatePassword(
-	login, oldPasswordHash, newPassword string) UserServiceError {
-	args := m.Called(login, oldPasswordHash, newPassword)
-	err := args.Get(0)
-	if err != nil {
-		return err.(UserServiceError)
-	}
-	return nil
-}
-func (m *testUserService) Enable(login string) UserServiceError {
-	args := m.Called(login)
-	return args.Error(0)
-}
-
-func (m *testUserService) UpdateToken(
-	login, providerID string, token *oauth2.Token) UserServiceError {
-	args := m.Called(login, providerID, token)
-	return args.Error(0)
-}
-
-func (m *testUserService) Token(
-	login, providerID string) (*oauth2.Token, UserServiceError) {
+func (m *testUserService) OAuth2Token(
+	login, providerID string) (*oauth2.Token, authkit.UserServiceError) {
 	args := m.Called(login, providerID)
 	return args.Get(0).(*oauth2.Token), args.Error(1)
 }
 
+func (m *testUserService) UpdateOAuth2Token(
+	login, providerID string, token *oauth2.Token) authkit.UserServiceError {
+	args := m.Called(login, providerID, token)
+	return args.Error(0)
+}
+
+func (m *testUserService) Create(
+	login, password string) authkit.UserServiceError {
+	args := m.Called(login, password)
+	err := args.Get(0)
+	if err != nil {
+		return err.(authkit.UserServiceError)
+	}
+	return nil
+}
+
+func (m *testUserService) CreateEnabled(
+	login, password string) authkit.UserServiceError {
+	args := m.Called(login, password)
+	err := args.Get(0)
+	if err != nil {
+		return err.(authkit.UserServiceError)
+	}
+	return nil
+}
+
+func (m *testUserService) Enable(login string) authkit.UserServiceError {
+	args := m.Called(login)
+	return args.Error(0)
+}
+
+func (m *testUserService) Authenticate(
+	login, password string) authkit.UserServiceError {
+	args := m.Called(login, password)
+	err := args.Get(0)
+	if err != nil {
+		return err.(authkit.UserServiceError)
+	}
+	return nil
+}
+
+func (m *testUserService) User(login string) (
+	authkit.User, authkit.UserServiceError) {
+	args := m.Called(login)
+	err := args.Get(1)
+	if err != nil {
+		return nil, err.(authkit.UserServiceError)
+	}
+	return args.Get(0).(authkit.User), nil
+}
+
+func (m *testUserService) UpdatePassword(
+	login, oldPasswordHash, newPassword string) authkit.UserServiceError {
+	args := m.Called(login, oldPasswordHash, newPassword)
+	err := args.Get(0)
+	if err != nil {
+		return err.(authkit.UserServiceError)
+	}
+	return nil
+}
+
 func (m *testUserService) RequestEmailConfirmation(
-	login string) UserServiceError {
+	login string) authkit.UserServiceError {
 	args := m.Called(login)
 	err := args.Get(0)
 	if err != nil {
-		return err.(UserServiceError)
+		return err.(authkit.UserServiceError)
 	}
 	return nil
 }
 
 func (m *testUserService) RequestPasswordChangeConfirmation(
-	login, passwordHash string) UserServiceError {
+	login, passwordHash string) authkit.UserServiceError {
 	args := m.Called(login, passwordHash)
 	err := args.Get(0)
 	if err != nil {
-		return err.(UserServiceError)
+		return err.(authkit.UserServiceError)
 	}
 	return nil
 }
@@ -318,31 +274,31 @@ func (testUserServiceError) Error() string {
 	return "user service error"
 }
 
-func (e testUserServiceError) IsUserNotFound() bool {
-	return e.isUserNotFound
-}
-
 func (e testUserServiceError) IsDuplicateUser() bool {
 	return e.isDuplicateUser
+}
+
+func (e testUserServiceError) IsUserNotFound() bool {
+	return e.isUserNotFound
 }
 
 func (e testUserServiceError) IsAccountDisabled() bool {
 	return e.isAccountDisabled
 }
 
-func newTestUserNotFoundError() UserServiceError {
-	return testUserServiceError{
-		isUserNotFound: true,
-	}
-}
-
-func newTestDuplicateUserError() UserServiceError {
+func testNewTestDuplicateUserError() authkit.UserServiceError {
 	return testUserServiceError{
 		isDuplicateUser: true,
 	}
 }
 
-func newTestAccountDisabledError() UserServiceError {
+func testNewTestUserNotFoundError() authkit.UserServiceError {
+	return testUserServiceError{
+		isUserNotFound: true,
+	}
+}
+
+func testNewTestAccountDisabledError() authkit.UserServiceError {
 	return testUserServiceError{
 		isAccountDisabled: true,
 	}
@@ -375,14 +331,100 @@ func (m *testProfileService) EnsureExists(login string) error {
 	return args.Error(0)
 }
 
-func (m *testProfileService) Save(p Profile) error {
+func (m *testProfileService) Save(p authkit.Profile) error {
 	args := m.Called(p)
 	return args.Error(0)
 }
 
-func newEmailTokenString(
+type testOAuth2Config struct {
+	mock.Mock
+	oauth2.Config
+}
+
+func (m *testOAuth2Config) Exchange(c context2.Context, code string) (*oauth2.Token, error) {
+	args := m.Called(c, code)
+	return args.Get(0).(*oauth2.Token), args.Error(1)
+}
+
+type testSocialProfileServices struct {
+	mock.Mock
+}
+
+func (m *testSocialProfileServices) SocialProfileService(
+	providerID string) (authkit.SocialProfileService, error) {
+	args := m.Called(providerID)
+	return args.Get(0).(authkit.SocialProfileService), args.Error(1)
+}
+
+type testSocialProfileService struct {
+	mock.Mock
+}
+
+func (m *testSocialProfileService) SocialProfile(
+	client *http.Client) (authkit.Profile, error) {
+	args := m.Called(client)
+	return args.Get(0).(authkit.Profile), args.Error(1)
+}
+
+type testProfile struct {
+	login string
+}
+
+func (p testProfile) Login() string {
+	return p.login
+}
+
+type testBodyEncoderFunc func(v url.Values) io.Reader
+
+var testBodyEncoders = []struct {
+	name        string
+	contentType string
+	invalid     bool
+	encoder     testBodyEncoderFunc
+}{
+	{
+		name:        "invalid payload",
+		contentType: "application/json",
+		invalid:     true,
+		encoder: func(v url.Values) io.Reader {
+			return strings.NewReader("zzz")
+		},
+	},
+	{
+		name:        "form payload",
+		contentType: "application/x-www-form-urlencoded",
+		encoder: func(v url.Values) io.Reader {
+			return strings.NewReader(v.Encode())
+		},
+	},
+	{
+		name:        "multipart payload",
+		contentType: "multipart/form-data; boundary=---",
+		encoder: func(v url.Values) io.Reader {
+			var b bytes.Buffer
+			w := multipart.NewWriter(&b)
+			w.SetBoundary("---")
+			for n, v := range v {
+				for _, v := range v {
+					fw, err := w.CreateFormField(n)
+					if err != nil {
+						panic(err)
+					}
+					_, err = fw.Write([]byte(v))
+					if err != nil {
+						panic(err)
+					}
+				}
+			}
+			w.Close()
+			return &b
+		},
+	},
+}
+
+func testNewEmailTokenString(
 	t *testing.T,
-	config config.Config,
+	config authkit.Config,
 	email, passwordHash string,
 	expired ...bool) []string {
 	exp := 1 * time.Hour
@@ -399,9 +441,9 @@ func newEmailTokenString(
 	return []string{s}
 }
 
-func newStateTokenString(
+func testNewStateTokenString(
 	t *testing.T,
-	config config.Config,
+	config authkit.Config,
 	pid, login string,
 	expired ...bool) []string {
 	exp := 1 * time.Hour
@@ -425,42 +467,4 @@ func newStateTokenString(
 		config.OAuth2State().TokenSignKey())
 	assert.NoError(t, err)
 	return []string{s}
-}
-
-type testOAuth2Config struct {
-	mock.Mock
-	oauth2.Config
-}
-
-func (m *testOAuth2Config) Exchange(c context2.Context, code string) (*oauth2.Token, error) {
-	args := m.Called(c, code)
-	return args.Get(0).(*oauth2.Token), args.Error(1)
-}
-
-type testSocialProfileServices struct {
-	mock.Mock
-}
-
-func (m *testSocialProfileServices) SocialProfileService(
-	providerID string) (SocialProfileService, error) {
-	args := m.Called(providerID)
-	return args.Get(0).(SocialProfileService), args.Error(1)
-}
-
-type testSocialProfileService struct {
-	mock.Mock
-}
-
-func (m *testSocialProfileService) SocialProfile(
-	client *http.Client) (Profile, error) {
-	args := m.Called(client)
-	return args.Get(0).(Profile), args.Error(1)
-}
-
-type testProfile struct {
-	login string
-}
-
-func (p testProfile) Login() string {
-	return p.login
 }

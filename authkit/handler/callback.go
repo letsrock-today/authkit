@@ -13,8 +13,8 @@ import (
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
-	"github.com/letsrock-today/hydra-sample/authkit/config"
 )
 
 type (
@@ -53,7 +53,7 @@ func (h handler) Callback(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	var oauth2cfg config.OAuth2Config
+	var oauth2cfg authkit.OAuth2Config
 	ctx := h.contextCreator.CreateContext(true)
 	privCtx := h.contextCreator.CreateContext(false)
 	privPID := h.config.PrivateOAuth2Provider().ID()
@@ -101,7 +101,7 @@ func (h handler) Callback(c echo.Context) error {
 	// Check that internal user exists for external user.
 	user, err := h.users.User(login)
 	if err != nil {
-		if err, ok := err.(UserNotFoundError); !ok || !err.IsUserNotFound() {
+		if err, ok := err.(authkit.UserNotFoundError); !ok || !err.IsUserNotFound() {
 			return errors.WithStack(err)
 		}
 	}
@@ -117,7 +117,8 @@ func (h handler) Callback(c echo.Context) error {
 	}
 
 	// Save external provider's token in the users DB.
-	if err := h.users.UpdateToken(login, state.ProviderID(), token); err != nil {
+	pid := state.ProviderID()
+	if err := h.users.UpdateOAuth2Token(login, pid, token); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -127,7 +128,8 @@ func (h handler) Callback(c echo.Context) error {
 		return err
 	}
 
-	// Return private provider's token to client end exit (redirect client to / with token in header).
+	// Return private provider's token to client end exit
+	// (redirect client to / with token in header).
 	cookie := createCookie(
 		h.config.AuthCookieName(),
 		privToken.AccessToken)
@@ -135,11 +137,13 @@ func (h handler) Callback(c echo.Context) error {
 	return c.Redirect(http.StatusFound, "/")
 }
 
-func (h handler) handlePrivateProvider(c echo.Context, state apptoken.StateToken, token *oauth2.Token) error {
+func (h handler) handlePrivateProvider(
+	c echo.Context, state apptoken.StateToken, token *oauth2.Token) error {
 	if state.Login() == "" {
 		return errors.WithStack(errors.New("illegal state, empty login"))
 	}
-	if err := h.users.UpdateToken(state.Login(), h.config.PrivateOAuth2Provider().ID(), token); err != nil {
+	pid := h.config.PrivateOAuth2Provider().ID()
+	if err := h.users.UpdateOAuth2Token(state.Login(), pid, token); err != nil {
 		return errors.WithStack(err)
 	}
 	// our trusted provider, just return access token to client
@@ -150,7 +154,10 @@ func (h handler) handlePrivateProvider(c echo.Context, state apptoken.StateToken
 	return c.Redirect(http.StatusFound, "/")
 }
 
-func (h handler) createInternalUser(c echo.Context, login string, p Profile) error {
+func (h handler) createInternalUser(
+	c echo.Context,
+	login string,
+	p authkit.Profile) error {
 	// - Create internal user.
 	pass, err := makeRandomPassword() // create long random password
 	if err != nil {
@@ -169,13 +176,17 @@ func (h handler) createInternalUser(c echo.Context, login string, p Profile) err
 	return nil
 }
 
-func (h handler) issuePrivateProvidersToken(c echo.Context, privCtx context.Context, login string, freshUser bool) (*oauth2.Token, error) {
+func (h handler) issuePrivateProvidersToken(
+	c echo.Context,
+	privCtx context.Context,
+	login string,
+	freshUser bool) (*oauth2.Token, error) {
 	// Check if we have one in DB first.
 	privPID := h.config.PrivateOAuth2Provider().ID()
 	var privToken *oauth2.Token
 	if !freshUser {
 		var err error
-		privToken, err = h.users.Token(login, privPID)
+		privToken, err = h.users.OAuth2Token(login, privPID)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -187,7 +198,7 @@ func (h handler) issuePrivateProvidersToken(c echo.Context, privCtx context.Cont
 		if err != nil {
 			return err
 		}
-		return h.users.UpdateToken(login, privPID, privToken)
+		return h.users.UpdateOAuth2Token(login, privPID, privToken)
 	}
 
 	if privToken == nil {

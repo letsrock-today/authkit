@@ -4,20 +4,22 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
-	"time"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestConfigValidation(t *testing.T) {
 	assert := assert.New(t)
+
+	us := new(testUserService)
 
 	// No config at all
 	// No obligatory settings
@@ -31,11 +33,8 @@ func TestConfigValidation(t *testing.T) {
 		effcfg = &c
 	}
 	AccessTokenWithConfig(AccessTokenConfig{
-		UserStore: &userStore{
-			accessToken: "xxx",
-			user:        user{Email: "email", Name: "name"},
-		},
-		TokenValidator: tokenValidator{},
+		UserService:    us,
+		TokenValidator: testTokenValidator{},
 	})
 	assert.NotNil(effcfg)
 	assert.Equal(DefaultContextKey, effcfg.ContextKey)
@@ -44,26 +43,44 @@ func TestConfigValidation(t *testing.T) {
 	// Ensure that defaults are used in AccessToken except fields set explicitly
 	effcfg = nil
 	AccessToken(
-		&userStore{
-			accessToken: "xxx",
-			user:        user{Email: "email", Name: "name"},
-		},
-		tokenValidator{})
+		"xxx-provider",
+		us,
+		testTokenValidator{})
 	assert.NotNil(effcfg)
 	assert.Equal(DefaultContextKey, effcfg.ContextKey)
 	assert.Equal(DefaultPermissionMapper{}, effcfg.PermissionMapper)
-	assert.NotNil(effcfg.UserStore)
+	assert.NotNil(effcfg.UserService)
 	assert.NotNil(effcfg.TokenValidator)
 }
 
 func TestAccessTokenWithConfig(t *testing.T) {
+	us := new(testUserService)
+	us.On(
+		"UserByAccessToken",
+		"xxx").Return(testUser{"valid@login.ok", "name"}, nil)
+	us.On(
+		"UserByAccessToken",
+		"zzz").Return(testUser{"valid@login.ok", "name"}, nil)
+	us.On(
+		"UserByAccessToken",
+		"yyy").Return(nil, errors.New("unknown login"))
+	us.On(
+		"OAuth2Token",
+		"valid@login.ok",
+		"xxx-provider").Return(&oauth2.Token{
+		AccessToken:  "xxx",
+		RefreshToken: "rrr",
+	}, nil)
+	us.On(
+		"OAuth2Token",
+		"unknown@login.ok",
+		"xxx-provider").Return(nil, errors.New("unknown user"))
+
 	accessTokenConfig := AccessTokenConfig{
-		UserStore: &userStore{
-			accessToken: "xxx",
-			user:        user{Email: "email", Name: "name"},
-		},
-		PermissionMapper: permMapper{},
-		TokenValidator: tokenValidator{
+		PrivateProviderID: "xxx-provider",
+		UserService:       us,
+		PermissionMapper:  testPermMapper{},
+		TokenValidator: testTokenValidator{
 			allowed: map[string]bool{
 				"GET:/permitted:xxx":     true,
 				"GET:/permitted:yyy":     true,
@@ -73,7 +90,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 				"GET:/permitted-get:yyy": true,
 			},
 		},
-		OAuth2Config:  tokenSourceProvider{},
+		OAuth2Config:  testTokenSourceProvider{},
 		OAuth2Context: context.Background(),
 	}
 
@@ -93,17 +110,17 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		{
 			name:              "Unprotected resource, header empty",
 			w:                 httptest.NewRecorder(),
-			r:                 newGetUnprotected(t),
+			r:                 testNewGetUnprotected(t),
 			accessTokenConfig: accessTokenConfig,
 			accessTokenHeader: "",
 			expStatusCode:     http.StatusOK,
-			expRespBody:       nextHandlerMsg,
+			expRespBody:       testNextHandlerMsg,
 			unprotected:       true,
 		},
 		{
 			name:              "Protected resource, header empty",
 			w:                 httptest.NewRecorder(),
-			r:                 newGetRestricted(t),
+			r:                 testNewGetRestricted(t),
 			accessTokenConfig: accessTokenConfig,
 			accessTokenHeader: "",
 			expStatusCode:     http.StatusForbidden,
@@ -112,7 +129,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		{
 			name:              "Protected resource, invalid header format (no 'bearer')",
 			w:                 httptest.NewRecorder(),
-			r:                 newGetRestricted(t),
+			r:                 testNewGetRestricted(t),
 			accessTokenConfig: accessTokenConfig,
 			accessTokenHeader: "zzz",
 			expStatusCode:     http.StatusForbidden,
@@ -121,7 +138,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		{
 			name:              "Protected resource, invalid header format (no token after 'bearer')",
 			w:                 httptest.NewRecorder(),
-			r:                 newGetRestricted(t),
+			r:                 testNewGetRestricted(t),
 			accessTokenConfig: accessTokenConfig,
 			accessTokenHeader: "bearer   ",
 			expStatusCode:     http.StatusForbidden,
@@ -130,7 +147,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		{
 			name:              "Restricted resource, valid token",
 			w:                 httptest.NewRecorder(),
-			r:                 newGetRestricted(t),
+			r:                 testNewGetRestricted(t),
 			accessTokenConfig: accessTokenConfig,
 			accessTokenHeader: "bearer xxx",
 			expStatusCode:     http.StatusForbidden,
@@ -139,25 +156,25 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		{
 			name:              "Permitted resource, valid token, GET",
 			w:                 httptest.NewRecorder(),
-			r:                 newGetPermitted(t),
+			r:                 testNewGetPermitted(t),
 			accessTokenConfig: accessTokenConfig,
 			accessTokenHeader: "bearer xxx",
 			expStatusCode:     http.StatusOK,
-			expRespBody:       nextHandlerMsg,
+			expRespBody:       testNextHandlerMsg,
 		},
 		{
 			name:              "Permitted resource, valid token, POST",
 			w:                 httptest.NewRecorder(),
-			r:                 newPostPermitted(t),
+			r:                 testNewPostPermitted(t),
 			accessTokenConfig: accessTokenConfig,
 			accessTokenHeader: "bearer xxx",
 			expStatusCode:     http.StatusOK,
-			expRespBody:       nextHandlerMsg,
+			expRespBody:       testNextHandlerMsg,
 		},
 		{
 			name:              "Permitted resource, invalid token",
 			w:                 httptest.NewRecorder(),
-			r:                 newGetPermitted(t),
+			r:                 testNewGetPermitted(t),
 			accessTokenConfig: accessTokenConfig,
 			accessTokenHeader: "bearer zzz",
 			expStatusCode:     http.StatusForbidden,
@@ -166,7 +183,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		{
 			name:              "Permitted resource, unknown token",
 			w:                 httptest.NewRecorder(),
-			r:                 newGetPermitted(t),
+			r:                 testNewGetPermitted(t),
 			accessTokenConfig: accessTokenConfig,
 			accessTokenHeader: "bearer yyy", // token with permission, but without user
 			expStatusCode:     http.StatusForbidden,
@@ -175,16 +192,16 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		{
 			name:              "Permitted only get resource, valid token, GET",
 			w:                 httptest.NewRecorder(),
-			r:                 newGetPermittedOnlyGet(t),
+			r:                 testNewGetPermittedOnlyGet(t),
 			accessTokenConfig: accessTokenConfig,
 			accessTokenHeader: "bearer xxx",
 			expStatusCode:     http.StatusOK,
-			expRespBody:       nextHandlerMsg,
+			expRespBody:       testNextHandlerMsg,
 		},
 		{
 			name:              "Permitted only get resource, valid token, POST",
 			w:                 httptest.NewRecorder(),
-			r:                 newPostPermittedOnlyGet(t),
+			r:                 testNewPostPermittedOnlyGet(t),
 			accessTokenConfig: accessTokenConfig,
 			accessTokenHeader: "bearer xxx",
 			expStatusCode:     http.StatusForbidden,
@@ -195,7 +212,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 	for _, cs := range cases {
 		cs := cs
 		// e.Any(...) and brothers should not be used in parallel
-		next := nextHandler{
+		next := testNextHandler{
 			checkPrincipal: !cs.unprotected,
 		}
 		e := echo.New()
@@ -223,142 +240,152 @@ func TestAccessTokenWithConfig(t *testing.T) {
 				standard.NewResponse(w, e.Logger()))
 			assert.Equal(cs.expStatusCode, w.Code)
 			assert.Equal(cs.expRespBody, string(w.Body.Bytes()))
-			if !cs.unprotected && w.Code == http.StatusOK {
-				assert.True(cs.accessTokenConfig.UserStore.(*userStore).tokenRefreshed)
-			}
 		})
 	}
 }
 
-func newGetUnprotected(t *testing.T) *http.Request {
+func testNewGetUnprotected(t *testing.T) *http.Request {
 	r, err := http.NewRequest(echo.GET, "/unprotected", nil)
 	assert.NoError(t, err)
 	return r
 }
 
-func newGetPermitted(t *testing.T) *http.Request {
+func testNewGetPermitted(t *testing.T) *http.Request {
 	r, err := http.NewRequest(echo.GET, "/permitted", nil)
 	assert.NoError(t, err)
 	return r
 }
 
-func newPostPermitted(t *testing.T) *http.Request {
+func testNewPostPermitted(t *testing.T) *http.Request {
 	r, err := http.NewRequest(echo.POST, "/permitted", nil)
 	assert.NoError(t, err)
 	return r
 }
 
-func newGetPermittedOnlyGet(t *testing.T) *http.Request {
+func testNewGetPermittedOnlyGet(t *testing.T) *http.Request {
 	r, err := http.NewRequest(echo.GET, "/permitted-get", nil)
 	assert.NoError(t, err)
 	return r
 }
 
-func newPostPermittedOnlyGet(t *testing.T) *http.Request {
+func testNewPostPermittedOnlyGet(t *testing.T) *http.Request {
 	r, err := http.NewRequest(echo.POST, "/permitted-get", nil)
 	assert.NoError(t, err)
 	return r
 }
 
-func newGetRestricted(t *testing.T) *http.Request {
+func testNewGetRestricted(t *testing.T) *http.Request {
 	r, err := http.NewRequest(echo.GET, "/restricted", nil)
 	assert.NoError(t, err)
 	return r
 }
 
-const nextHandlerMsg = "Result from next handler"
+const testNextHandlerMsg = "Result from next handler"
 
-type nextHandler struct {
+type testNextHandler struct {
 	hasRun         bool
 	checkPrincipal bool
 }
 
-func (n *nextHandler) next(c echo.Context) error {
+func (n *testNextHandler) next(c echo.Context) error {
 	n.hasRun = true
 	// check if user data is available in context
 	if !n.checkPrincipal {
-		return c.String(http.StatusOK, nextHandlerMsg)
+		return c.String(http.StatusOK, testNextHandlerMsg)
 	}
 	u := c.Get(DefaultContextKey)
-	user, ok := u.(user)
+	user, ok := u.(testUser)
 	if !ok {
 		return errors.New("no user in context")
 	}
 	if user.Name != "name" {
 		return errors.New("invalid user in context")
 	}
-	return c.String(http.StatusOK, nextHandlerMsg)
+	return c.String(http.StatusOK, testNextHandlerMsg)
 }
 
-type user struct {
-	Email string
+type testUser struct {
+	login string
 	Name  string
 }
 
-type userStore struct {
-	accessToken    string
-	user           user
-	tokenRefreshed bool
+func (u testUser) Login() string {
+	return u.login
 }
 
-func (s *userStore) User(accessToken string) (interface{}, error) {
-	if accessToken != s.accessToken {
-		return nil, errors.New("not found")
+func (u testUser) Email() string {
+	return u.login
+}
+
+func (u testUser) PasswordHash() string {
+	return "some-hash"
+}
+
+type testUserService struct {
+	mock.Mock
+}
+
+func (s *testUserService) UserByAccessToken(
+	accessToken string) (authkit.User, authkit.UserServiceError) {
+	args := s.Called(accessToken)
+	err := args.Error(1)
+	if err != nil {
+		return nil, err
 	}
-	return s.user, nil
+	return args.Get(0).(authkit.User), nil
 }
 
-func (s *userStore) OAuth2Token(user interface{}) (*oauth2.Token, error) {
-	if !reflect.DeepEqual(user, s.user) {
-		return nil, errors.New("unknown user")
+func (s *testUserService) OAuth2Token(
+	login, providerID string) (*oauth2.Token, authkit.UserServiceError) {
+	args := s.Called(login, providerID)
+	err := args.Error(1)
+	if err != nil {
+		return nil, err
 	}
-	return &oauth2.Token{
-		AccessToken:  "xxx",
-		RefreshToken: "rrr",
-		Expiry:       time.Now().Add(-1 * time.Hour),
-	}, nil
+	return args.Get(0).(*oauth2.Token), nil
 }
 
-func (s *userStore) UpdateOAuth2Token(user interface{}, token *oauth2.Token) error {
-	if !reflect.DeepEqual(user, s.user) {
-		return errors.New("unknown user")
-	}
-	s.tokenRefreshed = true
-	return nil
+func (s *testUserService) UpdateOAuth2Token(
+	login, providerID string,
+	token *oauth2.Token) authkit.UserServiceError {
+	args := s.Called(login, providerID, token)
+	return args.Error(0)
 }
 
-func (s *userStore) Principal(user interface{}) interface{} {
+func (s *testUserService) Principal(user authkit.User) interface{} {
 	return user
 }
 
-type permMapper struct{}
+type testPermMapper struct{}
 
-func (permMapper) RequiredPermissioin(method, path string) (interface{}, error) {
+func (testPermMapper) RequiredPermissioin(
+	method, path string) (interface{}, error) {
 	return method + ":" + path, nil
 }
 
-type tokenValidator struct {
+type testTokenValidator struct {
 	allowed map[string]bool
 }
 
-func (v tokenValidator) Validate(token string, perm interface{}) error {
+func (v testTokenValidator) Validate(token string, perm interface{}) error {
 	if b, ok := v.allowed[perm.(string)+":"+token]; !ok || !b {
 		return errors.New("forbidden")
 	}
 	return nil
 }
 
-type tokenSourceProvider struct{}
+type testTokenSourceProvider struct{}
 
-func (tokenSourceProvider) TokenSource(ctx context.Context, t *oauth2.Token) oauth2.TokenSource {
-	return tokenSource{t}
+func (testTokenSourceProvider) TokenSource(
+	ctx context.Context, t *oauth2.Token) oauth2.TokenSource {
+	return testTokenSource{t}
 }
 
-type tokenSource struct {
+type testTokenSource struct {
 	t *oauth2.Token
 }
 
-func (s tokenSource) Token() (*oauth2.Token, error) {
+func (s testTokenSource) Token() (*oauth2.Token, error) {
 	if s.t.Valid() {
 		return s.t, nil
 	}

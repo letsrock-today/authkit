@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 )
 
@@ -36,7 +37,7 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 				c.Logger().Debug(errors.WithStack(err))
 				return c.Render(
 					http.StatusUnauthorized,
-					ConfirmEmailTemplateName,
+					authkit.ConfirmEmailTemplateName,
 					h.errorCustomizer.UserAuthenticationError(err))
 			}
 		}
@@ -55,11 +56,11 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 
 	if err := h.users.Enable(t.Login()); err != nil {
 		<-ch
-		if err, ok := err.(UserNotFoundError); ok && err.IsUserNotFound() {
+		if err, ok := err.(authkit.UserNotFoundError); ok && err.IsUserNotFound() {
 			c.Logger().Debug(errors.WithStack(err))
 			return c.Render(
 				http.StatusUnauthorized,
-				ConfirmEmailTemplateName,
+				authkit.ConfirmEmailTemplateName,
 				h.errorCustomizer.UserAuthenticationError(err))
 		}
 		return errors.WithStack(err)
@@ -69,5 +70,5 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	return c.Render(http.StatusOK, ConfirmEmailTemplateName, nil)
+	return c.Render(http.StatusOK, authkit.ConfirmEmailTemplateName, nil)
 }

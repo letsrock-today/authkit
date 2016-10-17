@@ -12,6 +12,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -75,7 +76,7 @@ func TestConfirmEmail(t *testing.T) {
 		{
 			name: "expired token",
 			params: url.Values{
-				"token": newEmailTokenString(t, h.config, "valid@login.ok", "", true),
+				"token": testNewEmailTokenString(t, h.config, "valid@login.ok", "", true),
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `Error: user auth err`,
@@ -83,7 +84,7 @@ func TestConfirmEmail(t *testing.T) {
 		{
 			name: "cannot create profile",
 			params: url.Values{
-				"token": newEmailTokenString(t, h.config, "fail_create_profile@login.ok", ""),
+				"token": testNewEmailTokenString(t, h.config, "fail_create_profile@login.ok", ""),
 			},
 			// it may be other error in PROD if user.Enable() fail first
 			internalError: true,
@@ -91,7 +92,7 @@ func TestConfirmEmail(t *testing.T) {
 		{
 			name: "invalid login (deleted)",
 			params: url.Values{
-				"token": newEmailTokenString(t, h.config, "invalid@login.ok", ""),
+				"token": testNewEmailTokenString(t, h.config, "invalid@login.ok", ""),
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `Error: user auth err`,
@@ -99,7 +100,7 @@ func TestConfirmEmail(t *testing.T) {
 		{
 			name: "everything OK",
 			params: url.Values{
-				"token": newEmailTokenString(t, h.config, "valid@login.ok", ""),
+				"token": testNewEmailTokenString(t, h.config, "valid@login.ok", ""),
 			},
 			expStatusCode: http.StatusOK,
 			expBody:       `OK`,
@@ -143,6 +144,6 @@ func (t *testTemplate) Render(w io.Writer, name string, data interface{}, c echo
 }
 
 var testTemplateRenderer = &testTemplate{
-	templates: template.Must(template.New(ConfirmEmailTemplateName).Parse(
+	templates: template.Must(template.New(authkit.ConfirmEmailTemplateName).Parse(
 		`{{if .Code}}Error: {{.Code}}{{else}}OK{{end}}`)),
 }

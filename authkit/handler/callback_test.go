@@ -11,6 +11,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -22,27 +23,27 @@ func TestCallback(t *testing.T) {
 
 	us := new(testUserService)
 	us.On(
-		"UpdateToken",
+		"UpdateOAuth2Token",
 		"valid@login.ok",
 		"private-id",
 		inttoken).Return(nil)
 	us.On(
-		"UpdateToken",
+		"UpdateOAuth2Token",
 		"new.valid@login.ok",
 		"private-id",
 		inttoken).Return(nil)
 	us.On(
-		"UpdateToken",
+		"UpdateOAuth2Token",
 		"valid@login.ok",
 		"external-id",
 		exttoken).Return(nil)
 	us.On(
-		"UpdateToken",
+		"UpdateOAuth2Token",
 		"new.valid@login.ok",
 		"external-id-new",
 		exttoken).Return(nil)
 	us.On(
-		"Token",
+		"OAuth2Token",
 		"valid@login.ok",
 		"private-id").Return(inttoken, nil)
 	us.On(
@@ -130,7 +131,7 @@ func TestCallback(t *testing.T) {
 				},
 			},
 		},
-		contextCreator: DefaultContextCreator{},
+		contextCreator: authkit.DefaultContextCreator{},
 	}
 
 	cases := []struct {
@@ -165,7 +166,7 @@ func TestCallback(t *testing.T) {
 		{
 			name: "everything OK, private",
 			params: url.Values{
-				"state": newStateTokenString(t, h.config, "private-id", "valid@login.ok"),
+				"state": testNewStateTokenString(t, h.config, "private-id", "valid@login.ok"),
 				"code":  []string{"valid_code"},
 			},
 			expStatusCode: http.StatusFound,
@@ -174,7 +175,7 @@ func TestCallback(t *testing.T) {
 		{
 			name: "everything OK, external",
 			params: url.Values{
-				"state": newStateTokenString(t, h.config, "external-id", ""),
+				"state": testNewStateTokenString(t, h.config, "external-id", ""),
 				"code":  []string{"valid_code"},
 			},
 			expStatusCode: http.StatusFound,
@@ -183,7 +184,7 @@ func TestCallback(t *testing.T) {
 		{
 			name: "everything OK, external, new user",
 			params: url.Values{
-				"state": newStateTokenString(t, h.config, "external-id-new", ""),
+				"state": testNewStateTokenString(t, h.config, "external-id-new", ""),
 				"code":  []string{"valid_code"},
 			},
 			expStatusCode: http.StatusFound,

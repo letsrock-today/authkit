@@ -9,18 +9,6 @@ import (
 
 type (
 
-	// PermissionMapper used to map method and path of http request to desirable
-	// permission descriptor. Permission descriptor is an interface, passed to
-	// the TokenValidator. For example, in case of Hydra-backed TokenValidator,
-	// permission descriptor contains resource name, action and scope.
-	PermissionMapper interface {
-
-		// RequiredPermissioin returns permission descriptor to be passed to
-		// TokenValidator. It may return an error to prevent access to resource
-		// without request to TokenValidator.
-		RequiredPermissioin(method, path string) (interface{}, error)
-	}
-
 	// DefaultPermission is a permission descriptor for Hydra-backed TokenValidator.
 	// Fields of this struct should be passed along with token to Hydra (or similar) API.
 	DefaultPermission struct {

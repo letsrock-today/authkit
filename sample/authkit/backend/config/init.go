@@ -107,7 +107,7 @@ func (c *Config) initOAuth2Config() error {
 		},
 		RedirectURL: c.OAuth2RedirectURL,
 	}
-	c.HydraOAuth2ConfigInt = oauth2.Config{
+	h.PrivateOAuth2Config = &oauth2.Config{
 		ClientID:     h.ClientId,
 		ClientSecret: h.ClientSecret,
 		Scopes:       h.Scopes,

@@ -1,16 +1,56 @@
-package handler
+package authkit
 
 import "golang.org/x/oauth2"
 
 type (
+
 	// UserService provides methods to persist users.
 	UserService interface {
+		tokenStore
+		middlewareMethods
+		handlerMethods
+	}
 
+	// MiddlewareUserService provides methods to persist user.
+	// Methods of this interface are specific to middleware package.
+	MiddlewareUserService interface {
+		tokenStore
+		middlewareMethods
+	}
+
+	// HandlerUserService provides methods to persist user.
+	// Methods of this interface are specific to handler package.
+	HandlerUserService interface {
+		tokenStore
+		handlerMethods
+	}
+
+	tokenStore interface {
+		// OAuth2Token returns OAuth2 token by login and OAuth2 provider ID.
+		OAuth2Token(login, providerID string) (*oauth2.Token, UserServiceError)
+
+		// UpdateOAuth2Token saves or updates oauth2 token for user and provider.
+		UpdateOAuth2Token(login, providerID string, token *oauth2.Token) UserServiceError
+	}
+
+	middlewareMethods interface {
+		// UserByAccessToken returns user data by access token.
+		UserByAccessToken(accessToken string) (User, UserServiceError)
+
+		// Principal returns user data to be stored in the echo.Context.
+		// It may return same structure which is passed to it or some fields from it.
+		Principal(user User) interface{}
+	}
+
+	handlerMethods interface {
 		// Create creates new disabled user.
 		Create(login, password string) UserServiceError
 
 		// CreateEnabled creates new enabled user.
 		CreateEnabled(login, password string) UserServiceError
+
+		// Enable enables user account.
+		Enable(login string) UserServiceError
 
 		// Authenticate authenticates user, returns nil, if account exists and enabled.
 		Authenticate(login, password string) UserServiceError
@@ -20,15 +60,6 @@ type (
 
 		// UpdatePassword updates user's password.
 		UpdatePassword(login, oldPasswordHash, newPassword string) UserServiceError
-
-		// Enable enables user account.
-		Enable(login string) UserServiceError
-
-		// UpdateToken saves or updates oauth2 token for user and provider.
-		UpdateToken(login, providerID string, token *oauth2.Token) UserServiceError
-
-		// Token returns OAuth2 token by login and OAuth2 provider ID.
-		Token(login, providerID string) (*oauth2.Token, UserServiceError)
 
 		// return user by token
 		// token_field is one of [accesstoken, refreshtoken]
@@ -46,8 +77,6 @@ type (
 		Login() string
 		Email() string
 		PasswordHash() string
-		//	Disabled     *time.Time
-		//	Tokens       map[string]*oauth2.Token // pid -> token
 	}
 
 	// UserServiceError is a general error specific to UserService.

@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 )
 
@@ -44,7 +45,7 @@ func (h handler) Login(c echo.Context) error {
 	}
 
 	var (
-		action          func(login, password string) UserServiceError
+		action          func(login, password string) authkit.UserServiceError
 		errorCustomizer func(error) interface{}
 	)
 
@@ -60,7 +61,7 @@ func (h handler) Login(c echo.Context) error {
 
 	if err := action(lf.Login, lf.Password); err != nil {
 		if signup {
-			if err, ok := err.(AccountDisabledError); ok && err.IsAccountDisabled() {
+			if err, ok := err.(authkit.AccountDisabledError); ok && err.IsAccountDisabled() {
 				if err := h.users.RequestEmailConfirmation(lf.Login); err != nil {
 					return errors.WithStack(err)
 				}

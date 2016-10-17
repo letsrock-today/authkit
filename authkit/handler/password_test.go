@@ -30,7 +30,7 @@ func TestForgotPassword(t *testing.T) {
 	}, nil)
 	us.On(
 		"User",
-		"unknown@login.ok").Return(nil, newTestUserNotFoundError())
+		"unknown@login.ok").Return(nil, testNewTestUserNotFoundError())
 	us.On(
 		"RequestPasswordChangeConfirmation",
 		"valid@login.ok",
@@ -93,7 +93,7 @@ func TestForgotPassword(t *testing.T) {
 
 	for _, c := range cases {
 		c := c
-		for _, enc := range bodyEncoders {
+		for _, enc := range testBodyEncoders {
 			enc := enc
 			t.Run(c.name+", "+enc.name, func(st *testing.T) {
 				st.Parallel()
@@ -168,7 +168,7 @@ func TestChangePassword(t *testing.T) {
 			name: "weak password",
 			params: url.Values{
 				"password1": []string{"xx"},
-				"token": newEmailTokenString(
+				"token": testNewEmailTokenString(
 					t,
 					h.config,
 					"valid@login.ok",
@@ -181,7 +181,7 @@ func TestChangePassword(t *testing.T) {
 			name: "invalid password hash",
 			params: url.Values{
 				"password1": []string{"strong-password"},
-				"token": newEmailTokenString(
+				"token": testNewEmailTokenString(
 					t,
 					h.config,
 					"valid@login.ok",
@@ -194,7 +194,7 @@ func TestChangePassword(t *testing.T) {
 			name: "unknown user",
 			params: url.Values{
 				"password1": []string{"strong-password"},
-				"token": newEmailTokenString(
+				"token": testNewEmailTokenString(
 					t,
 					h.config,
 					"unknown@login.ok",
@@ -207,7 +207,7 @@ func TestChangePassword(t *testing.T) {
 			name: "expired token",
 			params: url.Values{
 				"password1": []string{"strong-password"},
-				"token": newEmailTokenString(
+				"token": testNewEmailTokenString(
 					t,
 					h.config,
 					"valid@login.ok",
@@ -221,7 +221,7 @@ func TestChangePassword(t *testing.T) {
 			name: "valid params",
 			params: url.Values{
 				"password1": []string{"strong-password"},
-				"token": newEmailTokenString(
+				"token": testNewEmailTokenString(
 					t,
 					h.config,
 					"valid@login.ok",
@@ -234,7 +234,7 @@ func TestChangePassword(t *testing.T) {
 
 	for _, c := range cases {
 		c := c
-		for _, enc := range bodyEncoders {
+		for _, enc := range testBodyEncoders {
 			enc := enc
 			t.Run(c.name+", "+enc.name, func(st *testing.T) {
 				st.Parallel()

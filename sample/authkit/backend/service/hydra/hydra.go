@@ -108,7 +108,7 @@ func IssueConsentToken(
 
 func IssueToken(ctx context.Context, login string) (*oauth2.Token, error) {
 	cfg := config.Get()
-	conf := cfg.HydraOAuth2ConfigInt
+	conf := cfg.HydraOAuth2Provider.PrivateOAuth2Config
 	signedTokenString, err := IssueConsentToken(
 		conf.ClientID,
 		conf.Scopes)

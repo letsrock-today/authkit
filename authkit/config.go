@@ -1,4 +1,4 @@
-package config
+package authkit
 
 import (
 	"net/http"
@@ -58,11 +58,18 @@ type (
 	}
 
 	// OAuth2Config is an interface extracted from the "golang.org/x/oauth2".Config.
+	// This interface extracted for testability.
 	OAuth2Config interface {
+		TokenSourceProvider
 		AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
 		PasswordCredentialsToken(ctx context.Context, username, password string) (*oauth2.Token, error)
 		Exchange(ctx context.Context, code string) (*oauth2.Token, error)
 		Client(ctx context.Context, t *oauth2.Token) *http.Client
+	}
+
+	// TokenSourceProvider is implemented by oauth2.Config.
+	// This interface extracted for testability.
+	TokenSourceProvider interface {
 		TokenSource(ctx context.Context, t *oauth2.Token) oauth2.TokenSource
 	}
 )

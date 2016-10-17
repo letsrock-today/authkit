@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,7 +46,7 @@ func TestConsentLogin(t *testing.T) {
 	us.On(
 		"Authenticate",
 		"valid@login.ok",
-		"invalid_password").Return(newTestUserNotFoundError())
+		"invalid_password").Return(testNewTestUserNotFoundError())
 	us.On(
 		"Authenticate",
 		"valid@login.ok",
@@ -53,15 +54,15 @@ func TestConsentLogin(t *testing.T) {
 	us.On(
 		"Create",
 		"new.valid@login.ok",
-		"valid_password").Return(newTestAccountDisabledError())
+		"valid_password").Return(testNewTestAccountDisabledError())
 	us.On(
 		"Create",
 		"broken.valid@login.ok",
-		"valid_password").Return(newTestAccountDisabledError())
+		"valid_password").Return(testNewTestAccountDisabledError())
 	us.On(
 		"Create",
 		"old.valid@login.ok",
-		"valid_password").Return(newTestDuplicateUserError())
+		"valid_password").Return(testNewTestDuplicateUserError())
 	us.On(
 		"RequestEmailConfirmation",
 		"new.valid@login.ok").Return(nil)
@@ -70,7 +71,7 @@ func TestConsentLogin(t *testing.T) {
 		"old.valid@login.ok").Return(nil)
 	us.On(
 		"RequestEmailConfirmation",
-		"broken.valid@login.ok").Return(UserServiceError(errors.New("cannot send email")))
+		"broken.valid@login.ok").Return(authkit.UserServiceError(errors.New("cannot send email")))
 
 	h := handler{
 		errorCustomizer: testErrorCustomizer{},
@@ -167,7 +168,7 @@ func TestConsentLogin(t *testing.T) {
 
 	for _, c := range cases {
 		c := c
-		for _, enc := range bodyEncoders {
+		for _, enc := range testBodyEncoders {
 			enc := enc
 			t.Run(c.name+", "+enc.name, func(st *testing.T) {
 				st.Parallel()

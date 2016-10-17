@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 )
 
@@ -41,7 +42,7 @@ func (h handler) RestorePassword(c echo.Context) error {
 
 	user, err := h.users.User(rp.Email)
 	if err != nil {
-		if err, ok := err.(UserNotFoundError); ok && err.IsUserNotFound() {
+		if err, ok := err.(authkit.UserNotFoundError); ok && err.IsUserNotFound() {
 			c.Logger().Debug(errors.WithStack(err))
 			return c.JSON(
 				http.StatusUnauthorized,
@@ -89,7 +90,7 @@ func (h handler) ChangePassword(c echo.Context) error {
 		t.Login(),
 		t.PasswordHash(),
 		cp.Password); err != nil {
-		if err, ok := err.(UserNotFoundError); ok && err.IsUserNotFound() {
+		if err, ok := err.(authkit.UserNotFoundError); ok && err.IsUserNotFound() {
 			c.Logger().Debug(errors.WithStack(err))
 			return c.JSON(
 				http.StatusUnauthorized,

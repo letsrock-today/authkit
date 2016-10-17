@@ -5,6 +5,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo"
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/pkg/errors"
 )
 
@@ -47,7 +48,7 @@ func (h handler) ConsentLogin(c echo.Context) error {
 	}
 
 	var (
-		action          func(login, password string) UserServiceError
+		action          func(login, password string) authkit.UserServiceError
 		errorCustomizer func(error) interface{}
 	)
 
@@ -63,7 +64,7 @@ func (h handler) ConsentLogin(c echo.Context) error {
 
 	if err := action(lf.P.Login, lf.P.Password); err != nil {
 		if signup {
-			if err, ok := err.(AccountDisabledError); ok && err.IsAccountDisabled() {
+			if err, ok := err.(authkit.AccountDisabledError); ok && err.IsAccountDisabled() {
 				if err := h.users.RequestEmailConfirmation(lf.P.Login); err != nil {
 					return errors.WithStack(err)
 				}
