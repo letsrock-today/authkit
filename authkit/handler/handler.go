@@ -14,8 +14,7 @@ func NewHandler(
 	sps authkit.SocialProfileServices,
 	cc authkit.ContextCreator) authkit.Handler {
 	if ec == nil || as == nil || us == nil || ps == nil || sps == nil {
-		// Better to crash sooner.
-		return nil
+		panic("invalid argument")
 	}
 	if cc == nil {
 		cc = authkit.DefaultContextCreator{}

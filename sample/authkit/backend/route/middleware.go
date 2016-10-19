@@ -11,9 +11,9 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 
+	"github.com/letsrock-today/hydra-sample/authkit/hydra"
 	_middleware "github.com/letsrock-today/hydra-sample/authkit/middleware"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/hydra"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/userapi"
 )
 

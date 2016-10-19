@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
@@ -56,11 +55,9 @@ func (h handler) Callback(c echo.Context) error {
 	var oauth2cfg authkit.OAuth2Config
 	privPID := h.config.PrivateOAuth2Provider().ID()
 	ctx := h.contextCreator.CreateContext(privPID)
-	privCtx := h.contextCreator.CreateContext(state.ProviderID())
 
 	if state.ProviderID() == privPID {
 		oauth2cfg = h.config.PrivateOAuth2Provider().PrivateOAuth2Config()
-		ctx = privCtx
 	} else {
 		p := h.config.OAuth2ProviderByID(state.ProviderID())
 		if p == nil {
@@ -123,7 +120,7 @@ func (h handler) Callback(c echo.Context) error {
 	}
 
 	// Issue new private provider's token for the user.
-	privToken, err := h.issuePrivateProvidersToken(c, privCtx, login, freshUser)
+	privToken, err := h.issuePrivateProvidersToken(c, login, freshUser)
 	if err != nil {
 		return err
 	}
@@ -178,7 +175,6 @@ func (h handler) createInternalUser(
 
 func (h handler) issuePrivateProvidersToken(
 	c echo.Context,
-	privCtx context.Context,
 	login string,
 	freshUser bool) (*oauth2.Token, error) {
 	// Check if we have one in DB first.
@@ -194,7 +190,7 @@ func (h handler) issuePrivateProvidersToken(
 
 	// Use func to simplify condition check.
 	issueToken := func() (err error) {
-		privToken, err = h.auth.IssueToken(privCtx, login)
+		privToken, err = h.auth.IssueToken(login)
 		if err != nil {
 			return err
 		}

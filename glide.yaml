@@ -36,6 +36,8 @@ import:
 - package: gopkg.in/yaml.v2
 - package: github.com/pkg/errors
   version: ^0.8.0
+- package: gopkg.in/h2non/gock.v1
+  version: ^1.0.1
 testImport:
 - package: github.com/stretchr/testify
   version: ^1.1.4

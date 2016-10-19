@@ -2,7 +2,6 @@ package handler
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -167,9 +166,8 @@ func (m *testAuthService) IssueConsentToken(
 }
 
 func (m *testAuthService) IssueToken(
-	c context.Context,
 	login string) (*oauth2.Token, error) {
-	args := m.Called(c, login)
+	args := m.Called(login)
 	return args.Get(0).(*oauth2.Token), args.Error(1)
 }
 
