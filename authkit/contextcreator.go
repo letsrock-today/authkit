@@ -11,6 +11,10 @@ type ContextCreator interface {
 	// Application may provide context caching, using providerID as a key.
 	// Application may populate context with OAuth2 token from persistent storage.
 	CreateContext(providerID string) context.Context
+
+	// CreaterPrivateContext returns context for login to be used in http requests to
+	// OAuth2 providers.
+	CreatePrivateContext(login, providerID string) context.Context
 }
 
 // DefaultContextCreator returns context.Background().
@@ -18,5 +22,10 @@ type DefaultContextCreator struct{}
 
 // CreateContext returns context.Background().
 func (c DefaultContextCreator) CreateContext(string) context.Context {
+	return context.Background()
+}
+
+// CreatePrivateContext returns context.Background().
+func (c DefaultContextCreator) CreatePrivateContext(string, string) context.Context {
 	return context.Background()
 }
