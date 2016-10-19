@@ -67,7 +67,7 @@ type (
 		Client(ctx context.Context, t *oauth2.Token) *http.Client
 	}
 
-	// TokenSourceProvider is implemented by oauth2.Config.
+	// TokenSourceProvider is implemented by "golang.org/x/oauth2".Config.
 	// This interface extracted for testability.
 	TokenSourceProvider interface {
 		TokenSource(ctx context.Context, t *oauth2.Token) oauth2.TokenSource

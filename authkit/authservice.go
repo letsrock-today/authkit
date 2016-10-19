@@ -1,30 +1,38 @@
 package authkit
 
-import (
-	"context"
-
-	"golang.org/x/oauth2"
-)
+import "golang.org/x/oauth2"
 
 type (
 
 	// AuthService provides a low-level auth implemetation.
 	AuthService interface {
 		HandlerAuthService
-		PermissionMapper
+		TokenValidator
 	}
 
 	// HandlerAuthService provides a low-level auth implemetation,
 	// specific to the handler package.
+	// Interface is based on Hydra OAuth2 provider and may not fit to be used
+	// with another providers, of which we are currently are not aware.
 	HandlerAuthService interface {
+
+		// GenerateConsentToken returns consent token used to create redirect
+		// URL to redirect to OAuth2 backend from consent page.
 		GenerateConsentToken(
 			subj string,
 			scopes []string,
 			challenge string) (string, error)
+
+		// IssueConsentToken returns consent token used to create redirect URL
+		// to redirect to OAuth2 backend from web app's own login page.
 		IssueConsentToken(
 			clientID string,
 			scopes []string) (string, error)
-		IssueToken(c context.Context, login string) (*oauth2.Token, error)
+
+		// IssueToken returns a token from OAuth2 backend for own web app
+		// in case of form-based login within app.
+		// Used for already authorized users.
+		IssueToken(login string) (*oauth2.Token, error)
 	}
 
 	// TokenValidator used to validate token and to check if token has

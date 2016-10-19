@@ -91,11 +91,9 @@ func TestCallback(t *testing.T) {
 	as := new(testAuthService)
 	as.On(
 		"IssueToken",
-		mock.Anything,
 		"valid@login.ok").Return(inttoken, nil)
 	as.On(
 		"IssueToken",
-		mock.Anything,
 		"new.valid@login.ok").Return(inttoken, nil)
 
 	ps := new(testProfileService)

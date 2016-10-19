@@ -2,6 +2,7 @@ package authkit
 
 import "context"
 
+//TODO: rename interface and method (ContextProvider.Context(...) - ?)
 // ContextCreator used by the Handler to prepare context for http calls.
 type ContextCreator interface {
 
