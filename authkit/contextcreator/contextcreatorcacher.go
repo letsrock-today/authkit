@@ -20,7 +20,6 @@ type ContextCreatorCacher struct {
 
 	pmu             sync.Mutex
 	privateContexts map[string]context.Context
-	tlsSkipVerify   bool
 }
 
 // NewContextCreator returns ContextCreator.
