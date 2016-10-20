@@ -1,7 +1,16 @@
 package contextcreator
 
 type Config struct {
-	configs map[string]ContextConfig
+	cacheContextSize        int
+	cachePrivateContextSize int
+	configs                 map[string]ContextConfig
+}
+
+func NewConfig(cacheContextSize, cachePrivateContextSize int) *Config {
+	return &Config{
+		cacheContextSize:        cacheContextSize,
+		cachePrivateContextSize: cachePrivateContextSize,
+	}
 }
 
 func (c *Config) Set(providerID string, config ContextConfig) {
