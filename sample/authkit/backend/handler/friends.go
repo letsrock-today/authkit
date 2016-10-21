@@ -1,29 +1,23 @@
 package handler
 
 import (
-	"context"
 	"log"
 	"net/http"
 
 	"github.com/labstack/echo"
 
 	"github.com/letsrock-today/hydra-sample/authkit/middleware"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
+	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user"
 )
 
-func Friends(c echo.Context) error {
-	login := c.Get(middleware.DefaultContextKey).(string)
-	u, err := Users.User(login)
-	if err != nil {
-		return err
-	}
-	cfg := config.GetCfg()
+func (h handler) Friends(c echo.Context) error {
+	u := c.Get(middleware.DefaultContextKey).(user.User)
 	friends := []socialprofile.Profile{}
 	// iterate over all available social networks and geather all friends
-	for p := range cfg.OAuth2Providers() {
-		token, ok := u.Tokens[p.ID()]
-		if !ok {
+	for p := range h.config.OAuth2Providers() {
+		t := u.OAuth2TokenByProviderID(p.ID())
+		if t == nil {
 			// no token? skip this provider
 			continue
 		}
@@ -34,8 +28,8 @@ func Friends(c echo.Context) error {
 			log.Println(err)
 			continue
 		}
-		ctx := context.Background()
-		client := p.OAuth2Config().Client(ctx, token)
+		ctx := h.contextCreator.CreateContext(p.ID())
+		client := p.OAuth2Config().Client(ctx, t)
 		fl, err := pa.Friends(client)
 		if err != nil {
 			// method not implemented, or other error - just skip it

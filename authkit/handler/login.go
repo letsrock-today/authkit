@@ -46,17 +46,17 @@ func (h handler) Login(c echo.Context) error {
 
 	var (
 		action          func(login, password string) authkit.UserServiceError
-		errorCustomizer func(error) interface{}
+		customizedError func(error) interface{}
 	)
 
 	signup := lf.Action == "signup"
 
 	if signup {
 		action = h.users.Create
-		errorCustomizer = h.errorCustomizer.UserCreationError
+		customizedError = h.errorCustomizer.UserCreationError
 	} else {
 		action = h.users.Authenticate
-		errorCustomizer = h.errorCustomizer.UserAuthenticationError
+		customizedError = h.errorCustomizer.UserAuthenticationError
 	}
 
 	if err := action(lf.Login, lf.Password); err != nil {
@@ -68,7 +68,7 @@ func (h handler) Login(c echo.Context) error {
 			}
 		}
 		c.Logger().Debug(errors.WithStack(err))
-		return c.JSON(http.StatusUnauthorized, errorCustomizer(err))
+		return c.JSON(http.StatusUnauthorized, customizedError(err))
 	}
 
 	pp := h.config.PrivateOAuth2Provider()

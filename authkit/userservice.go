@@ -4,11 +4,26 @@ import "golang.org/x/oauth2"
 
 type (
 
-	// UserService provides methods to persist users.
+	// UserService provides methods to persist users and send confirmations.
 	UserService interface {
+		UserStore
+		Confirmer
+	}
+
+	// UserStore provides methods to persist users.
+	UserStore interface {
 		tokenStore
 		middlewareMethods
 		handlerMethods
+	}
+
+	// Confirmer provides methods to request confirmations.
+	Confirmer interface {
+		// RequestEmailConfirmation requests user to confirm email address.
+		RequestEmailConfirmation(login string) UserServiceError
+
+		// RequestPasswordChangeConfirmation requests user confirmation to change password (via email).
+		RequestPasswordChangeConfirmation(login, passwordHash string) UserServiceError
 	}
 
 	// MiddlewareUserService provides methods to persist user.
@@ -23,6 +38,7 @@ type (
 	HandlerUserService interface {
 		tokenStore
 		handlerMethods
+		Confirmer
 	}
 
 	tokenStore interface {
@@ -35,7 +51,7 @@ type (
 
 	middlewareMethods interface {
 		// UserByAccessToken returns user data by access token.
-		UserByAccessToken(accessToken string) (User, UserServiceError)
+		UserByAccessToken(providerID, accessToken string) (User, UserServiceError)
 
 		// Principal returns user data to be stored in the echo.Context.
 		// It may return same structure which is passed to it or some fields from it.
@@ -60,16 +76,6 @@ type (
 
 		// UpdatePassword updates user's password.
 		UpdatePassword(login, oldPasswordHash, newPassword string) UserServiceError
-
-		// return user by token
-		// token_field is one of [accesstoken, refreshtoken]
-		//	UserByToken(pid, tokenField, token string) (User, UserServiceError)
-
-		// RequestEmailConfirmation requests user to confirm email address.
-		RequestEmailConfirmation(login string) UserServiceError
-
-		// RequestPasswordChangeConfirmation requests user confirmation to change password (via email).
-		RequestPasswordChangeConfirmation(login, passwordHash string) UserServiceError
 	}
 
 	// User provides basic information about user, required for login logic.
@@ -80,25 +86,103 @@ type (
 	}
 
 	// UserServiceError is a general error specific to UserService.
-	UserServiceError interface {
-		error
+	// It's just an  alias for error interface.
+	UserServiceError error
+
+	causer interface {
+		Cause() error
 	}
 
 	// DuplicateUserError indicates that user already exists.
 	DuplicateUserError interface {
 		UserServiceError
+		causer
 		IsDuplicateUser() bool
 	}
 
 	// UserNotFoundError indicates that user not found.
 	UserNotFoundError interface {
 		UserServiceError
+		causer
 		IsUserNotFound() bool
 	}
 
 	// AccountDisabledError indicates that user's account is disabled.
 	AccountDisabledError interface {
 		UserServiceError
+		causer
 		IsAccountDisabled() bool
 	}
+
+	// RequestConfirmationError indicates request confirmation failure.
+	RequestConfirmationError interface {
+		UserServiceError
+		causer
+		IsRequestConfirmationError() bool
+	}
+
+	userServiceError struct {
+		cause error
+	}
+
+	duplicateUserError       struct{ userServiceError }
+	userNotFoundError        struct{ userServiceError }
+	accountDisabledError     struct{ userServiceError }
+	requestConfirmationError struct{ userServiceError }
 )
+
+func (e userServiceError) Cause() error {
+	return e.cause
+}
+
+// NewDuplicateUserError returns new DuplicateUserError.
+func NewDuplicateUserError(cause error) DuplicateUserError {
+	return duplicateUserError{userServiceError{cause}}
+}
+
+func (duplicateUserError) Error() string {
+	return "duplicate user"
+}
+
+func (duplicateUserError) IsDuplicateUser() bool {
+	return true
+}
+
+// NewUserNotFoundError returns new UserNotFoundError.
+func NewUserNotFoundError(cause error) UserNotFoundError {
+	return userNotFoundError{userServiceError{cause}}
+}
+
+func (userNotFoundError) Error() string {
+	return "user not found"
+}
+
+func (userNotFoundError) IsUserNotFound() bool {
+	return true
+}
+
+// NewAccountDisabledError return new AccountDisabledError.
+func NewAccountDisabledError(cause error) AccountDisabledError {
+	return accountDisabledError{userServiceError{cause}}
+}
+
+func (accountDisabledError) Error() string {
+	return "account disabled"
+}
+
+func (accountDisabledError) IsAccountDisabled() bool {
+	return true
+}
+
+// NewRequestConfirmationError returns new RequestConfirmationError.
+func NewRequestConfirmationError(cause error) RequestConfirmationError {
+	return requestConfirmationError{userServiceError{cause}}
+}
+
+func (requestConfirmationError) Error() string {
+	return "request confirmation failed"
+}
+
+func (requestConfirmationError) IsRequestConfirmationError() bool {
+	return true
+}

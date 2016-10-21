@@ -8,6 +8,8 @@ import (
 	"net/http"
 
 	"golang.org/x/oauth2"
+
+	"github.com/letsrock-today/hydra-sample/authkit"
 )
 
 type lnPhoneNumber struct {
@@ -21,7 +23,7 @@ type lnPhoneNumbers struct {
 
 type lnProfile struct {
 	Email         string         `json:"emailAddress"`
-	Id            string         `json:"id"`
+	ID            string         `json:"id"`
 	FormattedName string         `json:"formattedName"`
 	MainAddress   string         `json:"mainAddress"`
 	Picture       string         `json:"pictureUrl"`
@@ -35,7 +37,7 @@ const (
 	lnProfileQueryURLOpaque = "/v1/people/~:(id,formatted-name,main-address,email-address,phone-numbers,picture-url)"
 )
 
-func (linkedin) Profile(client *http.Client) (*Profile, error) {
+func (linkedin) SocialProfile(client *http.Client) (authkit.Profile, error) {
 	transport, ok := client.Transport.(*oauth2.Transport)
 	if !ok {
 		return nil, errors.New("Cannot retrieve token from http.Client")

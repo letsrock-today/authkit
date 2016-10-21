@@ -5,37 +5,79 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user"
+	"github.com/pkg/errors"
+
 	"golang.org/x/oauth2"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
-	api "github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/userapi"
 )
 
-//TODO: pass as a parameters to New()
-const (
-	dbURL              = "localhost"
-	dbName             = "hydra-sample"
-	userCollectionName = "users"
-)
+type userData struct {
+	Email        string
+	PasswordHash string
+	Disabled     *time.Time               `bson:",omitempty"`
+	Tokens       map[string]*oauth2.Token // pid -> token
+}
 
-type userapi struct {
+type _user struct {
+	// embedded structure used to avoid clash of field and method names
+	// and still export fields for BSON marshalling
+	data userData
+}
+
+func (u *_user) Login() string {
+	//TODO: remove assamption email == login?
+	return u.data.Email
+}
+
+func (u *_user) Email() string {
+	return u.data.Email
+}
+
+func (u *_user) PasswordHash() string {
+	return u.data.PasswordHash
+}
+
+func (u *_user) OAuth2TokenByProviderID(providerID string) *oauth2.Token {
+	return u.data.Tokens[providerID]
+}
+
+func (u *_user) GetBSON() (interface{}, error) {
+	return u.data, nil
+}
+
+func (u *_user) SetBSON(raw bson.Raw) error {
+	return raw.Unmarshal(&u.data)
+}
+
+type store struct {
 	dbsession *mgo.Session
 	users     *mgo.Collection
 }
 
-func New() (api.UserAPI, error) {
-	s, err := mgo.Dial(dbURL)
+//TODO: pass as a parameters to New()
+//const (
+//	dbURL              = "localhost"
+//	dbName             = "hydra-sample"
+//	userCollectionName = "users"
+//)
+
+// New returns new user.Store based on MongoDB.
+func New(
+	dbURL, dbName, userCollectionName string,
+	unconfirmedUserLifespan time.Duration) (user.Store, error) {
+	ss, err := mgo.Dial(dbURL)
 	if err != nil {
 		return nil, err
 	}
-	ua := &userapi{
-		dbsession: s,
-		users:     s.DB(dbName).C(userCollectionName),
+	s := &store{
+		dbsession: ss,
+		users:     ss.DB(dbName).C(userCollectionName),
 	}
-	err = ua.users.Create(&mgo.CollectionInfo{
+	err = s.users.Create(&mgo.CollectionInfo{
 		Validator: bson.M{
 			"email": bson.M{
 				"$exists": true,
@@ -55,90 +97,57 @@ func New() (api.UserAPI, error) {
 		Key:    []string{"email"},
 		Unique: true,
 	}
-	if err := ua.users.EnsureIndex(index); err != nil {
+	if err := s.users.EnsureIndex(index); err != nil {
 		return nil, err
 	}
 	index = mgo.Index{
 		Key:         []string{"disabled"},
-		ExpireAfter: config.Get().ConfirmationLinkLifespan,
+		ExpireAfter: unconfirmedUserLifespan,
 	}
-	return ua, ua.users.EnsureIndex(index)
+	return s, s.users.EnsureIndex(index)
 }
 
-func (ua userapi) Close() error {
-	ua.dbsession.Close()
+func (s store) Close() error {
+	s.dbsession.Close()
 	return nil
 }
 
-func (ua userapi) Create(login, password string) error {
+func (s store) Create(login, password string) authkit.UserServiceError {
 	t := time.Now()
-	err := ua.users.Insert(
-		&api.User{
-			Email:        login,
-			PasswordHash: hash(password),
-			Disabled:     &t,
-		})
-	if mgo.IsDup(err) {
-		return api.AuthErrorDup
-	}
-	if err == nil {
-		return api.AuthErrorDisabled
-	}
-	return err
-}
-
-func (ua userapi) Authenticate(login, password string) error {
-	user := api.User{}
-	err := ua.users.Find(
-		bson.M{
-			"email":        login,
-			"passwordhash": hash(password),
-		}).One(&user)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return api.AuthError
-		}
-		return err
-	}
-	if err == nil && user.Disabled != nil {
-		return api.AuthErrorDisabled
-	}
-	return nil
-}
-
-func (ua userapi) User(login string) (*api.User, error) {
-	user := api.User{}
-	err := ua.users.Find(
-		bson.M{
-			"email": login,
-		}).One(&user)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, api.AuthErrorUserNotFound
-		}
-		return nil, err
-	}
-	return &user, nil
-}
-
-func (ua userapi) UpdatePassword(login, password string) error {
-	err := ua.users.Update(
-		bson.M{
-			"email": login,
-		},
-		bson.M{
-			"$set": bson.M{
-				"passwordhash": hash(password),
+	err := s.users.Insert(
+		&_user{
+			userData{
+				Email:        login,
+				PasswordHash: hash(password),
+				Disabled:     &t,
 			},
 		})
-	if err == mgo.ErrNotFound {
-		return api.AuthErrorUserNotFound
+	if mgo.IsDup(err) {
+		return errors.WithStack(authkit.NewDuplicateUserError(err))
+	}
+	if err == nil {
+		return errors.WithStack(authkit.NewAccountDisabledError(nil))
 	}
 	return err
 }
 
-func (ua userapi) Enable(login string) error {
-	err := ua.users.Update(
+func (s store) CreateEnabled(login, password string) authkit.UserServiceError {
+	err := s.users.Insert(
+		&_user{
+			userData{
+				Email:        login,
+				PasswordHash: hash(password),
+				Disabled:     nil,
+			},
+		})
+	if mgo.IsDup(err) {
+		return errors.WithStack(authkit.NewDuplicateUserError(err))
+	}
+	return err
+}
+
+func (s store) Enable(login string) authkit.UserServiceError {
+	err := s.users.Update(
 		bson.M{
 			"email": login,
 		},
@@ -148,52 +157,111 @@ func (ua userapi) Enable(login string) error {
 			},
 		})
 	if err == mgo.ErrNotFound {
-		return api.AuthErrorUserNotFound
+		return errors.WithStack(authkit.NewUserNotFoundError(err))
 	}
 	return err
 }
 
-func (ua userapi) UpdateToken(login, pid string, token *oauth2.Token) error {
-	err := ua.users.Update(
+func (s store) Authenticate(login, password string) authkit.UserServiceError {
+	u := _user{}
+	err := s.users.Find(
+		bson.M{
+			"email":        login,
+			"passwordhash": hash(password),
+		}).One(&u)
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			return errors.WithStack(authkit.NewUserNotFoundError(nil))
+		}
+		return err
+	}
+	if err == nil && u.data.Disabled != nil {
+		return errors.WithStack(authkit.NewAccountDisabledError(nil))
+	}
+	return nil
+}
+
+func (s store) User(login string) (authkit.User, authkit.UserServiceError) {
+	u := &_user{}
+	err := s.users.Find(
+		bson.M{
+			"email": login,
+		}).One(u)
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			return nil, errors.WithStack(authkit.NewUserNotFoundError(err))
+		}
+		return nil, err
+	}
+	return u, nil
+}
+
+func (s store) UpdatePassword(
+	login, oldPassword, newPassword string) authkit.UserServiceError {
+	err := s.users.Update(
+		bson.M{
+			"email":        login,
+			"passwordhash": hash(oldPassword),
+		},
+		bson.M{
+			"$set": bson.M{
+				"passwordhash": hash(newPassword),
+			},
+		})
+	if err == mgo.ErrNotFound {
+		return errors.WithStack(authkit.NewUserNotFoundError(err))
+	}
+	return err
+}
+
+func (s store) OAuth2Token(
+	login, providerID string) (*oauth2.Token, authkit.UserServiceError) {
+	u, err := s.User(login)
+	if err != nil {
+		return nil, err
+	}
+	return u.(*_user).data.Tokens[providerID], nil
+}
+
+func (s store) UpdateOAuth2Token(
+	login, providerID string, token *oauth2.Token) authkit.UserServiceError {
+	err := s.users.Update(
 		bson.M{
 			"email": login,
 		},
 		bson.M{
 			"$set": bson.M{
-				"tokens." + pid: token,
+				"tokens." + providerID: token,
 			},
 		})
 	if err == mgo.ErrNotFound {
-		return api.AuthErrorUserNotFound
+		return errors.WithStack(authkit.NewUserNotFoundError(err))
 	}
 	return err
 }
 
-func (ua userapi) Token(login, pid string) (*oauth2.Token, error) {
-	user, err := ua.User(login)
-	if err != nil {
-		return nil, err
-	}
-	return user.Tokens[pid], nil
-}
-
-func (ua userapi) UserByToken(pid, token_field, token string) (*api.User, error) {
-	user := api.User{}
-	err := ua.users.Find(
+func (s store) UserByAccessToken(
+	providerID, accessToken string) (authkit.User, authkit.UserServiceError) {
+	u := &_user{}
+	err := s.users.Find(
 		bson.M{
-			"tokens." + pid + "." + token_field: token,
-		}).One(&user)
+			"tokens." + providerID + ".accesstoken": accessToken,
+		}).One(u)
 	if err != nil {
 		if err == mgo.ErrNotFound {
-			return nil, api.AuthErrorUserNotFound
+			return nil, errors.WithStack(authkit.NewUserNotFoundError(err))
 		}
 		return nil, err
 	}
-	if err == nil && user.Disabled != nil {
-		return nil, api.AuthErrorDisabled
+	if err == nil && u.data.Disabled != nil {
+		return nil, errors.WithStack(authkit.NewAccountDisabledError(nil))
 	}
-	return &user, nil
+	return u, nil
 
+}
+
+func (s store) Principal(u authkit.User) interface{} {
+	return u
 }
 
 func hash(pass string) string {

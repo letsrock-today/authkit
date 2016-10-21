@@ -13,7 +13,11 @@ type (
 
 	// ProfileService provides methods to persist user profiles (locally).
 	ProfileService interface {
+
+		// EnsureExists creates new empty profile if it is not exists already.
 		EnsureExists(login string) error
+
+		// Save saves profile.
 		Save(Profile) error
 	}
 

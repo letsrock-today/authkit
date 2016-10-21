@@ -3,7 +3,7 @@ package handler
 import "github.com/letsrock-today/hydra-sample/authkit"
 
 // NewHandler returns default Handler implemetation.
-// ErrorCustomizer, AuthService, UserService, ProfileService must be provided.
+// All arguments except ContextCreator must be provided.
 // If ContextCreator is nil, then DefaultContextCreator is used.
 func NewHandler(
 	c authkit.Config,
@@ -13,7 +13,7 @@ func NewHandler(
 	ps authkit.ProfileService,
 	sps authkit.SocialProfileServices,
 	cc authkit.ContextCreator) authkit.Handler {
-	if ec == nil || as == nil || us == nil || ps == nil || sps == nil {
+	if c == nil || ec == nil || as == nil || us == nil || ps == nil || sps == nil {
 		panic("invalid argument")
 	}
 	if cc == nil {

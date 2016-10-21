@@ -57,13 +57,16 @@ func TestAccessTokenWithConfig(t *testing.T) {
 	us := new(testUserService)
 	us.On(
 		"UserByAccessToken",
+		"xxx-provider",
 		"xxx").Return(testUser{"valid@login.ok", "name"}, nil)
 	us.On(
 		"UserByAccessToken",
+		"xxx-provider",
 		"zzz").Return(testUser{"valid@login.ok", "name"}, nil)
 	us.On(
 		"UserByAccessToken",
-		"yyy").Return(nil, errors.New("unknown login"))
+		"xxx-provider",
+		"yyy").Return(nil, authkit.NewUserNotFoundError(nil))
 	us.On(
 		"OAuth2Token",
 		"valid@login.ok",
@@ -74,7 +77,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 	us.On(
 		"OAuth2Token",
 		"unknown@login.ok",
-		"xxx-provider").Return(nil, errors.New("unknown user"))
+		"xxx-provider").Return(nil, authkit.NewUserNotFoundError(nil))
 
 	accessTokenConfig := AccessTokenConfig{
 		PrivateProviderID: "xxx-provider",
@@ -326,11 +329,11 @@ type testUserService struct {
 }
 
 func (s *testUserService) UserByAccessToken(
-	accessToken string) (authkit.User, authkit.UserServiceError) {
-	args := s.Called(accessToken)
+	providerID, accessToken string) (authkit.User, authkit.UserServiceError) {
+	args := s.Called(providerID, accessToken)
 	err := args.Error(1)
 	if err != nil {
-		return nil, err
+		return nil, err.(authkit.UserServiceError)
 	}
 	return args.Get(0).(authkit.User), nil
 }
@@ -340,7 +343,7 @@ func (s *testUserService) OAuth2Token(
 	args := s.Called(login, providerID)
 	err := args.Error(1)
 	if err != nil {
-		return nil, err
+		return nil, err.(authkit.UserServiceError)
 	}
 	return args.Get(0).(*oauth2.Token), nil
 }
@@ -349,7 +352,7 @@ func (s *testUserService) UpdateOAuth2Token(
 	login, providerID string,
 	token *oauth2.Token) authkit.UserServiceError {
 	args := s.Called(login, providerID, token)
-	return args.Error(0)
+	return args.Error(0).(authkit.UserServiceError)
 }
 
 func (s *testUserService) Principal(user authkit.User) interface{} {
