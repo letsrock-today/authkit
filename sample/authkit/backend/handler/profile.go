@@ -5,38 +5,42 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/middleware"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
 )
 
-func Profile(c echo.Context) error {
-	login := c.Get(middleware.DefaultContextKey).(string)
-	p, err := Profiles.Profile(login)
+func (h handler) Profile(c echo.Context) error {
+	u := c.Get(middleware.DefaultContextKey).(authkit.User)
+	p, err := h.profiles.Profile(u.Login())
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	return c.JSON(http.StatusOK, p)
 }
 
-func ProfileSave(c echo.Context) error {
-	login := c.Get(middleware.DefaultContextKey).(string)
+func (h handler) ProfileSave(c echo.Context) error {
+	u := c.Get(middleware.DefaultContextKey).(authkit.User)
 	p := new(socialprofile.Profile)
 	if err := c.Bind(p); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
-	p.Email = login // we cannot change email, because it used as user's id
+	p.Email = u.Login() // we cannot change email, because it used as user's id
 	if _, err := govalidator.ValidateStruct(p); err != nil {
-		return c.JSON(http.StatusOK, newJsonError(err))
+		return c.JSON(
+			http.StatusBadRequest,
+			h.errorCustomizer.InvalidRequestParameterError(err))
 	}
 	//TODO: preserve fields absent in the html form.
-	if err := Profiles.Save(login, p); err != nil {
-		return err
+	if err := h.profiles.Save(p); err != nil {
+		return errors.WithStack(err)
 	}
 	// return profile as it saved in store (assume, that store API could modify it)
-	if p, err := Profiles.Profile(login); err != nil {
-		return err
-	} else {
-		return c.JSON(http.StatusOK, p)
+	pf, err := h.profiles.Profile(u.Login())
+	if err != nil {
+		return errors.WithStack(err)
 	}
+	return c.JSON(http.StatusOK, pf)
 }

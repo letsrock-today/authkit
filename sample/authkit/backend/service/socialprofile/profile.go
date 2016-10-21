@@ -29,14 +29,29 @@ type Service interface {
 }
 
 func New(providerID string) (Service, error) {
-	s, ok := providers[providerID]
+	s, err := Providers().SocialProfileService(providerID)
+	if err != nil {
+		return nil, err
+	}
+	return s.(Service), nil
+}
+
+func Providers() authkit.SocialProfileServices {
+	return _providers
+}
+
+type providers map[string]Service
+
+func (p providers) SocialProfileService(providerID string) (
+	authkit.SocialProfileService, error) {
+	s, ok := p[providerID]
 	if !ok {
 		return nil, fmt.Errorf("Unknown provider: %s", providerID)
 	}
 	return s, nil
 }
 
-var providers = map[string]Service{
+var _providers = providers{
 	"fb":       facebook{},
 	"linkedin": linkedin{},
 }

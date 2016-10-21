@@ -41,6 +41,10 @@ func (u *_user) PasswordHash() string {
 	return u.data.PasswordHash
 }
 
+func (u *_user) OAuth2TokenByProviderID(providerID string) *oauth2.Token {
+	return u.data.Tokens[providerID]
+}
+
 func (u *_user) GetBSON() (interface{}, error) {
 	return u.data, nil
 }
@@ -241,7 +245,7 @@ func (s store) UserByAccessToken(
 	u := &_user{}
 	err := s.users.Find(
 		bson.M{
-			"tokens." + providerID + ".access_token": accessToken,
+			"tokens." + providerID + ".accesstoken": accessToken,
 		}).One(u)
 	if err != nil {
 		if err == mgo.ErrNotFound {

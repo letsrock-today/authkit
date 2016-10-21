@@ -1,20 +1,11 @@
 package route
 
 import (
-	"context"
-	"crypto/tls"
-	"errors"
-	"net/http"
-
-	"golang.org/x/oauth2"
-
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 
-	"github.com/letsrock-today/hydra-sample/authkit/hydra"
+	"github.com/letsrock-today/hydra-sample/authkit"
 	_middleware "github.com/letsrock-today/hydra-sample/authkit/middleware"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/userapi"
 )
 
 var (
@@ -22,7 +13,12 @@ var (
 	friendsMiddleware echo.MiddlewareFunc
 )
 
-func initMiddleware(e *echo.Echo, ua userapi.UserAPI) {
+func initMiddleware(
+	e *echo.Echo,
+	c authkit.Config,
+	tokenValidator authkit.TokenValidator,
+	userService authkit.MiddlewareUserService,
+	contextCreator authkit.ContextCreator) {
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "method=${method}, uri=${uri}, status=${status}\n",
 	}))
@@ -32,76 +28,27 @@ func initMiddleware(e *echo.Echo, ua userapi.UserAPI) {
 	e.Use(middleware.Secure())
 	e.Use(middleware.CSRF())
 
-	cfg := config.GetCfg()
-	ctx := context.WithValue(
-		context.Background(),
-		oauth2.HTTPClient,
-		&http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: cfg.TLSInsecureSkipVerify()},
-			}})
-	oauth2cfg := cfg.PrivateOAuth2Provider().OAuth2Config()
+	privateProviderID := "" //TODO: from config
+	oauth2Config := c.PrivateOAuth2Provider().OAuth2Config()
+
 	profileMiddleware = _middleware.AccessTokenWithConfig(
 		_middleware.AccessTokenConfig{
-			TokenValidator: tokenValidator{},
-			UserStore:      userStore{ua},
-			OAuth2Config:   oauth2cfg,
-			OAuth2Context:  ctx,
+			privateProviderID,
+			_middleware.DefaultContextKey,
+			nil,
+			tokenValidator,
+			userService,
+			oauth2Config,
+			contextCreator,
 		})
 	friendsMiddleware = _middleware.AccessTokenWithConfig(
 		_middleware.AccessTokenConfig{
-			TokenValidator: tokenValidator{},
-			UserStore:      userStore{ua},
-			OAuth2Config:   oauth2cfg,
-			OAuth2Context:  ctx,
+			privateProviderID,
+			_middleware.DefaultContextKey,
+			nil,
+			tokenValidator,
+			userService,
+			oauth2Config,
+			contextCreator,
 		})
-}
-
-//TODO: refactoring required
-
-type tokenValidator struct{}
-
-func (tokenValidator) Validate(token string, perm interface{}) error {
-	p, ok := perm.(*_middleware.DefaultPermission)
-	if !ok {
-		return errors.New("invalid permission object")
-	}
-	return hydra.ValidateAccessTokenPermissions(
-		token,
-		p.Resource,
-		p.Action,
-		p.Scopes)
-}
-
-type userStore struct {
-	userapi.UserAPI
-}
-
-func (u userStore) User(token string) (interface{}, error) {
-	return u.UserByToken(config.PrivPID, "accesstoken", token)
-}
-
-func (userStore) OAuth2Token(user interface{}) (*oauth2.Token, error) {
-	usr, ok := user.(*userapi.User)
-	if !ok {
-		return nil, errors.New("invalid user object")
-	}
-	return usr.Tokens[config.PrivPID], nil
-}
-
-func (u userStore) UpdateOAuth2Token(user interface{}, token *oauth2.Token) error {
-	usr, ok := user.(*userapi.User)
-	if !ok {
-		return errors.New("invalid user object")
-	}
-	return u.UpdateToken(usr.Email, config.PrivPID, token)
-}
-
-func (userStore) Principal(user interface{}) interface{} {
-	usr, ok := user.(*userapi.User)
-	if !ok {
-		return errors.New("invalid user object")
-	}
-	return usr.Email
 }
