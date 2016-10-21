@@ -71,7 +71,7 @@ func TestConsentLogin(t *testing.T) {
 		"old.valid@login.ok").Return(nil)
 	us.On(
 		"RequestEmailConfirmation",
-		"broken.valid@login.ok").Return(authkit.UserServiceError(errors.New("cannot send email")))
+		"broken.valid@login.ok").Return(authkit.NewRequestConfirmationError(nil))
 
 	h := handler{
 		errorCustomizer: testErrorCustomizer{},

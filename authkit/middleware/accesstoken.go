@@ -112,7 +112,8 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			}
 
 			// Find user.
-			user, err := config.UserService.UserByAccessToken(token)
+			user, err := config.UserService.UserByAccessToken(
+				config.PrivateProviderID, token)
 			if err != nil {
 				c.Logger().Debug(errors.WithStack(err))
 				return errAccessDenied
@@ -131,11 +132,11 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 						c.Logger().Warn(errors.WithStack(err))
 						return
 					}
-					newToken, err := config.OAuth2Config.TokenSource(
+					newToken, err1 := config.OAuth2Config.TokenSource(
 						config.ContextCreator.CreateContext(config.PrivateProviderID),
 						oauth2token).Token()
-					if err != nil {
-						c.Logger().Warn(errors.WithStack(err))
+					if err1 != nil {
+						c.Logger().Warn(errors.WithStack(err1))
 						return
 					}
 					if newToken != oauth2token {

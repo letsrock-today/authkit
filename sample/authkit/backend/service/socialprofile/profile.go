@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/letsrock-today/hydra-sample/authkit"
 )
 
 type Profile struct {
@@ -16,23 +18,25 @@ type Profile struct {
 	Phones        []string `json:"phones" form:"phones" valid:"numeric,stringlength(333|15)"`
 }
 
-type ProfileAPI interface {
+func (p Profile) Login() string {
+	return p.Email
+}
 
-	// context should be created by oauth2 and contain token
-	Profile(client *http.Client) (*Profile, error)
+type Service interface {
+	authkit.SocialProfileService
 
 	Friends(client *http.Client) ([]Profile, error)
 }
 
-func New(pid string) (ProfileAPI, error) {
-	api, ok := providers[pid]
+func New(providerID string) (Service, error) {
+	s, ok := providers[providerID]
 	if !ok {
-		return nil, fmt.Errorf("Unknown provider: %s", pid)
+		return nil, fmt.Errorf("Unknown provider: %s", providerID)
 	}
-	return api, nil
+	return s, nil
 }
 
-var providers = map[string]ProfileAPI{
+var providers = map[string]Service{
 	"fb":       facebook{},
 	"linkedin": linkedin{},
 }

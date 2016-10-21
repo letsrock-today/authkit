@@ -178,21 +178,26 @@ type testUserService struct {
 func (m *testUserService) OAuth2Token(
 	login, providerID string) (*oauth2.Token, authkit.UserServiceError) {
 	args := m.Called(login, providerID)
-	return args.Get(0).(*oauth2.Token), args.Error(1)
+	if err, ok := args.Error(1).(authkit.UserServiceError); ok {
+		return nil, err
+	}
+	return args.Get(0).(*oauth2.Token), nil
 }
 
 func (m *testUserService) UpdateOAuth2Token(
 	login, providerID string, token *oauth2.Token) authkit.UserServiceError {
 	args := m.Called(login, providerID, token)
-	return args.Error(0)
+	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
+		return err
+	}
+	return nil
 }
 
 func (m *testUserService) Create(
 	login, password string) authkit.UserServiceError {
 	args := m.Called(login, password)
-	err := args.Get(0)
-	if err != nil {
-		return err.(authkit.UserServiceError)
+	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
+		return err
 	}
 	return nil
 }
@@ -200,24 +205,25 @@ func (m *testUserService) Create(
 func (m *testUserService) CreateEnabled(
 	login, password string) authkit.UserServiceError {
 	args := m.Called(login, password)
-	err := args.Get(0)
-	if err != nil {
-		return err.(authkit.UserServiceError)
+	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
+		return err
 	}
 	return nil
 }
 
 func (m *testUserService) Enable(login string) authkit.UserServiceError {
 	args := m.Called(login)
-	return args.Error(0)
+	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
+		return err
+	}
+	return nil
 }
 
 func (m *testUserService) Authenticate(
 	login, password string) authkit.UserServiceError {
 	args := m.Called(login, password)
-	err := args.Get(0)
-	if err != nil {
-		return err.(authkit.UserServiceError)
+	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
+		return err
 	}
 	return nil
 }
@@ -225,9 +231,8 @@ func (m *testUserService) Authenticate(
 func (m *testUserService) User(login string) (
 	authkit.User, authkit.UserServiceError) {
 	args := m.Called(login)
-	err := args.Get(1)
-	if err != nil {
-		return nil, err.(authkit.UserServiceError)
+	if err, ok := args.Error(1).(authkit.UserServiceError); ok {
+		return nil, err
 	}
 	return args.Get(0).(authkit.User), nil
 }
@@ -235,9 +240,8 @@ func (m *testUserService) User(login string) (
 func (m *testUserService) UpdatePassword(
 	login, oldPasswordHash, newPassword string) authkit.UserServiceError {
 	args := m.Called(login, oldPasswordHash, newPassword)
-	err := args.Get(0)
-	if err != nil {
-		return err.(authkit.UserServiceError)
+	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
+		return err
 	}
 	return nil
 }
@@ -245,9 +249,8 @@ func (m *testUserService) UpdatePassword(
 func (m *testUserService) RequestEmailConfirmation(
 	login string) authkit.UserServiceError {
 	args := m.Called(login)
-	err := args.Get(0)
-	if err != nil {
-		return err.(authkit.UserServiceError)
+	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
+		return err
 	}
 	return nil
 }
@@ -255,9 +258,8 @@ func (m *testUserService) RequestEmailConfirmation(
 func (m *testUserService) RequestPasswordChangeConfirmation(
 	login, passwordHash string) authkit.UserServiceError {
 	args := m.Called(login, passwordHash)
-	err := args.Get(0)
-	if err != nil {
-		return err.(authkit.UserServiceError)
+	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
+		return err
 	}
 	return nil
 }
@@ -282,6 +284,10 @@ func (e testUserServiceError) IsUserNotFound() bool {
 
 func (e testUserServiceError) IsAccountDisabled() bool {
 	return e.isAccountDisabled
+}
+
+func (e testUserServiceError) Cause() error {
+	return nil
 }
 
 func testNewTestDuplicateUserError() authkit.UserServiceError {

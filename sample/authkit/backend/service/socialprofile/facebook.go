@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/letsrock-today/hydra-sample/authkit"
 )
 
 type fbProfileResponse struct {
@@ -52,7 +54,7 @@ const (
 	fbFriendsQueryURL = "https://graph.facebook.com/me/friends?fields=id,email,name,picture,birthday,gender,location"
 )
 
-func (facebook) Profile(client *http.Client) (*Profile, error) {
+func (facebook) SocialProfile(client *http.Client) (authkit.Profile, error) {
 	resp, err := client.Get(fbProfileQueryURL)
 	if err != nil {
 		return nil, err
