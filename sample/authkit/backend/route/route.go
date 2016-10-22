@@ -1,8 +1,6 @@
 package route
 
 import (
-	"time"
-
 	"github.com/labstack/echo"
 	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/hydra"
@@ -11,26 +9,26 @@ import (
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/profile"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user"
+	"golang.org/x/oauth2"
 )
 
 func Init(
 	e *echo.Echo,
 	us user.Store,
 	ps profile.Service) {
-	c := config.GetCfg()
+	c := config.Get()
 
-	//TODO
 	as := hydra.New(
-		"",          //hydraURL
-		"",          //providerID
-		"",          //providerIDTrustedContext
-		1*time.Hour, //challengeLifespan
-		nil,         //oauth2Config
-		nil,         //clientCredentials
+		c.HydraAddr,
+		c.PrivateProviderID,
+		c.PrivateProviderIDTrustedContext,
+		c.ChallengeLifespan,
+		c.PrivateOAuth2Provider().OAuth2Config().(*oauth2.Config),
+		c.OAuth2ClientCredentials(),
 		c.OAuth2State(),
 		authkit.DefaultContextCreator{},
-		false, //tlsInsecureSkipVerify
-	)
+		c.TLSInsecureSkipVerify)
+
 	cc := authkit.DefaultContextCreator{}
 	sps := socialprofile.Providers()
 	userService := struct {

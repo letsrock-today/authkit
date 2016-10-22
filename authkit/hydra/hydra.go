@@ -197,7 +197,10 @@ func (h hydra) IssueToken(login string) (*oauth2.Token, error) {
 	v = u.Query()
 	code := v.Get("code")
 	// Here we use 3-legged flow, hence correspondent context.
-	ctx := h.contextCreator.CreateContext(h.providerID)
+	ctx, err := h.contextCreator.CreateContext(h.providerID)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 	t, err := conf.Exchange(ctx, code)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -211,7 +214,10 @@ func (h hydra) Validate(accessToken string, permissionDescriptor interface{}) er
 		return errors.WithStack(errors.New("invalid permission object"))
 	}
 	conf := h.clientCredentials
-	ctx := h.contextCreator.CreateContext(h.providerIDTrustedContext)
+	ctx, err := h.contextCreator.CreateContext(h.providerIDTrustedContext)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 	client := conf.Client(ctx)
 
 	url := fmt.Sprintf("%s/warden/token/allowed", h.hydraURL)
@@ -290,7 +296,10 @@ func (h hydra) verifyConsentChallenge(c string) (*jwt.Token, error) {
 //TODO: cache keys?
 func (h hydra) getKey(set, kid string) (interface{}, error) {
 	conf := h.clientCredentials
-	ctx := h.contextCreator.CreateContext(h.providerIDTrustedContext)
+	ctx, err := h.contextCreator.CreateContext(h.providerIDTrustedContext)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 	client := conf.Client(ctx)
 
 	url := fmt.Sprintf("%s/keys/%s/%s", h.hydraURL, set, kid)

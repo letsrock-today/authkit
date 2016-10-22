@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 
 	"github.com/letsrock-today/hydra-sample/authkit/middleware"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
@@ -28,7 +29,10 @@ func (h handler) Friends(c echo.Context) error {
 			log.Println(err)
 			continue
 		}
-		ctx := h.contextCreator.CreateContext(p.ID())
+		ctx, err := h.contextCreator.CreateContext(p.ID())
+		if err != nil {
+			return errors.WithStack(err)
+		}
 		client := p.OAuth2Config().Client(ctx, t)
 		fl, err := pa.Friends(client)
 		if err != nil {

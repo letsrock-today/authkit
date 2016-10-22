@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"io"
 	"log"
-	"time"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine"
@@ -17,24 +16,33 @@ import (
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/mgo-user"
 )
 
+var cfgPath, cfgName string
+
 func main() {
 	flag.Parse()
+	flag.StringVar(&cfgPath, "config path", "", "dir with app's config")
+	flag.StringVar(&cfgName, "config name", "", "app's config base file name")
+	config.Init(cfgPath, cfgName)
+	cfg := config.Get()
 
-	//TODO: get from config
-	dbURL := "localhost"
-	dbName := "hydra-sample"
 	userCollectionName := "users"
 	profileCollectionName := "profiles"
-	unconfirmedUserLifespan := 1 * time.Hour
 
 	// store implementation can be changed here
-	us, err := user.New(dbURL, dbName, userCollectionName, unconfirmedUserLifespan)
+	us, err := user.New(
+		cfg.MongoDB.URL,
+		cfg.MongoDB.Name,
+		userCollectionName,
+		cfg.ConfirmationLinkLifespan)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer us.Close()
 
-	ps, err := profile.New(dbURL, dbName, profileCollectionName)
+	ps, err := profile.New(
+		cfg.MongoDB.URL,
+		cfg.MongoDB.Name,
+		profileCollectionName)
 	if err != nil {
 		log.Fatal(err)
 	}

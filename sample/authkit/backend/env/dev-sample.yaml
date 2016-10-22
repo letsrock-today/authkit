@@ -26,6 +26,10 @@ email-config:
     server: "smtp.gmail.com"
     port: 587
 
+mongodb:
+    url: "localhost"
+    name: "hydra-sample"
+
 oauth2-state:
     token-issuer: hydra-sample
     # cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32

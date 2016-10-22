@@ -132,8 +132,13 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 						c.Logger().Warn(errors.WithStack(err))
 						return
 					}
+					ctx, err := config.ContextCreator.CreateContext(config.PrivateProviderID)
+					if err != nil {
+						c.Logger().Warn(errors.WithStack(err))
+						return
+					}
 					newToken, err1 := config.OAuth2Config.TokenSource(
-						config.ContextCreator.CreateContext(config.PrivateProviderID),
+						ctx,
 						oauth2token).Token()
 					if err1 != nil {
 						c.Logger().Warn(errors.WithStack(err1))

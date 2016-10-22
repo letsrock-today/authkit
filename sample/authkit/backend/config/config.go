@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 
 	"github.com/spf13/viper"
 
@@ -44,27 +45,45 @@ func Get() Config {
 	if err != nil {
 		panic(err)
 	}
+	c.PrivateProviderID = "hydra-sample"
+	c.PrivateProviderIDTrustedContext = "hydra-sample-trusted"
 	return c
 }
 
-var _ authkit.Config = Get()
-
 type Config struct {
-	ListenAddr               string           `mapstructure:"listen-addr"`
-	TLSCertFile              string           `mapstructure:"tls-cert-file"`
-	TLSKeyFile               string           `mapstructure:"tls-key-file"`
-	TLSInsecureSkipVerify    bool             `mapstructure:"tls-insecure-skip-verify"`
-	HydraAddr                string           `mapstructure:"hydra-addr"`
-	ExternalBaseURL          string           `mapstructure:"external-base-url"`
-	OAuth2RedirectURL        string           `mapstructure:"oauth2-redirect-url"`
-	ChallengeLifespan        time.Duration    `mapstructure:"challenge-lifespan"`
-	ConfirmationLinkLifespan time.Duration    `mapstructure:"confirmation-link-lifespan"`
-	authCookieName           string           `mapstructure:"auth-cookie-name"`
-	EmailConfig              EmailConfig      `mapstructure:"email-config"`
-	oauth2State              oauth2State      `mapstructure:"oauth2-state"`
-	privateOAuth2Provider    oauth2Provider   `mapstructure:"private-oauth2-provider"`
-	oauth2Providers          []oauth2Provider `mapstructure:"oauth2-providers"`
-	modTime                  time.Time        `mapstructure:"-"`
+	PrivateProviderID               string `mapstructure:"-"`
+	PrivateProviderIDTrustedContext string `mapstructure:"-"`
+
+	ListenAddr            string `mapstructure:"listen-addr"`
+	TLSCertFile           string `mapstructure:"tls-cert-file"`
+	TLSKeyFile            string `mapstructure:"tls-key-file"`
+	TLSInsecureSkipVerify bool   `mapstructure:"tls-insecure-skip-verify"`
+
+	HydraAddr         string `mapstructure:"hydra-addr"`
+	ExternalBaseURL   string `mapstructure:"external-base-url"`
+	OAuth2RedirectURL string `mapstructure:"oauth2-redirect-url"`
+
+	ChallengeLifespan        time.Duration `mapstructure:"challenge-lifespan"`
+	ConfirmationLinkLifespan time.Duration `mapstructure:"confirmation-link-lifespan"`
+
+	authCookieName string `mapstructure:"auth-cookie-name"`
+
+	EmailConfig struct {
+		Sender     string `mapstructure:"sender"`
+		SenderPass string `mapstructure:"sender-pass"`
+		MailServer string `mapstructure:"server"`
+		MailPort   string `mapstructure:"port"`
+	} `mapstructure:"email-config"`
+
+	MongoDB struct {
+		URL  string `mapstructure:"url"`
+		Name string `mapstructure:"name"`
+	} `mapstructure:"mongodb"`
+
+	oauth2State           oauth2State      `mapstructure:"oauth2-state"`
+	privateOAuth2Provider oauth2Provider   `mapstructure:"private-oauth2-provider"`
+	oauth2Providers       []oauth2Provider `mapstructure:"oauth2-providers"`
+	modTime               time.Time        `mapstructure:"-"`
 }
 
 func (c Config) AuthCookieName() string {
@@ -78,6 +97,19 @@ func (c Config) OAuth2State() authkit.OAuth2State {
 func (c Config) PrivateOAuth2Provider() authkit.OAuth2Provider {
 	c.privateOAuth2Provider.c = &c
 	return c.privateOAuth2Provider
+}
+
+func (c Config) OAuth2ClientCredentials() *clientcredentials.Config {
+	return &clientcredentials.Config{
+		ClientID:     c.privateOAuth2Provider.clientID,
+		ClientSecret: c.privateOAuth2Provider.clientSecret,
+		Scopes:       c.privateOAuth2Provider.scopes,
+		TokenURL: strings.Replace(
+			c.privateOAuth2Provider.tokenURL,
+			"{base-url}",
+			c.HydraAddr,
+			-1),
+	}
 }
 
 func (c Config) OAuth2Providers() chan authkit.OAuth2Provider {
@@ -180,11 +212,4 @@ func (s oauth2State) TokenSignKey() []byte {
 
 func (s oauth2State) Expiration() time.Duration {
 	return s.expiration
-}
-
-type EmailConfig struct {
-	Sender     string `mapstructure:"sender"`
-	SenderPass string `mapstructure:"sender-pass"`
-	MailServer string `mapstructure:"server"`
-	MailPort   string `mapstructure:"port"`
 }
