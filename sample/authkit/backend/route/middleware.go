@@ -6,6 +6,7 @@ import (
 
 	"github.com/letsrock-today/hydra-sample/authkit"
 	_middleware "github.com/letsrock-today/hydra-sample/authkit/middleware"
+	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
 )
 
 var (
@@ -15,7 +16,7 @@ var (
 
 func initMiddleware(
 	e *echo.Echo,
-	c authkit.Config,
+	c config.Config,
 	tokenValidator authkit.TokenValidator,
 	userService authkit.MiddlewareUserService,
 	contextCreator authkit.ContextCreator) {
@@ -28,27 +29,24 @@ func initMiddleware(
 	e.Use(middleware.Secure())
 	e.Use(middleware.CSRF())
 
-	privateProviderID := "" //TODO: from config
 	oauth2Config := c.PrivateOAuth2Provider().OAuth2Config()
 
 	profileMiddleware = _middleware.AccessTokenWithConfig(
 		_middleware.AccessTokenConfig{
-			privateProviderID,
-			_middleware.DefaultContextKey,
-			nil,
-			tokenValidator,
-			userService,
-			oauth2Config,
-			contextCreator,
+			PrivateProviderID: c.PrivateProviderID,
+			ContextKey:        _middleware.DefaultContextKey,
+			TokenValidator:    tokenValidator,
+			UserService:       userService,
+			OAuth2Config:      oauth2Config,
+			ContextCreator:    contextCreator,
 		})
 	friendsMiddleware = _middleware.AccessTokenWithConfig(
 		_middleware.AccessTokenConfig{
-			privateProviderID,
-			_middleware.DefaultContextKey,
-			nil,
-			tokenValidator,
-			userService,
-			oauth2Config,
-			contextCreator,
+			PrivateProviderID: c.PrivateProviderID,
+			ContextKey:        _middleware.DefaultContextKey,
+			TokenValidator:    tokenValidator,
+			UserService:       userService,
+			OAuth2Config:      oauth2Config,
+			ContextCreator:    contextCreator,
 		})
 }

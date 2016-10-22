@@ -37,16 +37,18 @@ func Init(prefPath, prefName string) {
 	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
-}
-
-func Get() Config {
-	var c Config
-	err := viper.Unmarshal(&c)
+	err = viper.Unmarshal(&c)
 	if err != nil {
 		panic(err)
 	}
 	c.PrivateProviderID = "hydra-sample"
 	c.PrivateProviderIDTrustedContext = "hydra-sample-trusted"
+	c.modTime = time.Now()
+}
+
+var c Config
+
+func Get() Config {
 	return c
 }
 
@@ -66,7 +68,7 @@ type Config struct {
 	ChallengeLifespan        time.Duration `mapstructure:"challenge-lifespan"`
 	ConfirmationLinkLifespan time.Duration `mapstructure:"confirmation-link-lifespan"`
 
-	authCookieName string `mapstructure:"auth-cookie-name"`
+	AuthCookieNameField string `mapstructure:"auth-cookie-name"`
 
 	EmailConfig struct {
 		Sender     string `mapstructure:"sender"`
@@ -80,32 +82,32 @@ type Config struct {
 		Name string `mapstructure:"name"`
 	} `mapstructure:"mongodb"`
 
-	oauth2State           oauth2State      `mapstructure:"oauth2-state"`
-	privateOAuth2Provider oauth2Provider   `mapstructure:"private-oauth2-provider"`
-	oauth2Providers       []oauth2Provider `mapstructure:"oauth2-providers"`
-	modTime               time.Time        `mapstructure:"-"`
+	OAuth2StateField           oauth2State      `mapstructure:"oauth2-state"`
+	PrivateOAuth2ProviderField oauth2Provider   `mapstructure:"private-oauth2-provider"`
+	OAuth2ProvidersField       []oauth2Provider `mapstructure:"oauth2-providers"`
+	modTime                    time.Time
 }
 
 func (c Config) AuthCookieName() string {
-	return c.authCookieName
+	return c.AuthCookieNameField
 }
 
 func (c Config) OAuth2State() authkit.OAuth2State {
-	return c.oauth2State
+	return c.OAuth2StateField
 }
 
 func (c Config) PrivateOAuth2Provider() authkit.OAuth2Provider {
-	c.privateOAuth2Provider.c = &c
-	return c.privateOAuth2Provider
+	c.PrivateOAuth2ProviderField.c = &c
+	return c.PrivateOAuth2ProviderField
 }
 
 func (c Config) OAuth2ClientCredentials() *clientcredentials.Config {
 	return &clientcredentials.Config{
-		ClientID:     c.privateOAuth2Provider.clientID,
-		ClientSecret: c.privateOAuth2Provider.clientSecret,
-		Scopes:       c.privateOAuth2Provider.scopes,
+		ClientID:     c.PrivateOAuth2ProviderField.ClientIDField,
+		ClientSecret: c.PrivateOAuth2ProviderField.ClientSecretField,
+		Scopes:       c.PrivateOAuth2ProviderField.ScopesField,
 		TokenURL: strings.Replace(
-			c.privateOAuth2Provider.tokenURL,
+			c.PrivateOAuth2ProviderField.TokenURLField,
 			"{base-url}",
 			c.HydraAddr,
 			-1),
@@ -115,7 +117,7 @@ func (c Config) OAuth2ClientCredentials() *clientcredentials.Config {
 func (c Config) OAuth2Providers() chan authkit.OAuth2Provider {
 	ch := make(chan authkit.OAuth2Provider)
 	go func() {
-		for _, p := range c.oauth2Providers {
+		for _, p := range c.OAuth2ProvidersField {
 			p.c = &c
 			ch <- p
 		}
@@ -125,7 +127,7 @@ func (c Config) OAuth2Providers() chan authkit.OAuth2Provider {
 }
 
 func (c Config) OAuth2ProviderByID(id string) authkit.OAuth2Provider {
-	for _, p := range c.oauth2Providers {
+	for _, p := range c.OAuth2ProvidersField {
 		if p.ID() == id {
 			p.c = &c
 			return p
@@ -139,28 +141,28 @@ func (c Config) ModTime() time.Time {
 }
 
 type oauth2Provider struct {
-	id           string   `mapstructure:"id"`
-	name         string   `mapstructure:"name"`
-	clientID     string   `mapstructure:"client-id"`
-	clientSecret string   `mapstructure:"client-secret"`
-	publicKey    string   `mapstructure:"public-key"`
-	scopes       []string `mapstructure:"scopes"`
-	iconURL      string   `mapstructure:"icon"`
-	tokenURL     string   `mapstructure:"token-url"`
-	authURL      string   `mapstructure:"auth-url"`
-	c            *Config  `mapstructure:"-"`
+	IDField           string   `mapstructure:"id"`
+	NameField         string   `mapstructure:"name"`
+	ClientIDField     string   `mapstructure:"client-id"`
+	ClientSecretField string   `mapstructure:"client-secret"`
+	PublicKeyField    string   `mapstructure:"public-key"`
+	ScopesField       []string `mapstructure:"scopes"`
+	IconURLField      string   `mapstructure:"icon"`
+	TokenURLField     string   `mapstructure:"token-url"`
+	AuthURLField      string   `mapstructure:"auth-url"`
+	c                 *Config
 }
 
 func (p oauth2Provider) ID() string {
-	return p.id
+	return p.IDField
 }
 
 func (p oauth2Provider) Name() string {
-	return p.name
+	return p.NameField
 }
 
 func (p oauth2Provider) IconURL() string {
-	return p.iconURL
+	return p.IconURLField
 }
 
 func (p oauth2Provider) OAuth2Config() authkit.OAuth2Config {
@@ -178,12 +180,12 @@ func newOAuth2Config(p oauth2Provider, private bool) authkit.OAuth2Config {
 	} else {
 		baseURL = p.c.ExternalBaseURL
 	}
-	tokenURL := strings.Replace(p.tokenURL, "{base-url}", baseURL, -1)
-	authURL := strings.Replace(p.authURL, "{base-url}", baseURL, -1)
+	tokenURL := strings.Replace(p.TokenURLField, "{base-url}", baseURL, -1)
+	authURL := strings.Replace(p.AuthURLField, "{base-url}", baseURL, -1)
 	return &oauth2.Config{
-		ClientID:     p.clientID,
-		ClientSecret: p.clientSecret,
-		Scopes:       p.scopes,
+		ClientID:     p.ClientIDField,
+		ClientSecret: p.ClientSecretField,
+		Scopes:       p.ScopesField,
 		Endpoint: oauth2.Endpoint{
 			TokenURL: tokenURL,
 			AuthURL:  authURL,

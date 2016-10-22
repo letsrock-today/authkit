@@ -137,8 +137,6 @@ func (h hydra) IssueConsentToken(
 }
 
 func (h hydra) IssueToken(login string) (*oauth2.Token, error) {
-	//TODO: may we remove first argument and just use h.contextCreator?
-
 	// This method used to retrieve access token for our own web app in
 	// case of form-based login within app (not consent page).
 	// Not sure, whether it's safe to expose token,
