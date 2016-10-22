@@ -18,8 +18,22 @@ oauth2-redirect-url: "https://localhost:8080/callback"
 challenge-lifespan: 5m
 confirmation-link-lifespan: 60m
 
+auth-cookie-name: "X-App-Auth"
+
+email-config:
+    sender: "xxx@gmail.com"
+    sender-pass: "xxx"
+    server: "smtp.gmail.com"
+    port: 587
+
+oauth2-state:
+    token-issuer: hydra-sample
+    # cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32
+    token-sign-key: "xxx"
+    expiration: 15m
+ 
 # hydra secrets (returned when client created via CLI)
-hydra-clientcredentials:
+private-oauth2-provider:
     client-id: "a8a9bffa-d748-440d-9d67-bd161018a495"
     client-secret: "mUn,rc-K6=bHA5XSN&9nYEhGVx"
     scopes:
@@ -32,18 +46,6 @@ hydra-clientcredentials:
         - api.friends.get
     token-url: "{base-url}/oauth2/token"
     auth-url: "{base-url}/oauth2/auth"
-
-oauth2-state:
-    token-issuer: hydra-sample
-    # cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32
-    token-sign-key: "xxx"
-    expiration: 15m
- 
-email-config:
-    sender: "xxx@gmail.com"
-    sender-pass: "xxx"
-    server: "smtp.gmail.com"
-    port: 587
 
 oauth2-providers:
 

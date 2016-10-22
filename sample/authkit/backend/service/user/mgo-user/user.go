@@ -58,13 +58,6 @@ type store struct {
 	users     *mgo.Collection
 }
 
-//TODO: pass as a parameters to New()
-//const (
-//	dbURL              = "localhost"
-//	dbName             = "hydra-sample"
-//	userCollectionName = "users"
-//)
-
 // New returns new user.Store based on MongoDB.
 func New(
 	dbURL, dbName, userCollectionName string,

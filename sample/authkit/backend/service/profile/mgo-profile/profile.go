@@ -14,13 +14,6 @@ type service struct {
 	profiles  *mgo.Collection
 }
 
-//TODO: pass as a parameters to New()
-//const (
-//	dbURL                 = "localhost"
-//	dbName                = "hydra-sample"
-//	profileCollectionName = "profiles"
-//)
-
 // New creates new profile.Service based on MongoDB.
 func New(dbURL, dbName, profileCollectionName string) (profile.Service, error) {
 	ss, err := mgo.Dial(dbURL)

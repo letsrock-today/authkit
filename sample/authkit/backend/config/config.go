@@ -1,191 +1,190 @@
 package config
 
 import (
-	"log"
+	"encoding/hex"
+	"fmt"
+	"strings"
 	"time"
 
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/clientcredentials"
+
+	"github.com/spf13/viper"
 
 	"github.com/letsrock-today/hydra-sample/authkit"
 )
 
 const (
-	PrivPID = "hydra-sample"
+	defPath = "./env"
+	defName = "dev"
 )
 
-type Config struct {
-	ListenAddr               string                   `yaml:"listen-addr"`
-	TLSCertFile              string                   `yaml:"tls-cert-file"`
-	TLSKeyFile               string                   `yaml:"tls-key-file"`
-	HydraAddr                string                   `yaml:"hydra-addr"`
-	ExternalBaseURL          string                   `yaml:"external-base-url"`
-	OAuth2RedirectURL        string                   `yaml:"oauth2-redirect-url"`
-	OAuth2State              OAuth2State              `yaml:"oauth2-state"`
-	HydraClientCredentials   clientcredentials.Config `yaml:"-"`
-	HydraOAuth2Provider      OAuth2Provider           `yaml:"hydra-clientcredentials"`
-	OAuth2Providers          []OAuth2Provider         `yaml:"oauth2-providers"`
-	ChallengeLifespan        time.Duration            `yaml:"challenge-lifespan"`
-	ConfirmationLinkLifespan time.Duration            `yaml:"confirmation-link-lifespan"`
-	EmailConfig              EmailConfig              `yaml:"email-config"`
-	modTime                  time.Time                `yaml:"-"`
-	TLSInsecureSkipVerify    bool                     `yaml:"tls-insecure-skip-verify"`
-	AuthCookieName           string                   `yaml:"auth-cookie-name"`
-}
+// Init initializes app's config.
+// App should invoke this function from the main after it parsed flags.
+// prefPath, prefName allows to overwrite default values for config dir and base file name.
+func Init(prefPath, prefName string) {
+	if prefPath != "" {
+		viper.AddConfigPath(prefPath)
+	}
+	viper.AddConfigPath(defPath)
+	viper.AddConfigPath(".")
+	if prefName == "" {
+		prefName = defName
+	}
+	viper.SetConfigName(prefName)
 
-type OAuth2State struct {
-	TokenIssuer     string        `yaml:"token-issuer"`
-	TokenSignKeyHex string        `yaml:"token-sign-key"`
-	TokenSignKey    []byte        `yaml:"-"`
-	Expiration      time.Duration `yaml:"expiration"`
-}
-
-type OAuth2Provider struct {
-	Id                  string         `json:"id" yaml:"id"`
-	Name                string         `json:"name" yaml:"name"`
-	ClientId            string         `json:"-" yaml:"client-id"`
-	ClientSecret        string         `json:"-" yaml:"client-secret"`
-	PublicKey           string         `json:"-" yaml:"public-key"`
-	Scopes              []string       `json:"-" yaml:"scopes"`
-	IconURL             string         `json:"iconUrl" yaml:"icon"`
-	TokenURL            string         `json:"-" yaml:"token-url"`
-	AuthURL             string         `json:"-" yaml:"auth-url"`
-	OAuth2Config        *oauth2.Config `json:"-" yaml:"-"`
-	PrivateOAuth2Config *oauth2.Config `json:"-" yaml:"-"`
-}
-
-type EmailConfig struct {
-	Sender     string `yaml:"sender"`
-	SenderPass string `yaml:"sender-pass"`
-	MailServer string `yaml:"server"`
-	MailPort   string `yaml:"port"`
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
 }
 
 func Get() Config {
-	once.Do(func() {
-		log.Printf("Program started with config file '%s'", cfgPath)
-		cfg.Store(loadConfig())
-		initConfigFileWatcher()
-	})
-	return cfg.Load().(Config)
+	var c Config
+	err := viper.Unmarshal(&c)
+	if err != nil {
+		panic(err)
+	}
+	return c
 }
 
-func ModTime() time.Time {
-	return Get().modTime
+var _ authkit.Config = Get()
+
+type Config struct {
+	ListenAddr               string           `mapstructure:"listen-addr"`
+	TLSCertFile              string           `mapstructure:"tls-cert-file"`
+	TLSKeyFile               string           `mapstructure:"tls-key-file"`
+	TLSInsecureSkipVerify    bool             `mapstructure:"tls-insecure-skip-verify"`
+	HydraAddr                string           `mapstructure:"hydra-addr"`
+	ExternalBaseURL          string           `mapstructure:"external-base-url"`
+	OAuth2RedirectURL        string           `mapstructure:"oauth2-redirect-url"`
+	ChallengeLifespan        time.Duration    `mapstructure:"challenge-lifespan"`
+	ConfirmationLinkLifespan time.Duration    `mapstructure:"confirmation-link-lifespan"`
+	authCookieName           string           `mapstructure:"auth-cookie-name"`
+	EmailConfig              EmailConfig      `mapstructure:"email-config"`
+	oauth2State              oauth2State      `mapstructure:"oauth2-state"`
+	privateOAuth2Provider    oauth2Provider   `mapstructure:"private-oauth2-provider"`
+	oauth2Providers          []oauth2Provider `mapstructure:"oauth2-providers"`
+	modTime                  time.Time        `mapstructure:"-"`
 }
 
-//////////////////////
-
-//TODO: this is temporary adapter, refactoring needed
-
-func GetCfg() authkit.Config {
-	return _config{Get()}
+func (c Config) AuthCookieName() string {
+	return c.authCookieName
 }
 
-type _config struct {
-	c Config
+func (c Config) OAuth2State() authkit.OAuth2State {
+	return c.oauth2State
 }
 
-func (c _config) OAuth2State() authkit.OAuth2State {
-	return _oauth2State{c.c.OAuth2State}
+func (c Config) PrivateOAuth2Provider() authkit.OAuth2Provider {
+	c.privateOAuth2Provider.c = &c
+	return c.privateOAuth2Provider
 }
 
-func (c _config) OAuth2Providers() chan authkit.OAuth2Provider {
+func (c Config) OAuth2Providers() chan authkit.OAuth2Provider {
 	ch := make(chan authkit.OAuth2Provider)
 	go func() {
-		for _, p := range c.c.OAuth2Providers {
-			ch <- _oauth2Provider{p}
+		for _, p := range c.oauth2Providers {
+			p.c = &c
+			ch <- p
 		}
 		close(ch)
 	}()
 	return ch
 }
 
-func (c _config) PrivateOAuth2Provider() authkit.OAuth2Provider {
-	return _oauth2Provider{c.c.HydraOAuth2Provider}
-}
-
-func (c _config) OAuth2ProviderByID(id string) authkit.OAuth2Provider {
-	for _, p := range c.c.OAuth2Providers {
-		if p.Id == id {
-			return _oauth2Provider{p}
+func (c Config) OAuth2ProviderByID(id string) authkit.OAuth2Provider {
+	for _, p := range c.oauth2Providers {
+		if p.ID() == id {
+			p.c = &c
+			return p
 		}
 	}
 	return nil
 }
 
-func (c _config) ModTime() time.Time {
-	return c.c.modTime
+func (c Config) ModTime() time.Time {
+	return c.modTime
 }
 
-func (c _config) TLSInsecureSkipVerify() bool {
-	return c.c.TLSInsecureSkipVerify
+type oauth2Provider struct {
+	id           string   `mapstructure:"id"`
+	name         string   `mapstructure:"name"`
+	clientID     string   `mapstructure:"client-id"`
+	clientSecret string   `mapstructure:"client-secret"`
+	publicKey    string   `mapstructure:"public-key"`
+	scopes       []string `mapstructure:"scopes"`
+	iconURL      string   `mapstructure:"icon"`
+	tokenURL     string   `mapstructure:"token-url"`
+	authURL      string   `mapstructure:"auth-url"`
+	c            *Config  `mapstructure:"-"`
 }
 
-func (c _config) AuthCookieName() string {
-	return c.c.AuthCookieName
+func (p oauth2Provider) ID() string {
+	return p.id
 }
 
-type _oauth2State struct {
-	s OAuth2State
+func (p oauth2Provider) Name() string {
+	return p.name
 }
 
-func (s _oauth2State) TokenIssuer() string {
-	return s.s.TokenIssuer
+func (p oauth2Provider) IconURL() string {
+	return p.iconURL
 }
 
-func (s _oauth2State) TokenSignKey() []byte {
-	return s.s.TokenSignKey
+func (p oauth2Provider) OAuth2Config() authkit.OAuth2Config {
+	return newOAuth2Config(p, false)
 }
 
-func (s _oauth2State) Expiration() time.Duration {
-	return s.s.Expiration
+func (p oauth2Provider) PrivateOAuth2Config() authkit.OAuth2Config {
+	return newOAuth2Config(p, true)
 }
 
-type _oauth2Provider struct {
-	p OAuth2Provider
+func newOAuth2Config(p oauth2Provider, private bool) authkit.OAuth2Config {
+	var baseURL string
+	if private {
+		baseURL = p.c.HydraAddr
+	} else {
+		baseURL = p.c.ExternalBaseURL
+	}
+	tokenURL := strings.Replace(p.tokenURL, "{base-url}", baseURL, -1)
+	authURL := strings.Replace(p.authURL, "{base-url}", baseURL, -1)
+	return &oauth2.Config{
+		ClientID:     p.clientID,
+		ClientSecret: p.clientSecret,
+		Scopes:       p.scopes,
+		Endpoint: oauth2.Endpoint{
+			TokenURL: tokenURL,
+			AuthURL:  authURL,
+		},
+		RedirectURL: viper.GetString("oauth2-redirect-url"),
+	}
 }
 
-func (p _oauth2Provider) ID() string {
-	return PrivPID
+type oauth2State struct {
+	tokenIssuer     string        `mapstructure:"token-issuer"`
+	tokenSignKeyHex string        `mapstructure:"token-sign-key"`
+	expiration      time.Duration `mapstructure:"expiration"`
 }
 
-func (p _oauth2Provider) Name() string {
-	return p.p.Name
+func (s oauth2State) TokenIssuer() string {
+	return s.tokenIssuer
 }
 
-func (p _oauth2Provider) ClientID() string {
-	return p.p.ClientId
+func (s oauth2State) TokenSignKey() []byte {
+	tokenSignKey, err := hex.DecodeString(s.tokenSignKeyHex)
+	if err != nil {
+		panic(err)
+	}
+	return tokenSignKey
 }
 
-func (p _oauth2Provider) ClientSecret() string {
-	return p.p.ClientSecret
+func (s oauth2State) Expiration() time.Duration {
+	return s.expiration
 }
 
-func (p _oauth2Provider) PublicKey() string {
-	return p.p.PublicKey
-}
-
-func (p _oauth2Provider) Scopes() []string {
-	return p.p.Scopes
-}
-
-func (p _oauth2Provider) IconURL() string {
-	return p.p.IconURL
-}
-
-func (p _oauth2Provider) TokenURL() string {
-	return p.p.TokenURL
-}
-
-func (p _oauth2Provider) AuthURL() string {
-	return p.p.AuthURL
-}
-
-func (p _oauth2Provider) OAuth2Config() authkit.OAuth2Config {
-	return p.p.OAuth2Config
-}
-
-func (p _oauth2Provider) PrivateOAuth2Config() authkit.OAuth2Config {
-	return p.p.PrivateOAuth2Config
+type EmailConfig struct {
+	Sender     string `mapstructure:"sender"`
+	SenderPass string `mapstructure:"sender-pass"`
+	MailServer string `mapstructure:"server"`
+	MailPort   string `mapstructure:"port"`
 }

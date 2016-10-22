@@ -1,11 +1,6 @@
-hash: c78b15a142f3543e8db3446868b0197eb500448faf8d60599449473c91bb8050
-updated: 2016-10-20T06:40:19.284438589+03:00
+hash: 28bf325a462634c62438644d19b97127a464c635786b2170536ee8f37640b6a0
+updated: 2016-10-22T13:35:29.715587623+07:00
 imports:
-- name: cloud.google.com/go
-  version: d2c474b720a2d9357cbf828e3831d230787a618c
-  subpackages:
-  - compute/metadata
-  - internal
 - name: github.com/asaskevich/govalidator
   version: 7b3beb6df3c42abd3509abfc3bcacc0fbfb7c877
 - name: github.com/dgrijalva/jwt-go
@@ -18,6 +13,21 @@ imports:
   - proto
 - name: github.com/hashicorp/golang-lru
   version: 0a025b7e63adc15a622f29b0b2c4c3848243bbf6
+  subpackages:
+  - simplelru
+- name: github.com/hashicorp/hcl
+  version: 99ce73d4fe576449f7a689d4fc2b2ad09a86bdaa
+  subpackages:
+  - hcl/ast
+  - hcl/parser
+  - hcl/scanner
+  - hcl/strconv
+  - hcl/token
+  - json/parser
+  - json/scanner
+  - json/token
+- name: github.com/kr/fs
+  version: 2788f0dbd16903de03cb8186e5c7d97b69ad387b
 - name: github.com/labstack/echo
   version: 04e6901d05b58ddbae579a6252a3d1bb3f334adc
   subpackages:
@@ -33,6 +43,8 @@ imports:
   - color
   - log
   - random
+- name: github.com/magiconair/properties
+  version: 0723e352fa358f9322c938cc2dadda874e9151a9
 - name: github.com/mattn/go-colorable
   version: 6c903ff4aa50920ca86087a280590b36b3152b9c
 - name: github.com/mattn/go-isatty
@@ -40,18 +52,43 @@ imports:
 - name: github.com/mendsley/gojwk
   version: 4d5ec6e58103388d6cb0d7d72bc72649be4f0504
 - name: github.com/mitchellh/mapstructure
-  version: a6ef2f080c66d0a2e94e97cf74f80f772855da63
+  version: f3009df150dadf309fdee4a54ed65c124afad715
 - name: github.com/pborman/uuid
   version: a97ce2ca70fa5a848076093f05e639a89ca34d06
+- name: github.com/pelletier/go-buffruneio
+  version: df1e16fde7fc330a0ca68167c23bf7ed6ac31d6d
+- name: github.com/pelletier/go-toml
+  version: 45932ad32dfdd20826f5671da37a5f3ce9f26a8d
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/pkg/sftp
+  version: 4d0e916071f68db74f8a73926335f809396d6b42
+- name: github.com/spf13/afero
+  version: 52e4a6cfac46163658bd4f123c49b6ee7dc75f78
+  subpackages:
+  - mem
+  - sftp
+- name: github.com/spf13/cast
+  version: 2580bc98dc0e62908119e4737030cc2fdfc45e4c
+- name: github.com/spf13/jwalterweatherman
+  version: 33c24e77fb80341fe7130ee7c594256ff08ccc46
+- name: github.com/spf13/pflag
+  version: dabebe21bf790f782ea4c7bbd2efc430de182afd
+- name: github.com/spf13/viper
+  version: 50515b700e02658272117a72bd641b6b7f1222e5
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
+- name: golang.org/x/crypto
+  version: 3c0d69f1777220f1a1d2ec373cb94a282f03eb42
+  subpackages:
+  - curve25519
+  - ed25519
+  - ed25519/internal/edwards25519
+  - ssh
 - name: golang.org/x/net
-  version: 3bafa3320efdf0c95d056586aa9abdd05ad72ee1
+  version: 41c5c5cb12965112d2e298342c73e6b3e045a14a
   subpackages:
   - context
-  - context/ctxhttp
 - name: golang.org/x/oauth2
   version: 1e695b1c8febf17aad3bfa7bf0a819ef94b98ad5
   subpackages:
@@ -62,8 +99,6 @@ imports:
   - google
   - heroku
   - internal
-  - jws
-  - jwt
   - linkedin
   - odnoklassniki
   - paypal
@@ -74,15 +109,18 @@ imports:
   version: 002cbb5f952456d0c50e0d2aff17ea5eca716979
   subpackages:
   - unix
+- name: golang.org/x/text
+  version: 5a42fa2464759cbb7ee0af9de00b54d69f09a29c
+  subpackages:
+  - transform
+  - unicode/norm
 - name: google.golang.org/appengine
   version: 5b8c3b819891014a2d12354528f7d046dd53c89e
   subpackages:
   - internal
-  - internal/app_identity
   - internal/base
   - internal/datastore
   - internal/log
-  - internal/modules
   - internal/remote_api
   - internal/urlfetch
   - urlfetch

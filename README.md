@@ -39,6 +39,9 @@ This project uses:
 - https://github.com/dgrijalva/jwt-go, to create tokens, when we have to;
 - https://github.com/asaskevich/govalidator, for validation logic;
 - https://github.com/mitchellh/mapstructure, to convert maps into structures;
+- https://github.com/hashicorp/golang-lru, for caching;
+- https://github.com/stretchr/testify, for testing and mocking;
+- https://github.com/h2non/gock, to mock HTTP server;
 - ...
 
 Our aim is to provide:

@@ -44,11 +44,11 @@ func sendConfirmationEmail(
 	resetPassword bool) error {
 	cfg := config.Get()
 	token, err := apptoken.NewEmailTokenString(
-		cfg.OAuth2State.TokenIssuer,
+		cfg.OAuth2State().TokenIssuer(),
 		to,
 		passwordhash,
 		cfg.ConfirmationLinkLifespan,
-		cfg.OAuth2State.TokenSignKey)
+		cfg.OAuth2State().TokenSignKey())
 	if err != nil {
 		return err
 	}
