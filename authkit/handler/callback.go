@@ -58,10 +58,7 @@ func (h handler) Callback(c echo.Context) error {
 	var oauth2cfg authkit.OAuth2Config
 	privateProvider := h.config.PrivateOAuth2Provider()
 	privPID := privateProvider.ID()
-	ctx, err := h.contextCreator.CreateContext(privPID)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	ctx := h.contextCreator.CreateContext(privPID)
 
 	if state.ProviderID() == privPID {
 		oauth2cfg = privateProvider.PrivateOAuth2Config()
