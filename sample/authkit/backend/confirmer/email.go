@@ -28,7 +28,7 @@ func Send(to, subj, text string) error {
 		return err
 	}
 
-	c := config.Get().EmailConfig
+	c := config.Get().EmailConfig()
 
 	var b bytes.Buffer
 	if err = t.Execute(&b, struct {

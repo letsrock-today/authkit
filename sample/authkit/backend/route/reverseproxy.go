@@ -16,14 +16,14 @@ import (
 // we use proxy for hydra requests, so that all interaction with UI went via single port
 
 func initReverseProxy(e *echo.Echo) {
-	cfg := config.Get()
-	u, err := url.Parse(cfg.HydraAddr)
+	c := config.Get()
+	u, err := url.Parse(c.HydraAddr())
 	if err != nil {
 		log.Fatal(err)
 	}
 	proxy := httputil.NewSingleHostReverseProxy(u)
 	proxy.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: cfg.TLSInsecureSkipVerify},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: c.TLSInsecureSkipVerify()},
 	}
 
 	e.Any("/oauth2/*", standard.WrapHandler(proxy))

@@ -23,25 +23,25 @@ func main() {
 	flag.StringVar(&cfgPath, "config path", "", "dir with app's config")
 	flag.StringVar(&cfgName, "config name", "", "app's config base file name")
 	config.Init(cfgPath, cfgName)
-	cfg := config.Get()
+	c := config.Get()
 
 	userCollectionName := "users"
 	profileCollectionName := "profiles"
 
 	// store implementation can be changed here
 	us, err := user.New(
-		cfg.MongoDB.URL,
-		cfg.MongoDB.Name,
+		c.MongoDB().URL,
+		c.MongoDB().Name,
 		userCollectionName,
-		cfg.ConfirmationLinkLifespan)
+		c.ConfirmationLinkLifespan())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer us.Close()
 
 	ps, err := profile.New(
-		cfg.MongoDB.URL,
-		cfg.MongoDB.Name,
+		c.MongoDB().URL,
+		c.MongoDB().Name,
 		profileCollectionName)
 	if err != nil {
 		log.Fatal(err)
@@ -51,6 +51,7 @@ func main() {
 	e := echo.New()
 	e.SetDebug(true)
 	e.SetLogLevel(0)
+	e.SetHTTPErrorHandler(newHTTPErrorHandler(e.DefaultHTTPErrorHandler))
 
 	route.Init(e, us, ps)
 
@@ -58,20 +59,16 @@ func main() {
 		templates: template.Must(template.ParseGlob("../ui-web/templates/*.html")),
 	})
 
-	c := config.Get()
-
-	log.Printf("Serving at address: '%s'.", c.ListenAddr)
+	log.Printf("Serving at address: '%s'.", c.ListenAddr())
 	log.Printf("Use 'https://' prefix in browser.")
 	log.Printf("Press Ctrl+C to exit.")
 
 	e.Run(standard.WithConfig(engine.Config{
-		Address:     c.ListenAddr,
-		TLSCertFile: c.TLSCertFile,
-		TLSKeyFile:  c.TLSKeyFile,
+		Address:     c.ListenAddr(),
+		TLSCertFile: c.TLSCertFile(),
+		TLSKeyFile:  c.TLSKeyFile(),
 	}))
 }
-
-//TODO: refactoring required
 
 type Renderer struct {
 	templates *template.Template
@@ -79,4 +76,11 @@ type Renderer struct {
 
 func (t *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
+}
+
+func newHTTPErrorHandler(prev func(error, echo.Context)) func(error, echo.Context) {
+	return func(err error, c echo.Context) {
+		prev(err, c)
+		c.Logger().Debugf("%+v", err)
+	}
 }

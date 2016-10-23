@@ -1,6 +1,11 @@
 hash: 28bf325a462634c62438644d19b97127a464c635786b2170536ee8f37640b6a0
-updated: 2016-10-22T13:35:29.715587623+07:00
+updated: 2016-10-23T17:40:30.108969479+07:00
 imports:
+- name: cloud.google.com/go
+  version: e46f105e04cc9e1b4075aa9836989710e2153c48
+  subpackages:
+  - compute/metadata
+  - internal
 - name: github.com/asaskevich/govalidator
   version: 7b3beb6df3c42abd3509abfc3bcacc0fbfb7c877
 - name: github.com/dgrijalva/jwt-go
@@ -86,9 +91,10 @@ imports:
   - ed25519/internal/edwards25519
   - ssh
 - name: golang.org/x/net
-  version: 41c5c5cb12965112d2e298342c73e6b3e045a14a
+  version: f11d7120b19ae21da5715f3e47621736de1b1da9
   subpackages:
   - context
+  - context/ctxhttp
 - name: golang.org/x/oauth2
   version: 1e695b1c8febf17aad3bfa7bf0a819ef94b98ad5
   subpackages:
@@ -99,6 +105,8 @@ imports:
   - google
   - heroku
   - internal
+  - jws
+  - jwt
   - linkedin
   - odnoklassniki
   - paypal
@@ -118,9 +126,11 @@ imports:
   version: 5b8c3b819891014a2d12354528f7d046dd53c89e
   subpackages:
   - internal
+  - internal/app_identity
   - internal/base
   - internal/datastore
   - internal/log
+  - internal/modules
   - internal/remote_api
   - internal/urlfetch
   - urlfetch

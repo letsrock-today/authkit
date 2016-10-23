@@ -27,10 +27,11 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 
+	oauth2State := h.config.OAuth2State()
 	t, err := apptoken.ParseEmailToken(
-		h.config.OAuth2State().TokenIssuer(),
+		oauth2State.TokenIssuer(),
 		r.Token[0],
-		h.config.OAuth2State().TokenSignKey())
+		oauth2State.TokenSignKey())
 	if err != nil {
 		if err, ok := errors.Cause(err).(*jwt.ValidationError); ok {
 			if err.Errors&jwt.ValidationErrorExpired == jwt.ValidationErrorExpired {

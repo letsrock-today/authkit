@@ -25,6 +25,8 @@ type (
 	}
 )
 
+//TODO: render errors as in ConfirmEmail
+
 func (h handler) Callback(c echo.Context) error {
 	var cr callbackRequest
 	if err := c.Bind(&cr); err != nil {
@@ -44,23 +46,25 @@ func (h handler) Callback(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 
+	oauth2State := h.config.OAuth2State()
 	state, err := apptoken.ParseStateToken(
-		h.config.OAuth2State().TokenIssuer(),
+		oauth2State.TokenIssuer(),
 		cr.State,
-		h.config.OAuth2State().TokenSignKey())
+		oauth2State.TokenSignKey())
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	var oauth2cfg authkit.OAuth2Config
-	privPID := h.config.PrivateOAuth2Provider().ID()
+	privateProvider := h.config.PrivateOAuth2Provider()
+	privPID := privateProvider.ID()
 	ctx, err := h.contextCreator.CreateContext(privPID)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	if state.ProviderID() == privPID {
-		oauth2cfg = h.config.PrivateOAuth2Provider().PrivateOAuth2Config()
+		oauth2cfg = privateProvider.PrivateOAuth2Config()
 	} else {
 		p := h.config.OAuth2ProviderByID(state.ProviderID())
 		if p == nil {

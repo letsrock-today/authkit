@@ -19,15 +19,15 @@ func Init(
 	c := config.Get()
 
 	as := hydra.New(
-		c.HydraAddr,
-		c.PrivateProviderID,
-		c.PrivateProviderIDTrustedContext,
-		c.ChallengeLifespan,
-		c.PrivateOAuth2Provider().OAuth2Config().(*oauth2.Config),
+		c.HydraAddr(),
+		c.PrivateProviderID(),
+		c.PrivateProviderIDTrustedContext(),
+		c.ChallengeLifespan(),
+		c.PrivateOAuth2Provider().PrivateOAuth2Config().(*oauth2.Config),
 		c.OAuth2ClientCredentials(),
 		c.OAuth2State(),
 		authkit.DefaultContextCreator{},
-		c.TLSInsecureSkipVerify)
+		c.TLSInsecureSkipVerify())
 
 	cc := authkit.DefaultContextCreator{}
 	sps := socialprofile.Providers()

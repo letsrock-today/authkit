@@ -42,18 +42,19 @@ func sendConfirmationEmail(
 	to, passwordhash string,
 	urlpath string,
 	resetPassword bool) error {
-	cfg := config.Get()
+	c := config.Get()
+	oauth2State := c.OAuth2State()
 	token, err := apptoken.NewEmailTokenString(
-		cfg.OAuth2State().TokenIssuer(),
+		oauth2State.TokenIssuer(),
 		to,
 		passwordhash,
-		cfg.ConfirmationLinkLifespan,
-		cfg.OAuth2State().TokenSignKey())
+		c.ConfirmationLinkLifespan(),
+		oauth2State.TokenSignKey())
 	if err != nil {
 		return err
 	}
 
-	externalURL := cfg.ExternalBaseURL + urlpath
+	externalURL := c.ExternalBaseURL() + urlpath
 	link := fmt.Sprintf("%s?token=%s", externalURL, token)
 	var text, topic string
 	if resetPassword {
