@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/spf13/viper"
@@ -35,7 +34,7 @@ func Init(prefPath, prefName string) {
 	c.c.PrivateOAuth2Provider.ID = c.c.PrivateProviderID
 	c.c.modTime = time.Now()
 
-	log.Printf("Effective config:\n%#v\n", c.c)
+	// log.Printf("Effective config:\n%#v\n", c.c)
 }
 
 func Get() Config {

@@ -62,14 +62,15 @@ func (s service) Save(p authkit.Profile) error {
 }
 
 func (s service) EnsureExists(login string) error {
-	p := socialprofile.Profile{}
 	_, err := s.profiles.Upsert(
+		bson.M{
+			"email": login,
+		},
 		bson.M{
 			"$setOnInsert": bson.M{
 				"email": login,
 			},
-		},
-		p)
+		})
 	return err
 }
 

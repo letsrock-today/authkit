@@ -10,6 +10,8 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/letsrock-today/hydra-sample/authkit"
 )
 
 func TestForgotPassword(t *testing.T) {
@@ -30,7 +32,7 @@ func TestForgotPassword(t *testing.T) {
 	}, nil)
 	us.On(
 		"User",
-		"unknown@login.ok").Return(nil, testNewTestUserNotFoundError())
+		"unknown@login.ok").Return(nil, authkit.NewUserNotFoundError(nil))
 	us.On(
 		"RequestPasswordChangeConfirmation",
 		"valid@login.ok",
@@ -38,7 +40,7 @@ func TestForgotPassword(t *testing.T) {
 	us.On(
 		"RequestPasswordChangeConfirmation",
 		"unreachable@login.ok",
-		"valid_password_hash").Return(testUserServiceError{})
+		"valid_password_hash").Return(authkit.NewRequestConfirmationError(nil))
 
 	h := handler{
 		errorCustomizer: testErrorCustomizer{},
@@ -127,12 +129,12 @@ func TestChangePassword(t *testing.T) {
 		"UpdatePassword",
 		"unknown@login.ok",
 		"valid_password_hash",
-		"strong-password").Return(testUserServiceError{isUserNotFound: true})
+		"strong-password").Return(authkit.NewUserNotFoundError(nil))
 	us.On(
 		"UpdatePassword",
 		"valid@login.ok",
 		"invalid_password_hash",
-		"strong-password").Return(testUserServiceError{isUserNotFound: true})
+		"strong-password").Return(authkit.NewUserNotFoundError(nil))
 	us.On(
 		"UpdatePassword",
 		"valid@login.ok",

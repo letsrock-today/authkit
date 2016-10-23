@@ -12,8 +12,9 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
-	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/letsrock-today/hydra-sample/authkit"
 )
 
 func TestConfirmEmail(t *testing.T) {
@@ -26,7 +27,7 @@ func TestConfirmEmail(t *testing.T) {
 		"fail_create_profile@login.ok").Return(nil)
 	us.On(
 		"Enable",
-		"invalid@login.ok").Return(testUserServiceError{isUserNotFound: true})
+		"invalid@login.ok").Return(authkit.NewUserNotFoundError(nil))
 
 	ps := new(testProfileService)
 	ps.On(

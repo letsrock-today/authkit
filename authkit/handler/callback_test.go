@@ -51,7 +51,7 @@ func TestCallback(t *testing.T) {
 		"valid@login.ok").Return(testUser{login: "valid@email.ok"}, nil)
 	us.On(
 		"User",
-		"new.valid@login.ok").Return(nil, testUserServiceError{isUserNotFound: true})
+		"new.valid@login.ok").Return(nil, authkit.NewUserNotFoundError(nil))
 
 	us.On(
 		"CreateEnabled",

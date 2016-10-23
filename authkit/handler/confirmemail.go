@@ -57,7 +57,7 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 
 	if err := h.users.Enable(t.Login()); err != nil {
 		<-ch
-		if err, ok := err.(authkit.UserNotFoundError); ok && err.IsUserNotFound() {
+		if authkit.IsUserNotFound(err) {
 			c.Logger().Debug(errors.WithStack(err))
 			return c.Render(
 				http.StatusUnauthorized,

@@ -186,3 +186,49 @@ func (requestConfirmationError) Error() string {
 func (requestConfirmationError) IsRequestConfirmationError() bool {
 	return true
 }
+
+func existsCause(err error, predicate func(error) bool) bool {
+	type causer interface {
+		Cause() error
+	}
+
+	for err != nil {
+		if predicate(err) {
+			return true
+		}
+		cause, ok := err.(causer)
+		if !ok {
+			return false
+		}
+		err = cause.Cause()
+	}
+	return false
+}
+
+func IsDuplicateUser(err error) bool {
+	return existsCause(err, func(e error) bool {
+		e1, ok := e.(DuplicateUserError)
+		return ok && e1.IsDuplicateUser()
+	})
+}
+
+func IsUserNotFound(err error) bool {
+	return existsCause(err, func(e error) bool {
+		e1, ok := e.(UserNotFoundError)
+		return ok && e1.IsUserNotFound()
+	})
+}
+
+func IsAccountDisabled(err error) bool {
+	return existsCause(err, func(e error) bool {
+		e1, ok := e.(AccountDisabledError)
+		return ok && e1.IsAccountDisabled()
+	})
+}
+
+func IsRequestConfirmationError(err error) bool {
+	return existsCause(err, func(e error) bool {
+		e1, ok := e.(RequestConfirmationError)
+		return ok && e1.IsRequestConfirmationError()
+	})
+}

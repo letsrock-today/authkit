@@ -31,7 +31,7 @@ func TestLogin(t *testing.T) {
 	us.On(
 		"Authenticate",
 		"valid@login.ok",
-		"invalid_password").Return(testNewTestUserNotFoundError())
+		"invalid_password").Return(authkit.NewUserNotFoundError(nil))
 	us.On(
 		"Authenticate",
 		"valid@login.ok",
@@ -39,15 +39,15 @@ func TestLogin(t *testing.T) {
 	us.On(
 		"Create",
 		"new.valid@login.ok",
-		"valid_password").Return(testNewTestAccountDisabledError())
+		"valid_password").Return(authkit.NewAccountDisabledError(nil))
 	us.On(
 		"Create",
 		"broken.valid@login.ok",
-		"valid_password").Return(testNewTestAccountDisabledError())
+		"valid_password").Return(authkit.NewAccountDisabledError(nil))
 	us.On(
 		"Create",
 		"old.valid@login.ok",
-		"valid_password").Return(testNewTestDuplicateUserError())
+		"valid_password").Return(authkit.NewDuplicateUserError(nil))
 	us.On(
 		"RequestEmailConfirmation",
 		"new.valid@login.ok").Return(nil)

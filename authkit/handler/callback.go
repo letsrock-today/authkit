@@ -102,7 +102,7 @@ func (h handler) Callback(c echo.Context) error {
 	// Check that internal user exists for external user.
 	user, err := h.users.User(login)
 	if err != nil {
-		if err, ok := err.(authkit.UserNotFoundError); !ok || !err.IsUserNotFound() {
+		if !authkit.IsUserNotFound(err) {
 			return errors.WithStack(err)
 		}
 	}

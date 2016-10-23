@@ -31,7 +31,7 @@ func (c confirmer) RequestEmailConfirmation(
 
 func (c confirmer) RequestPasswordChangeConfirmation(
 	login, passwordHash string) authkit.UserServiceError {
-	err := sendConfirmationEmail(login, passwordHash, c.confirmPasswordURL, false)
+	err := sendConfirmationEmail(login, passwordHash, c.confirmPasswordURL, true)
 	if err != nil {
 		return authkit.NewRequestConfirmationError(err)
 	}

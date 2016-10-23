@@ -3,6 +3,7 @@ package route
 import (
 	"github.com/labstack/echo"
 	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/authkit/contextcacher"
 	"github.com/letsrock-today/hydra-sample/authkit/hydra"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/confirmer"
@@ -17,6 +18,13 @@ func Init(
 	us user.Store,
 	ps profile.Service) {
 	c := config.Get()
+	ccCfg := contextcacher.NewConfig(100, 100)
+	ccCfg.Set(c.PrivateProviderID(), contextcacher.ContextConfig{true})
+	ccCfg.Set(c.PrivateProviderIDTrustedContext(), contextcacher.ContextConfig{true})
+	cc, err := contextcacher.NewWithConfig(us, ccCfg)
+	if err != nil {
+		panic(err)
+	}
 
 	as := hydra.New(
 		c.HydraAddr(),
@@ -26,10 +34,9 @@ func Init(
 		c.PrivateOAuth2Provider().PrivateOAuth2Config().(*oauth2.Config),
 		c.OAuth2ClientCredentials(),
 		c.OAuth2State(),
-		authkit.DefaultContextCreator{},
+		cc,
 		c.TLSInsecureSkipVerify())
 
-	cc := authkit.DefaultContextCreator{}
 	sps := socialprofile.Providers()
 	userService := struct {
 		user.Store

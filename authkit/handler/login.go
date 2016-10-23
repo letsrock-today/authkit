@@ -61,7 +61,7 @@ func (h handler) Login(c echo.Context) error {
 
 	if err := action(lf.Login, lf.Password); err != nil {
 		if signup {
-			if err, ok := err.(authkit.AccountDisabledError); ok && err.IsAccountDisabled() {
+			if authkit.IsAccountDisabled(err) {
 				if err := h.users.RequestEmailConfirmation(lf.Login); err != nil {
 					return errors.WithStack(err)
 				}

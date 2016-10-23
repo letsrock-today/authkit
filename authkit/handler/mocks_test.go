@@ -122,12 +122,13 @@ func (testErrorCustomizer) InvalidRequestParameterError(error) interface{} {
 
 func (testErrorCustomizer) UserCreationError(e error) interface{} {
 	var msg string
-	err := e.(testUserServiceError)
-	switch {
-	case err.IsDuplicateUser():
+	switch e.(type) {
+	case authkit.DuplicateUserError:
 		msg = "dup user"
-	case err.IsAccountDisabled():
+	case authkit.AccountDisabledError:
 		msg = "acc disabled"
+	case authkit.RequestConfirmationError:
+		msg = "req confirm error"
 	default:
 		msg = "general error"
 	}
@@ -262,50 +263,6 @@ func (m *testUserService) RequestPasswordChangeConfirmation(
 		return err
 	}
 	return nil
-}
-
-type testUserServiceError struct {
-	isUserNotFound    bool
-	isDuplicateUser   bool
-	isAccountDisabled bool
-}
-
-func (testUserServiceError) Error() string {
-	return "user service error"
-}
-
-func (e testUserServiceError) IsDuplicateUser() bool {
-	return e.isDuplicateUser
-}
-
-func (e testUserServiceError) IsUserNotFound() bool {
-	return e.isUserNotFound
-}
-
-func (e testUserServiceError) IsAccountDisabled() bool {
-	return e.isAccountDisabled
-}
-
-func (e testUserServiceError) Cause() error {
-	return nil
-}
-
-func testNewTestDuplicateUserError() authkit.UserServiceError {
-	return testUserServiceError{
-		isDuplicateUser: true,
-	}
-}
-
-func testNewTestUserNotFoundError() authkit.UserServiceError {
-	return testUserServiceError{
-		isUserNotFound: true,
-	}
-}
-
-func testNewTestAccountDisabledError() authkit.UserServiceError {
-	return testUserServiceError{
-		isAccountDisabled: true,
-	}
 }
 
 type testUser struct {

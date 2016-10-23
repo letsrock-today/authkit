@@ -1,4 +1,4 @@
-package contextcreator
+package contextcacher
 
 type Config struct {
 	cacheContextSize        int
@@ -10,6 +10,7 @@ func NewConfig(cacheContextSize, cachePrivateContextSize int) *Config {
 	return &Config{
 		cacheContextSize:        cacheContextSize,
 		cachePrivateContextSize: cachePrivateContextSize,
+		configs:                 make(map[string]ContextConfig),
 	}
 }
 
