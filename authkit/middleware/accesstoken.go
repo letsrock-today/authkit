@@ -4,8 +4,11 @@ import (
 	"net/http"
 	"strings"
 
+	"golang.org/x/oauth2"
+
 	"github.com/labstack/echo"
 	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/authkit/helper"
 	"github.com/pkg/errors"
 )
 
@@ -125,33 +128,17 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			if config.OAuth2Config != nil && config.ContextCreator != nil {
 				go func() {
 					defer func() { sync <- struct{}{} }()
-					oauth2token, err := config.UserService.OAuth2Token(
+					err := helper.WithOAuthTokenDo(
+						config.UserService,
 						user.Login(),
-						config.PrivateProviderID)
+						config.PrivateProviderID,
+						func(token *oauth2.Token) (*oauth2.Token, error) {
+							ctx := config.ContextCreator.CreateContext(config.PrivateProviderID)
+							return config.OAuth2Config.TokenSource(ctx, token).Token()
+						})
 					if err != nil {
 						c.Logger().Warn(errors.WithStack(err))
 						return
-					}
-					ctx, err := config.ContextCreator.CreateContext(config.PrivateProviderID)
-					if err != nil {
-						c.Logger().Warn(errors.WithStack(err))
-						return
-					}
-					newToken, err1 := config.OAuth2Config.TokenSource(
-						ctx,
-						oauth2token).Token()
-					if err1 != nil {
-						c.Logger().Warn(errors.WithStack(err1))
-						return
-					}
-					if newToken != oauth2token {
-						err = config.UserService.UpdateOAuth2Token(
-							user.Login(),
-							config.PrivateProviderID,
-							newToken)
-						if err != nil {
-							c.Logger().Warn(errors.WithStack(err))
-						}
 					}
 				}()
 			}

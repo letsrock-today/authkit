@@ -32,7 +32,7 @@ func initAPI(
 	e.POST("/password-change", ah.ChangePassword)
 	e.GET("/callback", ah.Callback)
 
-	h := handler.New(c, ec, ps, cc)
+	h := handler.New(c, ec, us, ps, cc)
 	e.GET("/api/profile", h.Profile, profileMiddleware)
 	e.POST("/api/profile", h.ProfileSave, profileMiddleware)
 	e.GET("/api/friends", h.Friends, friendsMiddleware)
