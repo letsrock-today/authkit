@@ -20,7 +20,7 @@ type contextCreator struct {
 
 // NewContextCreator returns contextCreator.
 func New(us authkit.MiddlewareUserService) (authkit.ContextCreator, error) {
-	return NewWithConfig(us, NewConfig(100, 100))
+	return NewWithConfig(us, NewConfig(100))
 }
 
 func NewWithConfig(

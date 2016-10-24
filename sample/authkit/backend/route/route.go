@@ -18,7 +18,7 @@ func Init(
 	us user.Store,
 	ps profile.Service) {
 	c := config.Get()
-	ccCfg := contextcacher.NewConfig(100, 100)
+	ccCfg := contextcacher.NewConfig(100)
 	ccCfg.Set(c.PrivateProviderID(), contextcacher.ContextConfig{true})
 	ccCfg.Set(c.PrivateProviderIDTrustedContext(), contextcacher.ContextConfig{true})
 	cc, err := contextcacher.NewWithConfig(us, ccCfg)

@@ -1,16 +1,14 @@
 package contextcacher
 
 type Config struct {
-	cacheContextSize        int
-	cachePrivateContextSize int
-	configs                 map[string]ContextConfig
+	cacheContextSize int
+	configs          map[string]ContextConfig
 }
 
-func NewConfig(cacheContextSize, cachePrivateContextSize int) *Config {
+func NewConfig(cacheContextSize int) *Config {
 	return &Config{
-		cacheContextSize:        cacheContextSize,
-		cachePrivateContextSize: cachePrivateContextSize,
-		configs:                 make(map[string]ContextConfig),
+		cacheContextSize: cacheContextSize,
+		configs:          make(map[string]ContextConfig),
 	}
 }
 
