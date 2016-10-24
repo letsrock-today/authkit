@@ -5,7 +5,7 @@ type Config struct {
 	configs          map[string]ContextConfig
 }
 
-func NewConfig(cacheContextSize, cacheContextSize int) *Config {
+func NewConfig(cacheContextSize int) *Config {
 	return &Config{
 		cacheContextSize: cacheContextSize,
 		configs:          make(map[string]ContextConfig),
