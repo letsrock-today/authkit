@@ -205,6 +205,7 @@ func existsCause(err error, predicate func(error) bool) bool {
 	return false
 }
 
+// IsDuplicateUser checks whether error is or caused by the DuplicateUserError.
 func IsDuplicateUser(err error) bool {
 	return existsCause(err, func(e error) bool {
 		e1, ok := e.(DuplicateUserError)
@@ -212,6 +213,7 @@ func IsDuplicateUser(err error) bool {
 	})
 }
 
+// IsUserNotFound checks whether error is or caused by the UserNotFoundError.
 func IsUserNotFound(err error) bool {
 	return existsCause(err, func(e error) bool {
 		e1, ok := e.(UserNotFoundError)
@@ -219,6 +221,7 @@ func IsUserNotFound(err error) bool {
 	})
 }
 
+// IsAccountDisabled checks whether error is or caused by the AccountDisabledError.
 func IsAccountDisabled(err error) bool {
 	return existsCause(err, func(e error) bool {
 		e1, ok := e.(AccountDisabledError)
@@ -226,6 +229,8 @@ func IsAccountDisabled(err error) bool {
 	})
 }
 
+// IsRequestConfirmationError checks whether error is or caused by the
+// RequestConfirmationError.
 func IsRequestConfirmationError(err error) bool {
 	return existsCause(err, func(e error) bool {
 		e1, ok := e.(RequestConfirmationError)

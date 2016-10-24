@@ -22,7 +22,7 @@ func TestGetKey(t *testing.T) {
 
 	assert := assert.New(t)
 
-	testPrepareKeysResponder(t)
+	testPrepareKeysResponder(t, 0)
 
 	h := testCreateHydra()
 
@@ -35,12 +35,32 @@ func TestGetKey(t *testing.T) {
 	assert.NotNil(key)
 }
 
+func TestGetKeyCached(t *testing.T) {
+	defer gock.Off()
+
+	assert := assert.New(t)
+
+	testPrepareKeysResponder(t, 1)
+
+	h := testCreateHydra()
+
+	for i := 0; i < 10; i++ {
+		key, err := h.getConsentChallengePublicKey()
+		assert.NoError(err)
+		assert.NotNil(key)
+
+		key, err = h.getConsentResponsePrivateKey()
+		assert.NoError(err)
+		assert.NotNil(key)
+	}
+}
+
 func TestVerifyConsentChallenge(t *testing.T) {
 	defer gock.Off()
 
 	assert := assert.New(t)
 
-	testPrepareKeysResponder(t)
+	testPrepareKeysResponder(t, 0)
 
 	h := testCreateHydra()
 
@@ -56,7 +76,7 @@ func TestGenerateConsentToken(t *testing.T) {
 
 	assert := assert.New(t)
 
-	testPrepareKeysResponder(t)
+	testPrepareKeysResponder(t, 0)
 
 	h := testCreateHydra()
 
@@ -89,7 +109,7 @@ func TestIssueToken(t *testing.T) {
 		}
 	}
 
-	testPrepareKeysResponder(t)
+	testPrepareKeysResponder(t, 0)
 
 	gock.New("http://foo.com").
 		Get("/auth/auth").
@@ -107,7 +127,7 @@ func TestValidate(t *testing.T) {
 
 	assert := assert.New(t)
 
-	testPrepareKeysResponder(t)
+	testPrepareKeysResponder(t, 0)
 
 	gock.New("http://foo.com").
 		Post("/warden/token/allowed").
@@ -124,7 +144,7 @@ func TestValidate(t *testing.T) {
 	assert.NoError(err)
 }
 
-func testPrepareKeysResponder(t *testing.T) {
+func testPrepareKeysResponder(t *testing.T, timesForKeys int) {
 	assert := assert.New(t)
 
 	token := map[string]string{
@@ -150,11 +170,13 @@ func testPrepareKeysResponder(t *testing.T) {
 	gock.New("http://foo.com").
 		Get("/keys/hydra.consent.response/private").
 		Persist().
+		Times(timesForKeys).
 		Reply(200).
 		JSON(privKeys)
 	gock.New("http://foo.com").
 		Get("/keys/hydra.consent.challenge/public").
 		Persist().
+		Times(timesForKeys).
 		Reply(200).
 		JSON(pubKeys)
 }

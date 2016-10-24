@@ -38,6 +38,8 @@ type handler struct {
 	contextCreator  authkit.ContextCreator
 }
 
+// This helper function used to obtain oauth2.Token from the user before call
+// to supplied callback and to save updated token into the store afterwards.
 func (h handler) withOAuthTokenDo(
 	u user.User,
 	p authkit.OAuth2Provider,

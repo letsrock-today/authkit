@@ -78,7 +78,7 @@ func (h hydra) GenerateConsentToken(
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
-	key, err := h.getKey("hydra.consent.response", "private")
+	key, err := h.getConsentResponsePrivateKey()
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
@@ -115,7 +115,7 @@ func (h hydra) GenerateConsentToken(
 func (h hydra) IssueConsentToken(
 	clientID string,
 	scopes []string) (string, error) {
-	key, err := h.getKey("hydra.consent.response", "private")
+	key, err := h.getConsentResponsePrivateKey()
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
@@ -269,7 +269,7 @@ type challengeClaims struct {
 }
 
 func (h hydra) verifyConsentChallenge(c string) (*jwt.Token, error) {
-	key, err := h.getKey("hydra.consent.challenge", "public")
+	key, err := h.getConsentChallengePublicKey()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -285,7 +285,42 @@ func (h hydra) verifyConsentChallenge(c string) (*jwt.Token, error) {
 	return token, nil
 }
 
-//TODO: cache keys?
+var (
+	consentChallengePublicKey   interface{}
+	consentChallengePublicKeyTS time.Time
+	consentResponsePrivateKey   interface{}
+	consentResponsePrivateKeyTS time.Time
+	ttl                         = 10 * time.Minute
+)
+
+func (h hydra) getConsentChallengePublicKey() (interface{}, error) {
+	if consentChallengePublicKey == nil ||
+		time.Since(consentChallengePublicKeyTS) > ttl {
+		var err error
+		consentChallengePublicKey, err = h.getKey("hydra.consent.challenge", "public")
+		if err != nil {
+			consentChallengePublicKey = nil
+			return nil, err
+		}
+		consentChallengePublicKeyTS = time.Now()
+	}
+	return consentChallengePublicKey, nil
+}
+
+func (h hydra) getConsentResponsePrivateKey() (interface{}, error) {
+	if consentResponsePrivateKey == nil ||
+		time.Since(consentResponsePrivateKeyTS) > ttl {
+		var err error
+		consentResponsePrivateKey, err = h.getKey("hydra.consent.response", "private")
+		if err != nil {
+			consentResponsePrivateKey = nil
+			return nil, err
+		}
+		consentResponsePrivateKeyTS = time.Now()
+	}
+	return consentResponsePrivateKey, nil
+}
+
 func (h hydra) getKey(set, kid string) (interface{}, error) {
 	conf := h.clientCredentials
 	ctx := h.contextCreator.CreateContext(h.providerIDTrustedContext)
