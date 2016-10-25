@@ -6,8 +6,8 @@ import (
 	"github.com/labstack/echo"
 
 	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/authkit/persisttoken"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/profile"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user"
 )
 
 type Handler interface {
@@ -39,24 +39,15 @@ type handler struct {
 	contextCreator  authkit.ContextCreator
 }
 
-// This helper function used to obtain oauth2.Token from the user before call
-// to supplied callback and to save updated token into the store afterwards.
-func (h handler) withOAuth2TokenDo(
-	u user.User,
-	p authkit.OAuth2Provider,
-	do func(client *http.Client) error) error {
-	token := u.OAuth2TokenByProviderID(p.ID())
+// createHttpClient creates http.Client via wrapper around oauth2.Config,
+// which persists oauth2 tokens in the user store.
+func (h handler) createHttpClient(
+	u authkit.User,
+	p authkit.OAuth2Provider) *http.Client {
 	ctx := h.contextCreator.CreateContext(p.ID())
-	client := p.OAuth2Config().Client(ctx, token)
-	if err := do(client); err != nil {
-		return err
-	}
-	newToken, err := p.OAuth2Config().TokenSource(ctx, token).Token()
-	if err != nil {
-		return err
-	}
-	if newToken != nil && newToken != token {
-		return h.us.UpdateOAuth2Token(u.Login(), p.ID(), newToken)
-	}
-	return nil
+	return persisttoken.WrapOAuth2Config(
+		p.OAuth2Config(),
+		u.Login(),
+		p.ID(),
+		userTokenStore{h.us, u}).Client(ctx, nil)
 }

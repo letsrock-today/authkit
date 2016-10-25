@@ -5,36 +5,31 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/middleware"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user"
 )
 
 func (h handler) Friends(c echo.Context) error {
-	u := c.Get(middleware.DefaultContextKey).(user.User)
+	u := c.Get(middleware.DefaultContextKey).(authkit.User)
 	friends := []socialprofile.Profile{}
 	// iterate over all available social networks and geather all friends
 	for p := range h.config.OAuth2Providers() {
-		err := h.withOAuth2TokenDo(u, p, func(client *http.Client) error {
-			sp, err := socialprofile.New(p.ID())
-			if err != nil {
-				// strange, should be implemented for every network
-				// skip, if not implemented
-				log.Println(err)
-				return nil
-			}
-			fl, err := sp.Friends(client)
-			if err != nil {
-				log.Println(err)
-			} else {
-				friends = append(friends, fl...)
-			}
-			return nil
-		})
+		client := h.createHttpClient(u, p)
+		sp, err := socialprofile.New(p.ID())
 		if err != nil {
-			return errors.WithStack(err)
+			// strange, should be implemented for every network
+			// skip, if not implemented
+			log.Println(err)
+			continue
+		}
+		fl, err := sp.Friends(client)
+		if err != nil {
+			log.Println(err)
+			continue
+		} else {
+			friends = append(friends, fl...)
 		}
 	}
 	return c.JSON(http.StatusOK, friends)

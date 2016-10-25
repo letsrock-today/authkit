@@ -94,7 +94,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 				"GET:/permitted-get:yyy": true,
 			},
 		},
-		OAuth2Config:   testTokenSourceProvider{},
+		OAuth2Config:   testOAuth2Config{},
 		ContextCreator: authkit.DefaultContextCreator{},
 	}
 
@@ -378,11 +378,35 @@ func (v testTokenValidator) Validate(token string, perm interface{}) error {
 	return nil
 }
 
-type testTokenSourceProvider struct{}
+type testOAuth2Config struct{}
 
-func (testTokenSourceProvider) TokenSource(
+func (testOAuth2Config) TokenSource(
 	ctx context.Context, t *oauth2.Token) oauth2.TokenSource {
 	return testTokenSource{t}
+}
+
+func (testOAuth2Config) AuthCodeURL(
+	state string,
+	opts ...oauth2.AuthCodeOption) string {
+	panic("not implemented")
+}
+
+func (testOAuth2Config) PasswordCredentialsToken(
+	ctx context.Context,
+	username, password string) (*oauth2.Token, error) {
+	panic("not implemented")
+}
+
+func (testOAuth2Config) Exchange(
+	ctx context.Context,
+	code string) (*oauth2.Token, error) {
+	panic("not implemented")
+}
+
+func (testOAuth2Config) Client(
+	ctx context.Context,
+	t *oauth2.Token) *http.Client {
+	panic("not implemented")
 }
 
 type testTokenSource struct {
