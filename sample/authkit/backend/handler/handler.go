@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
+
 	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/profile"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user"
@@ -40,7 +41,7 @@ type handler struct {
 
 // This helper function used to obtain oauth2.Token from the user before call
 // to supplied callback and to save updated token into the store afterwards.
-func (h handler) withOAuthTokenDo(
+func (h handler) withOAuth2TokenDo(
 	u user.User,
 	p authkit.OAuth2Provider,
 	do func(client *http.Client) error) error {

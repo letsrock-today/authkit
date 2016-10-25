@@ -17,7 +17,7 @@ func (h handler) Friends(c echo.Context) error {
 	friends := []socialprofile.Profile{}
 	// iterate over all available social networks and geather all friends
 	for p := range h.config.OAuth2Providers() {
-		err := h.withOAuthTokenDo(u, p, func(client *http.Client) error {
+		err := h.withOAuth2TokenDo(u, p, func(client *http.Client) error {
 			sp, err := socialprofile.New(p.ID())
 			if err != nil {
 				// strange, should be implemented for every network

@@ -21,12 +21,12 @@ func TestAuthProviders(t *testing.T) {
 	cfg := &testConfig{
 		modTime: time.Now(),
 		oauth2Providers: []testOAuth2Provider{
-			testOAuth2Provider{
+			{
 				id:      "aaa",
 				name:    "Aaa",
 				iconURL: "http://aaa.aa/icon.png",
 			},
-			testOAuth2Provider{
+			{
 				id:      "bbb",
 				name:    "Bbb",
 				iconURL: "http://bbb.bb/icon.png",

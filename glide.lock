@@ -1,8 +1,8 @@
 hash: 28bf325a462634c62438644d19b97127a464c635786b2170536ee8f37640b6a0
-updated: 2016-10-23T17:40:30.108969479+07:00
+updated: 2016-10-25T10:43:55.26778967+07:00
 imports:
 - name: cloud.google.com/go
-  version: e46f105e04cc9e1b4075aa9836989710e2153c48
+  version: 634348d5f32ce73f784ef2401925913aa40d73b8
   subpackages:
   - compute/metadata
   - internal
@@ -42,7 +42,7 @@ imports:
   - log
   - middleware
 - name: github.com/labstack/gommon
-  version: f3b1a1b3bd4726161e1200863d278df7da5e66ff
+  version: 2d272df536d051e737aea353b86c979d6e88bce0
   subpackages:
   - bytes
   - color
@@ -78,20 +78,20 @@ imports:
 - name: github.com/spf13/jwalterweatherman
   version: 33c24e77fb80341fe7130ee7c594256ff08ccc46
 - name: github.com/spf13/pflag
-  version: dabebe21bf790f782ea4c7bbd2efc430de182afd
+  version: 5ccb023bc27df288a957c5e994cd44fd19619465
 - name: github.com/spf13/viper
-  version: 50515b700e02658272117a72bd641b6b7f1222e5
+  version: 80ab6657f9ec7e5761f6603320d3d58dfe6970f6
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: golang.org/x/crypto
-  version: 3c0d69f1777220f1a1d2ec373cb94a282f03eb42
+  version: 1150b8bd09e53aea1d415621adae9bad665061a1
   subpackages:
   - curve25519
   - ed25519
   - ed25519/internal/edwards25519
   - ssh
 - name: golang.org/x/net
-  version: f11d7120b19ae21da5715f3e47621736de1b1da9
+  version: 65dfc08770ce66f74becfdff5f8ab01caef4e946
   subpackages:
   - context
   - context/ctxhttp
@@ -114,11 +114,11 @@ imports:
   - uber
   - vk
 - name: golang.org/x/sys
-  version: 002cbb5f952456d0c50e0d2aff17ea5eca716979
+  version: c200b10b5d5e122be351b67af224adc6128af5bf
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 5a42fa2464759cbb7ee0af9de00b54d69f09a29c
+  version: 2556e8494a202e0b4008f70eda8cdb089b03fa50
   subpackages:
   - transform
   - unicode/norm

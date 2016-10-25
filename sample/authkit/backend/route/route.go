@@ -1,16 +1,20 @@
 package route
 
 import (
+	"crypto/tls"
+	"net/http"
+
+	"golang.org/x/oauth2"
+
 	"github.com/labstack/echo"
+
 	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/authkit/contextcacher"
 	"github.com/letsrock-today/hydra-sample/authkit/hydra"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/confirmer"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/profile"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user"
-	"golang.org/x/oauth2"
 )
 
 func Init(
@@ -18,13 +22,18 @@ func Init(
 	us user.Store,
 	ps profile.Service) {
 	c := config.Get()
-	ccCfg := contextcacher.NewConfig(100)
-	ccCfg.Set(c.PrivateProviderID(), contextcacher.ContextConfig{true})
-	ccCfg.Set(c.PrivateProviderIDTrustedContext(), contextcacher.ContextConfig{true})
-	cc, err := contextcacher.NewWithConfig(us, ccCfg)
-	if err != nil {
-		panic(err)
-	}
+
+	httpclient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: c.TLSInsecureSkipVerify(),
+			}}}
+
+	cc := authkit.NewCustomHTTPClientContextCreator(
+		map[string]*http.Client{
+			c.PrivateProviderID():               httpclient,
+			c.PrivateProviderIDTrustedContext(): httpclient,
+		})
 
 	as := hydra.New(
 		c.HydraAddr(),

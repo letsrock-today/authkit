@@ -5,8 +5,9 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo"
-	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/pkg/errors"
+
+	"github.com/letsrock-today/hydra-sample/authkit"
 )
 
 type (

@@ -7,9 +7,10 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+
 	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/helper"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -128,7 +129,7 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			if config.OAuth2Config != nil && config.ContextCreator != nil {
 				go func() {
 					defer func() { sync <- struct{}{} }()
-					err := helper.WithOAuthTokenDo(
+					err := helper.WithOAuth2TokenDo(
 						config.UserService,
 						user.Login(),
 						config.PrivateProviderID,

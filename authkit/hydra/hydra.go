@@ -11,12 +11,13 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/mendsley/gojwk"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/clientcredentials"
 
 	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/middleware"

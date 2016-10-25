@@ -10,11 +10,12 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/authkit/middleware"
 	"github.com/mendsley/gojwk"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/h2non/gock.v1"
+
+	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/authkit/middleware"
 )
 
 func TestGetKey(t *testing.T) {
@@ -159,8 +160,8 @@ func testPrepareKeysResponder(t *testing.T, timesForKeys int) {
 	pubKey, err := gojwk.PublicKey(k.Public())
 	assert.NoError(err)
 
-	privKeys := map[string][]gojwk.Key{"keys": []gojwk.Key{*privKey}}
-	pubKeys := map[string][]gojwk.Key{"keys": []gojwk.Key{*pubKey}}
+	privKeys := map[string][]gojwk.Key{"keys": {*privKey}}
+	pubKeys := map[string][]gojwk.Key{"keys": {*pubKey}}
 
 	gock.New("http://foo.com").
 		Post("/auth/token").

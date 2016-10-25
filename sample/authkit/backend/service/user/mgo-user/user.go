@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user"
-	"github.com/pkg/errors"
-
 	"golang.org/x/oauth2"
 
+	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+
+	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user"
 )
 
 type userData struct {

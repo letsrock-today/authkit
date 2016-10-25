@@ -15,7 +15,7 @@ func TestDefaultPermissionMapper(t *testing.T) {
 			Route{
 				Method: "GET",
 				Path:   "/aa/bb/cc",
-			}: DefaultPermission{
+			}: {
 				Resource: "res:cc-bb-aa",
 				Action:   "view",
 				Scopes:   []string{"first-scope", "second-scope"},
@@ -23,7 +23,7 @@ func TestDefaultPermissionMapper(t *testing.T) {
 			Route{
 				Method: "POST",
 				Path:   "/aa/bb/cc",
-			}: DefaultPermission{
+			}: {
 				Resource: "res:some_resource",
 				Action:   "edit",
 				Scopes:   []string{"test-scope"},

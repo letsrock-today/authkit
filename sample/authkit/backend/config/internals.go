@@ -19,8 +19,9 @@ import (
 	"golang.org/x/oauth2/uber"
 	"golang.org/x/oauth2/vk"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/pkg/errors"
+
+	"github.com/letsrock-today/hydra-sample/authkit"
 )
 
 const (

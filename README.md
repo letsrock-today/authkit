@@ -11,6 +11,33 @@ between them and to represent demo (blueprint?) solution(s) for particular
 authorization scenario(s). Also, any piece of code (helper, handler, middleware)
 should be customizable and reusable.
 
+If you simply need a social login via one provider from the list, you may use
+one of this libraries:
+- https://github.com/golang/oauth2;
+- https://github.com/markbates/goth.
+
+Our project uses golang/oauth2 and simplifies configuration a bit
+(in our opinion). Though, this task is may be already straightforward enough.
+
+markbates/goth is good for the task of using many different auth providers from
+predefined list, it provides ability to configure providers and to implement
+new ones. It even goes as far as to retrieve user-related data from provider
+(like user name, location or avatar URL from social network). But it leaves
+couple of gaps unfilled:
+- it seems that it has no ready-to-use integration with form-based login;
+- it seems that it has no ready-to-use token-based auth middleware;
+- it seems that it has no ready-to-use integration with on-promise
+  oauth2 provider (so that app would make it's API accessible to 3rd party
+  with login via OAuth2);
+
+This gaps may be filled with other projects. Echo, Gorilla, Negrony, Iris, etc
+can be used to provide necessary handlers and middleware. And our project is an
+attempt to provide some reusable pieces to fill this gap.
+
+We started this project from porting and tailoring
+[Hydra usage example](https://github.com/ory-am/hydra-idp-react). It may be seen
+as more elaborated usage example of Hydra, oauth2, Echo and related stuff.
+
 Initially, we are focused on the following task:
 
 - we have custom http API;
@@ -24,7 +51,7 @@ Initially, we are focused on the following task:
   via OAuth2 code flow;
 - we want to expose single IP address to our clients (or several equivalent
   addresses), so, for example, we want to proxy requests to Hydra via Nginx or
-  our own application;
+  our own application.
 
 So, our side in this context controls resource owner, OAuth2 client and provider.
 
@@ -46,12 +73,23 @@ This project uses:
 
 Our aim is to provide:
 
-- [ ] a set of server-side primitives (http handlers, routes, middleware, helpers)
+- [x] a set of server-side primitives (http handlers, routes, middleware, helpers)
       usable to implement different oauth2 scenarios;
 - [ ] binary auth module for Nginx (see http://nginx.org/en/docs/http/ngx_http_auth_request_module.html);
 - [ ] examples of our library usage in both modes: directly and behind Nginx;
-- [ ] sample web app implementation using [Riot.js](http://riotjs.com/);
+- [x] sample web app implementation using [Riot.js](http://riotjs.com/);
 - [ ] sample Android app implementation;
+
+TODO:
+- how simple it would be to reuse providers' implementations from markbates/goth?
+- if we use swagger or another lib to generate SDK from provider's API, or
+  ready-to-use SDK from provider in our app, is it still convenient to use
+  something like markbates/goth (we assume, that application creator still
+  needs provider's API for other features)?
+- should we try to implement example with Iris to learn is it simple/possible?
+- if we use swagger or another lib to generate server-side stubs from app's API
+  description, how it would affect usage of the lib? could we provide custom
+  templates to generate code, which is used our lib and Echo?
 
 Finally, when the lib is ready, we want to migrate our own application
 (https://letsrock.today/) to it and to enjoy benefits of going open-source.
@@ -147,3 +185,13 @@ popd
 
 ```
 
+## Note
+
+We will appreciate any interest and contribution to our project. We are not
+security experts. We hope, that project will be useful enough to others to
+have it well tested and reviewed and to have a benefits from its
+"open-sourceness". Though, if you decide to use this (or any other
+security-related open-source project) in your own application, be warned that
+it's your charge to review it thoroughly, take in account all possible
+implications, etc. It's **you** how are in charge of security of your
+solution after all, don't blame us.

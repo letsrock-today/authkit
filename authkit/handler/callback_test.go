@@ -11,9 +11,10 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
-	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/letsrock-today/hydra-sample/authkit"
 )
 
 func TestCallback(t *testing.T) {
@@ -119,11 +120,11 @@ func TestCallback(t *testing.T) {
 				privOAuth2Config: privCfg,
 			},
 			oauth2Providers: []testOAuth2Provider{
-				testOAuth2Provider{
+				{
 					id:           "external-id",
 					oauth2Config: extCfg,
 				},
-				testOAuth2Provider{
+				{
 					id:           "external-id-new",
 					oauth2Config: extCfg,
 				},

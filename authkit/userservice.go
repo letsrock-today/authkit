@@ -12,7 +12,7 @@ type (
 
 	// UserStore provides methods to persist users.
 	UserStore interface {
-		tokenStore
+		TokenStore
 		middlewareMethods
 		handlerMethods
 	}
@@ -29,19 +29,20 @@ type (
 	// MiddlewareUserService provides methods to persist user.
 	// Methods of this interface are specific to middleware package.
 	MiddlewareUserService interface {
-		tokenStore
+		TokenStore
 		middlewareMethods
 	}
 
 	// HandlerUserService provides methods to persist user.
 	// Methods of this interface are specific to handler package.
 	HandlerUserService interface {
-		tokenStore
+		TokenStore
 		handlerMethods
 		Confirmer
 	}
 
-	tokenStore interface {
+	// TokenStore provides methods to persist OAuth2 token in the custom store.
+	TokenStore interface {
 		// OAuth2Token returns OAuth2 token by login and OAuth2 provider ID.
 		OAuth2Token(login, providerID string) (*oauth2.Token, UserServiceError)
 
@@ -87,6 +88,10 @@ type (
 
 	// UserServiceError is a general error specific to UserService.
 	// It's just an  alias for error interface.
+	// Application should use subtypes of UserServiceError to return errors
+	// form UserService. It may use New...Error functions from this package, or
+	// return it's own custom errors. It's important that errors implement
+	// right interface, because authorization logic depends on it.
 	UserServiceError error
 
 	causer interface {
@@ -188,10 +193,6 @@ func (requestConfirmationError) IsRequestConfirmationError() bool {
 }
 
 func existsCause(err error, predicate func(error) bool) bool {
-	type causer interface {
-		Cause() error
-	}
-
 	for err != nil {
 		if predicate(err) {
 			return true
