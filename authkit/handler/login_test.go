@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/oauth2"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
@@ -89,6 +90,11 @@ func TestLogin(t *testing.T) {
 		},
 	}
 
+	govalidator.TagMap["password"] = govalidator.Validator(func(p string) bool {
+		// simplified password validator for test
+		return len(p) > 3
+	})
+
 	cases := []struct {
 		name                  string
 		params                url.Values
@@ -101,6 +107,16 @@ func TestLogin(t *testing.T) {
 		{
 			name:          "No params",
 			params:        make(url.Values),
+			expStatusCode: http.StatusBadRequest,
+			expBody:       `{"Code":"invalid req param"}`,
+		},
+		{
+			name: "Login: short password",
+			params: url.Values{
+				"action":   []string{"login"},
+				"login":    []string{"valid@login.ok"},
+				"password": []string{"xx"},
+			},
 			expStatusCode: http.StatusBadRequest,
 			expBody:       `{"Code":"invalid req param"}`,
 		},

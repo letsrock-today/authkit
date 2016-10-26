@@ -68,6 +68,7 @@ function msgForErr(err) {
 		case 'login-required':
 		case 'login-format':
 		case 'password-required':
+		case 'password-format':
 		case 'email-required':
 		case 'email-format':
             // messages from server are good enough for demo,

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
@@ -153,6 +154,11 @@ func TestChangePassword(t *testing.T) {
 		},
 	}
 
+	govalidator.TagMap["password"] = govalidator.Validator(func(p string) bool {
+		// simplified password validator for test
+		return len(p) > 3
+	})
+
 	cases := []struct {
 		name          string
 		params        url.Values
@@ -262,4 +268,17 @@ func TestChangePassword(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestDefaultPasswordValidator(t *testing.T) {
+	assert := assert.New(t)
+	v := defaultPasswordValidator
+	assert.False(v(""), "empty")
+	assert.False(v("zZ1$"), "short")
+	assert.False(v(`0000000000zzzzzzzzzzZZZZZZZZZZ1111111111@@@@@@@@@@2222222222`), "too long")
+	assert.False(v("ZZZ111@@@"), "no lowercase letters")
+	assert.False(v("zzz222###"), "no uppercase letters")
+	assert.False(v("zzzZZZ$$$"), "no digits")
+	assert.False(v("zzzZZZ111"), "no other symbols")
+	assert.True(v("zX42#!"), "good password")
 }

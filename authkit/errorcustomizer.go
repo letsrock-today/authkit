@@ -1,5 +1,8 @@
 package authkit
 
+//TODO: consider to switch to https://gopkg.in/bluesuncorp/validator.v9,
+// which is more active, has more features, particulary translation support.
+
 // ErrorCustomizer used to transform low-level errors before render them to
 // http response. It could be used to provide app-specific error code or i18n.
 // Values returned by interface methods are marshalled into response.

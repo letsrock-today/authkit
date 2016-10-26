@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"unicode"
 
 	"github.com/asaskevich/govalidator"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -20,8 +21,7 @@ type (
 	}
 
 	changePasswordForm struct {
-		//TODO: rigorous password rules (digits, different case, etc.)
-		Password string `form:"password1" valid:"required~password-required,stringlength(3|30)"`
+		Password string `form:"password1" valid:"required~password-required,password~password-format"`
 		Token    string `form:"token" valid:"required"`
 	}
 )
@@ -99,4 +99,29 @@ func (h handler) ChangePassword(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 	return c.JSON(http.StatusOK, struct{}{})
+}
+
+func defaultPasswordValidator(p string) bool {
+	l := len(p)
+	if l < 5 || l > 50 {
+		return false
+	}
+	lower, upper, digits, other := 0, 0, 0, 0
+	for _, r := range p {
+		switch {
+		case unicode.IsLower(r):
+			lower++
+		case unicode.IsUpper(r):
+			upper++
+		case unicode.IsDigit(r):
+			digits++
+		default:
+			other++
+
+		}
+		if lower > 0 && upper > 0 && digits > 0 && other > 0 {
+			return true
+		}
+	}
+	return false
 }

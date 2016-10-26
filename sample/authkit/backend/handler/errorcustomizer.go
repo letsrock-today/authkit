@@ -41,6 +41,10 @@ func (ec) InvalidRequestParameterError(e error) interface{} {
 			je = jsonError{code, "Login should be a valid email address"}
 		case "password-required":
 			je = jsonError{code, "Password is required"}
+		case "password-format":
+			je = jsonError{code, `Password must be 5-50 chars long,
+contain latin letters in both registers,
+digits and other symbols (at least one of each kind)`}
 		case "email-required":
 			je = jsonError{code, "Email is required"}
 		case "email-format":

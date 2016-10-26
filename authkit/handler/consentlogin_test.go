@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
@@ -80,6 +81,11 @@ func TestConsentLogin(t *testing.T) {
 		users:           us,
 	}
 
+	govalidator.TagMap["password"] = govalidator.Validator(func(p string) bool {
+		// simplified password validator for test
+		return len(p) > 3
+	})
+
 	cases := []struct {
 		name          string
 		params        url.Values
@@ -104,6 +110,18 @@ func TestConsentLogin(t *testing.T) {
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `{"Code":"user auth err"}`,
+		},
+		{
+			name: "Login: short password",
+			params: url.Values{
+				"action":    []string{"login"},
+				"challenge": []string{"valid_challenge"},
+				"login":     []string{"valid@login.ok"},
+				"password":  []string{"xx"},
+				"scopes":    []string{"valid_scope"},
+			},
+			expStatusCode: http.StatusBadRequest,
+			expBody:       `{"Code":"invalid req param"}`,
 		},
 		{
 			name: "Login: invalid password",

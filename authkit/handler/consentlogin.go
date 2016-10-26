@@ -14,9 +14,9 @@ type (
 	//TODO: remove assamption login == email?
 
 	consentLoginForm struct {
-		P         loginForm
-		Challenge string   `form:"challenge" valid:"required"`
-		Scopes    []string `form:"scopes" valid:"required,stringlength(1|500)"`
+		P         loginForm `valid:"required"`
+		Challenge string    `form:"challenge" valid:"required"`
+		Scopes    []string  `form:"scopes" valid:"required,stringlength(1|500)"`
 	}
 
 	consentLoginReply struct {
@@ -34,7 +34,7 @@ func (h handler) ConsentLogin(c echo.Context) error {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
-			h.errorCustomizer.InvalidRequestParameterError(err))
+			h.errorCustomizer.InvalidRequestParameterError(flatten(err)))
 	}
 
 	signedTokenString, err := h.auth.GenerateConsentToken(
@@ -79,4 +79,24 @@ func (h handler) ConsentLogin(c echo.Context) error {
 		Consent: signedTokenString,
 	}
 	return c.JSON(http.StatusOK, reply)
+}
+
+// See https://github.com/asaskevich/govalidator/issues/164
+func flatten(err error) error {
+	e, ok := err.(govalidator.Errors)
+	if !ok {
+		return err
+	}
+	r := govalidator.Errors{}
+	for _, v := range e {
+		if v, ok := v.(govalidator.Errors); ok {
+			f := flatten(v)
+			if f, ok := f.(govalidator.Errors); ok {
+				r = append(r, f...)
+				continue
+			}
+		}
+		r = append(r, v)
+	}
+	return r
 }

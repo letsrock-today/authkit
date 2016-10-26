@@ -19,10 +19,9 @@ type (
 	//TODO: remove assamption login == email?
 
 	loginForm struct {
-		Action string `form:"action" valid:"required,matches(login|signup)"`
-		Login  string `form:"login" valid:"required~login-required,email~login-format"`
-		//TODO: rigorous password rules (digits, different case, etc.)
-		Password string `form:"password" valid:"required~password-required,stringlength(3|30)"`
+		Action   string `form:"action" valid:"required,matches(login|signup)"`
+		Login    string `form:"login" valid:"required~login-required,email~login-format"`
+		Password string `form:"password" valid:"required~password-required,password~password-format"`
 	}
 
 	loginReply struct {

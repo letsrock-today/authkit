@@ -22,7 +22,7 @@ func initAPI(
 
 	ec := handler.NewErrorCustomizer()
 
-	ah := authkithandler.NewHandler(c, ec, as, us, ps, sps, cc)
+	ah := authkithandler.NewHandler(c, ec, as, us, ps, sps, cc, nil)
 	e.GET("/api/auth-providers", ah.AuthProviders)
 	e.GET("/api/auth-code-urls", ah.AuthCodeURLs)
 	e.POST("/api/login", ah.ConsentLogin)

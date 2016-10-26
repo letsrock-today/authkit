@@ -1,10 +1,14 @@
 package handler
 
-import "github.com/letsrock-today/hydra-sample/authkit"
+import (
+	"github.com/asaskevich/govalidator"
+	"github.com/letsrock-today/hydra-sample/authkit"
+)
 
 // NewHandler returns default Handler implemetation.
-// All arguments except ContextCreator must be provided.
+// All arguments except ContextCreator and Validator must be provided.
 // If ContextCreator is nil, then DefaultContextCreator is used.
+// If Validator is nil, then default password validator is used.
 func NewHandler(
 	c authkit.Config,
 	ec authkit.ErrorCustomizer,
@@ -12,13 +16,23 @@ func NewHandler(
 	us authkit.HandlerUserService,
 	ps authkit.ProfileService,
 	sps authkit.SocialProfileServices,
-	cc authkit.ContextCreator) authkit.Handler {
-	if c == nil || ec == nil || as == nil || us == nil || ps == nil || sps == nil {
+	cc authkit.ContextCreator,
+	pv govalidator.Validator) authkit.Handler {
+	if c == nil ||
+		ec == nil ||
+		as == nil ||
+		us == nil ||
+		ps == nil ||
+		sps == nil {
 		panic("invalid argument")
 	}
 	if cc == nil {
 		cc = authkit.DefaultContextCreator{}
 	}
+	if pv == nil {
+		pv = govalidator.Validator(defaultPasswordValidator)
+	}
+	govalidator.TagMap["password"] = pv
 	return handler{c, ec, as, us, ps, sps, cc}
 }
 
