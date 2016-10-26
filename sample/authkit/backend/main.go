@@ -16,23 +16,25 @@ import (
 	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/mgo-user"
 )
 
-var cfgPath, cfgName string
+var (
+	cfgPath, cfgName string
+	debugMode        bool
+)
 
 func main() {
+	flag.StringVar(&cfgPath, "cfg-dir", "", "dir with app's config")
+	flag.StringVar(&cfgName, "cfg-name", "", "app's config base file name")
+	flag.BoolVar(&debugMode, "dbg", false, "debug mode")
 	flag.Parse()
-	flag.StringVar(&cfgPath, "config path", "", "dir with app's config")
-	flag.StringVar(&cfgName, "config name", "", "app's config base file name")
 	config.Init(cfgPath, cfgName)
 	c := config.Get()
 
-	userCollectionName := "users"
-	profileCollectionName := "profiles"
+	// store implementations can be replaced here
 
-	// store implementation can be changed here
 	us, err := user.New(
 		c.MongoDB().URL,
 		c.MongoDB().Name,
-		userCollectionName,
+		"users",
 		c.ConfirmationLinkLifespan())
 	if err != nil {
 		log.Fatal(err)
@@ -42,15 +44,17 @@ func main() {
 	ps, err := profile.New(
 		c.MongoDB().URL,
 		c.MongoDB().Name,
-		profileCollectionName)
+		"profiles")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer ps.Close()
 
 	e := echo.New()
-	e.SetDebug(true)
-	e.SetLogLevel(0)
+	if debugMode {
+		e.SetDebug(true)
+		e.SetLogLevel(0)
+	}
 	e.SetHTTPErrorHandler(newHTTPErrorHandler(e.DefaultHTTPErrorHandler))
 
 	route.Init(e, us, ps)
@@ -70,6 +74,10 @@ func main() {
 	}))
 }
 
+// Renderer used to render templates from the folder.
+// In this app we use templates to render responses on email confirmation link,
+// password change page, oauth2 callback, etc. At places where page designed
+// with javascript frameworks seems as overkill.
 type Renderer struct {
 	templates *template.Template
 }
@@ -78,6 +86,8 @@ func (t *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Con
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
+// newHTTPErrorHandler returns HTTPErrorHandler similar to default (it actually)
+// wraps one) but which also outputs errors in custom format.
 func newHTTPErrorHandler(prev func(error, echo.Context)) func(error, echo.Context) {
 	return func(err error, c echo.Context) {
 		prev(err, c)

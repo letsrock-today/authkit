@@ -109,7 +109,7 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 				req.Method(),
 				req.URL().Path())
 			if err != nil {
-				c.Logger().Debug(errors.WithStack(err))
+				c.Logger().Debugf("%+v", errors.WithStack(err))
 				return errAccessDenied
 			}
 
@@ -117,7 +117,7 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			user, err := config.UserService.UserByAccessToken(
 				config.PrivateProviderID, token)
 			if err != nil {
-				c.Logger().Debug(errors.WithStack(err))
+				c.Logger().Debugf("%+v", errors.WithStack(err))
 				return errAccessDenied
 			}
 
@@ -143,7 +143,7 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 
 			// Validate token's permissions.
 			if err := config.TokenValidator.Validate(token, perm); err != nil {
-				c.Logger().Debug(errors.WithStack(err))
+				c.Logger().Debugf("%+v", errors.WithStack(err))
 				return errAccessDenied
 			}
 

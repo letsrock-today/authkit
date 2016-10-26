@@ -34,7 +34,7 @@ func (h handler) RestorePassword(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 	if _, err := govalidator.ValidateStruct(rp); err != nil {
-		c.Logger().Debug(errors.WithStack(err))
+		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
 			h.errorCustomizer.InvalidRequestParameterError(err))
@@ -43,7 +43,7 @@ func (h handler) RestorePassword(c echo.Context) error {
 	user, err := h.users.User(rp.Email)
 	if err != nil {
 		if authkit.IsUserNotFound(err) {
-			c.Logger().Debug(errors.WithStack(err))
+			c.Logger().Debugf("%+v", errors.WithStack(err))
 			return c.JSON(
 				http.StatusUnauthorized,
 				h.errorCustomizer.UserAuthenticationError(err))
@@ -65,7 +65,7 @@ func (h handler) ChangePassword(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 	if _, err := govalidator.ValidateStruct(cp); err != nil {
-		c.Logger().Debug(errors.WithStack(err))
+		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
 			h.errorCustomizer.InvalidRequestParameterError(err))
@@ -78,7 +78,7 @@ func (h handler) ChangePassword(c echo.Context) error {
 		s.TokenSignKey())
 	if err != nil {
 		if err, ok := errors.Cause(err).(*jwt.ValidationError); ok {
-			c.Logger().Debug(errors.WithStack(err))
+			c.Logger().Debugf("%+v", errors.WithStack(err))
 			return c.JSON(
 				http.StatusUnauthorized,
 				h.errorCustomizer.UserAuthenticationError(err))
@@ -91,7 +91,7 @@ func (h handler) ChangePassword(c echo.Context) error {
 		t.PasswordHash(),
 		cp.Password); err != nil {
 		if authkit.IsUserNotFound(err) {
-			c.Logger().Debug(errors.WithStack(err))
+			c.Logger().Debugf("%+v", errors.WithStack(err))
 			return c.JSON(
 				http.StatusUnauthorized,
 				h.errorCustomizer.UserAuthenticationError(err))

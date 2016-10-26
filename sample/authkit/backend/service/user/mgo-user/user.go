@@ -190,11 +190,11 @@ func (s store) User(login string) (authkit.User, authkit.UserServiceError) {
 }
 
 func (s store) UpdatePassword(
-	login, oldPassword, newPassword string) authkit.UserServiceError {
+	login, oldPasswordHash, newPassword string) authkit.UserServiceError {
 	err := s.users.Update(
 		bson.M{
 			"email":        login,
-			"passwordhash": hash(oldPassword),
+			"passwordhash": oldPasswordHash,
 		},
 		bson.M{
 			"$set": bson.M{

@@ -4,8 +4,6 @@ import:
   version: ^5.0.0
 - package: github.com/dgrijalva/jwt-go
   version: ^3.0.0
-- package: github.com/fsnotify/fsnotify
-  version: ^1.4.1
 - package: github.com/labstack/echo
   version: ^2.1.0
   subpackages:
@@ -13,9 +11,14 @@ import:
   - engine/standard
   - middleware
 - package: github.com/mendsley/gojwk
-- package: github.com/mitchellh/mapstructure
 - package: github.com/pborman/uuid
   version: ^1.0.0
+- package: github.com/pkg/errors
+  version: ^0.8.0
+- package: github.com/spf13/viper
+- package: golang.org/x/net
+  subpackages:
+  - context
 - package: golang.org/x/oauth2
   subpackages:
   - bitbucket
@@ -33,15 +36,11 @@ import:
 - package: gopkg.in/mgo.v2
   subpackages:
   - bson
-- package: gopkg.in/yaml.v2
-- package: github.com/pkg/errors
-  version: ^0.8.0
-- package: gopkg.in/h2non/gock.v1
-  version: ^1.0.1
-- package: github.com/hashicorp/golang-lru
-- package: github.com/spf13/viper
 testImport:
 - package: github.com/stretchr/testify
   version: ^1.1.4
   subpackages:
   - assert
+  - mock
+- package: gopkg.in/h2non/gock.v1
+  version: ^1.0.1

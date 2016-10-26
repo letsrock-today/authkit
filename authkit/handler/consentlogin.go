@@ -31,7 +31,7 @@ func (h handler) ConsentLogin(c echo.Context) error {
 	}
 
 	if _, err := govalidator.ValidateStruct(lf); err != nil {
-		c.Logger().Debug(errors.WithStack(err))
+		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
 			h.errorCustomizer.InvalidRequestParameterError(err))
@@ -42,7 +42,7 @@ func (h handler) ConsentLogin(c echo.Context) error {
 		lf.Scopes,
 		lf.Challenge)
 	if err != nil {
-		c.Logger().Debug(errors.WithStack(err))
+		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusUnauthorized,
 			h.errorCustomizer.UserAuthenticationError(err))
@@ -71,7 +71,7 @@ func (h handler) ConsentLogin(c echo.Context) error {
 				}
 			}
 		}
-		c.Logger().Debug(errors.WithStack(err))
+		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(http.StatusUnauthorized, errorCustomizer(err))
 	}
 

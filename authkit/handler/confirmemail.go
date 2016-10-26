@@ -35,7 +35,7 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 	if err != nil {
 		if err, ok := errors.Cause(err).(*jwt.ValidationError); ok {
 			if err.Errors&jwt.ValidationErrorExpired == jwt.ValidationErrorExpired {
-				c.Logger().Debug(errors.WithStack(err))
+				c.Logger().Debugf("%+v", errors.WithStack(err))
 				return c.Render(
 					http.StatusUnauthorized,
 					authkit.ConfirmEmailTemplateName,
@@ -49,7 +49,7 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 	ch := make(chan error, 1)
 	go func() {
 		if err := h.profiles.EnsureExists(t.Login()); err != nil {
-			c.Logger().Debug(errors.WithStack(err))
+			c.Logger().Debugf("%+v", errors.WithStack(err))
 			ch <- err
 		}
 		close(ch)
@@ -58,7 +58,7 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 	if err := h.users.Enable(t.Login()); err != nil {
 		<-ch
 		if authkit.IsUserNotFound(err) {
-			c.Logger().Debug(errors.WithStack(err))
+			c.Logger().Debugf("%+v", errors.WithStack(err))
 			return c.Render(
 				http.StatusUnauthorized,
 				authkit.ConfirmEmailTemplateName,

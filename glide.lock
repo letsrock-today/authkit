@@ -1,8 +1,8 @@
-hash: 28bf325a462634c62438644d19b97127a464c635786b2170536ee8f37640b6a0
-updated: 2016-10-25T10:43:55.26778967+07:00
+hash: ebe8cd3dca53eefb7a0b48ebead731c7d6592c550326407b7ca508a08448bac9
+updated: 2016-10-26T14:03:41.520531083+07:00
 imports:
 - name: cloud.google.com/go
-  version: 634348d5f32ce73f784ef2401925913aa40d73b8
+  version: 4a66ffc8b8f739b1677c1f45a00885458014f487
   subpackages:
   - compute/metadata
   - internal
@@ -11,15 +11,11 @@ imports:
 - name: github.com/dgrijalva/jwt-go
   version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
 - name: github.com/fsnotify/fsnotify
-  version: 629574ca2a5df945712d3079857300b5e4da0236
+  version: bd2828f9f176e52d7222e565abb2d338d3f3c103
 - name: github.com/golang/protobuf
   version: 98fa357170587e470c5f27d3c3ea0947b71eb455
   subpackages:
   - proto
-- name: github.com/hashicorp/golang-lru
-  version: 0a025b7e63adc15a622f29b0b2c4c3848243bbf6
-  subpackages:
-  - simplelru
 - name: github.com/hashicorp/hcl
   version: 99ce73d4fe576449f7a689d4fc2b2ad09a86bdaa
   subpackages:
@@ -84,7 +80,7 @@ imports:
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: golang.org/x/crypto
-  version: 1150b8bd09e53aea1d415621adae9bad665061a1
+  version: ca7e7f10cb9fd9c1a6ff7f60436c086d73714180
   subpackages:
   - curve25519
   - ed25519
@@ -96,7 +92,7 @@ imports:
   - context
   - context/ctxhttp
 - name: golang.org/x/oauth2
-  version: 1e695b1c8febf17aad3bfa7bf0a819ef94b98ad5
+  version: 25b4fb1468cb89700c7c060cb99f30581a61f5e3
   subpackages:
   - bitbucket
   - clientcredentials
@@ -118,12 +114,12 @@ imports:
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 2556e8494a202e0b4008f70eda8cdb089b03fa50
+  version: 16e1d1f27f7aba51c74c0aeb7a7ee31a75c5c63c
   subpackages:
   - transform
   - unicode/norm
 - name: google.golang.org/appengine
-  version: 5b8c3b819891014a2d12354528f7d046dd53c89e
+  version: 46239ca616842c00f41b8cbc6bbf2bd6ffbfcdad
   subpackages:
   - internal
   - internal/app_identity
@@ -134,8 +130,6 @@ imports:
   - internal/remote_api
   - internal/urlfetch
   - urlfetch
-- name: gopkg.in/h2non/gock.v1
-  version: 94f351a7b5b664969d46263771db3e834edca0f1
 - name: gopkg.in/mgo.v2
   version: 3f83fa5005286a7fe593b055f0d7771a7dce4655
   subpackages:
@@ -161,3 +155,5 @@ testImports:
   subpackages:
   - assert
   - mock
+- name: gopkg.in/h2non/gock.v1
+  version: 94f351a7b5b664969d46263771db3e834edca0f1

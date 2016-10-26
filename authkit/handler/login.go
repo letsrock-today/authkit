@@ -38,7 +38,7 @@ func (h handler) Login(c echo.Context) error {
 	}
 
 	if _, err := govalidator.ValidateStruct(lf); err != nil {
-		c.Logger().Debug(errors.WithStack(err))
+		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
 			h.errorCustomizer.InvalidRequestParameterError(err))
@@ -67,7 +67,7 @@ func (h handler) Login(c echo.Context) error {
 				}
 			}
 		}
-		c.Logger().Debug(errors.WithStack(err))
+		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(http.StatusUnauthorized, customizedError(err))
 	}
 
@@ -104,6 +104,6 @@ func (h handler) Login(c echo.Context) error {
 	reply := loginReply{
 		RedirectURL: u.String(),
 	}
-	c.Logger().Debug(errors.WithStack(err))
+	c.Logger().Debugf("%+v", errors.WithStack(err))
 	return c.JSON(http.StatusOK, reply)
 }
