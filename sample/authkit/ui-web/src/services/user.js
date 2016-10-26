@@ -56,7 +56,7 @@ function _getFriends(cb) {
         })
         .catch(e => {
             console.log(e);
-            cb(null, 'Error fetching friends: ' + e.cause);
+            cb(null, 'Error fetching friends: ' + e.msg);
         });
 }
 

@@ -21,14 +21,15 @@ type jsonError struct {
 type ec struct{}
 
 func (ec) InvalidRequestParameterError(e error) interface{} {
+	//TODO: use subcodes for concrete rules?
 	return jsonError{"invalid_req_param", e.Error()}
 }
 
 func (ec) UserCreationError(e error) interface{} {
-	switch e.(type) {
-	case authkit.AccountDisabledError:
+	switch {
+	case authkit.IsAccountDisabled(e):
 		return jsonError{"account_disabled", e.Error()}
-	case authkit.DuplicateUserError:
+	case authkit.IsDuplicateUser(e):
 		return jsonError{"duplicate_account", e.Error()}
 	}
 	return jsonError{"unknown_err", e.Error()}

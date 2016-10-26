@@ -25,7 +25,9 @@ type (
 	}
 )
 
-//TODO: render errors as in ConfirmEmail
+//TODO: render user-relevant errors as in ConfirmEmail.
+// Most errors here should be internal server errors without details visible to
+// the end user. But state token expiration, probably, worth to explain to user.
 
 func (h handler) Callback(c echo.Context) error {
 	var cr callbackRequest
