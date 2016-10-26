@@ -26,7 +26,7 @@ module.exports = {
                     err => {
                         return Promise.reject({
                             error: e,
-                            msg: msgForCode(err.code, err.message),
+                            msg: msgForErr(err),
                             cause: new Error(response.statusText)
                         });
                 },
@@ -52,10 +52,28 @@ module.exports = {
 // Error code could be mapped to localized message using some localization lib
 // (like i18next). Here, for simplicity, we just provide more readable
 // English text.
-function msgForCode(code, fallback) {
-    switch (code) {
+function msgForErr(err) {
+    if (Array.isArray(err)) {
+        let msg = '';
+        for (let i = 0, l = err.length; i < l; i++) {
+            msg += msgForErr(err[i]);
+            msg += ' ';
+        }
+        return msg;
+    }
+    if (!err.code || !err.message) {
+        return err;
+    }
+    switch (err.code) {
+		case 'login-required':
+		case 'login-format':
+		case 'password-required':
+		case 'email-required':
+		case 'email-format':
+            // messages from server are good enough for demo,
+            // but can be localized here
+            return err.message + '.';
         case 'invalid_req_param':
-            //TODO: use subcodes for concrete rules?
             return 'Invalid request parameter.';
         case 'account_disabled':
             return 'Account created but not activated yet. ' +
@@ -66,5 +84,5 @@ function msgForCode(code, fallback) {
         case 'auth_err':
             return 'Incorrect combination of username and password.';
     }
-    return 'Server reported unrecognized error: ' + fallback;
+    return 'Server reported unrecognized error: ' + err.message;
 }

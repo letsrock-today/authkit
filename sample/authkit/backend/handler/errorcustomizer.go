@@ -1,6 +1,9 @@
 package handler
 
-import "github.com/letsrock-today/hydra-sample/authkit"
+import (
+	"github.com/asaskevich/govalidator"
+	"github.com/letsrock-today/hydra-sample/authkit"
+)
 
 func NewErrorCustomizer() authkit.ErrorCustomizer {
 	return ec{}
@@ -21,20 +24,46 @@ type jsonError struct {
 type ec struct{}
 
 func (ec) InvalidRequestParameterError(e error) interface{} {
-	//TODO: use subcodes for concrete rules?
-	return jsonError{"invalid_req_param", e.Error()}
+	errs, ok := e.(govalidator.Errors)
+	if !ok {
+		return []jsonError{{"invalid_req_param", e.Error()}}
+	}
+	ret := []jsonError{}
+	for _, e := range errs {
+		var je jsonError
+		code := e.Error()
+		switch code {
+		// List of all possible custom validation errors.
+		// This errors originated from tags on validated structures.
+		case "login-required":
+			je = jsonError{code, "Login is required"}
+		case "login-format":
+			je = jsonError{code, "Login should be a valid email address"}
+		case "password-required":
+			je = jsonError{code, "Password is required"}
+		case "email-required":
+			je = jsonError{code, "Email is required"}
+		case "email-format":
+			je = jsonError{code, "Email should be a valid email address"}
+		default:
+			je = jsonError{"invalid_req_param", code}
+		}
+		ret = append(ret, je)
+	}
+	return ret
 }
 
 func (ec) UserCreationError(e error) interface{} {
+	msg := e.Error()
 	switch {
 	case authkit.IsAccountDisabled(e):
-		return jsonError{"account_disabled", e.Error()}
+		return []jsonError{{"account_disabled", msg}}
 	case authkit.IsDuplicateUser(e):
-		return jsonError{"duplicate_account", e.Error()}
+		return []jsonError{{"duplicate_account", msg}}
 	}
-	return jsonError{"unknown_err", e.Error()}
+	return []jsonError{{"unknown_err", msg}}
 }
 
 func (ec) UserAuthenticationError(e error) interface{} {
-	return jsonError{"auth_err", e.Error()}
+	return []jsonError{{"auth_err", e.Error()}}
 }

@@ -16,12 +16,12 @@ type (
 	//TODO: remove assumption login == email?
 
 	restorePasswordForm struct {
-		Email string `form:"email" valid:"required,email"`
+		Email string `form:"email" valid:"required~email-required,email~email-format"`
 	}
 
 	changePasswordForm struct {
 		//TODO: rigorous password rules (digits, different case, etc.)
-		Password string `form:"password1" valid:"required,stringlength(3|30)"`
+		Password string `form:"password1" valid:"required~password-required,stringlength(3|30)"`
 		Token    string `form:"token" valid:"required"`
 	}
 )

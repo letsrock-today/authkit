@@ -20,9 +20,9 @@ type (
 
 	loginForm struct {
 		Action string `form:"action" valid:"required,matches(login|signup)"`
-		Login  string `form:"login" valid:"required,email"`
+		Login  string `form:"login" valid:"required~login-required,email~login-format"`
 		//TODO: rigorous password rules (digits, different case, etc.)
-		Password string `form:"password" valid:"required,stringlength(3|30)"`
+		Password string `form:"password" valid:"required~password-required,stringlength(3|30)"`
 	}
 
 	loginReply struct {
