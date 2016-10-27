@@ -1,8 +1,8 @@
 hash: ebe8cd3dca53eefb7a0b48ebead731c7d6592c550326407b7ca508a08448bac9
-updated: 2016-10-26T14:03:41.520531083+07:00
+updated: 2016-10-27T22:18:57.213893707+07:00
 imports:
 - name: cloud.google.com/go
-  version: 4a66ffc8b8f739b1677c1f45a00885458014f487
+  version: 40fedcdb51cfb298ab6a204da4c54a03d6d40a3e
   subpackages:
   - compute/metadata
   - internal
@@ -11,7 +11,7 @@ imports:
 - name: github.com/dgrijalva/jwt-go
   version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
 - name: github.com/fsnotify/fsnotify
-  version: bd2828f9f176e52d7222e565abb2d338d3f3c103
+  version: fd9ec7deca8bf46ecd2a795baaacf2b3a9be1197
 - name: github.com/golang/protobuf
   version: 98fa357170587e470c5f27d3c3ea0947b71eb455
   subpackages:
@@ -87,7 +87,7 @@ imports:
   - ed25519/internal/edwards25519
   - ssh
 - name: golang.org/x/net
-  version: 65dfc08770ce66f74becfdff5f8ab01caef4e946
+  version: c46f265c325130a7a6c7b27db8c6fe14b64f1a68
   subpackages:
   - context
   - context/ctxhttp
@@ -114,7 +114,7 @@ imports:
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 16e1d1f27f7aba51c74c0aeb7a7ee31a75c5c63c
+  version: a8b38433e35b65ba247bb267317037dee1b70cea
   subpackages:
   - transform
   - unicode/norm

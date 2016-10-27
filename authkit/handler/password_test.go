@@ -13,10 +13,11 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/authkit/mocks"
 )
 
 func TestForgotPassword(t *testing.T) {
-	us := new(testUserService)
+	us := new(mocks.UserService)
 	us.On(
 		"User",
 		"valid@login.ok").Return(testUser{
@@ -125,7 +126,7 @@ func TestForgotPassword(t *testing.T) {
 }
 
 func TestChangePassword(t *testing.T) {
-	us := new(testUserService)
+	us := new(mocks.UserService)
 	us.On(
 		"UpdatePassword",
 		"unknown@login.ok",

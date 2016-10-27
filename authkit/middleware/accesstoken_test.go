@@ -12,15 +12,15 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/authkit/mocks"
 )
 
 func TestConfigValidation(t *testing.T) {
 	assert := assert.New(t)
 
-	us := new(testUserService)
+	us := new(mocks.UserService)
 
 	// No config at all
 	// No obligatory settings
@@ -55,15 +55,16 @@ func TestConfigValidation(t *testing.T) {
 }
 
 func TestAccessTokenWithConfig(t *testing.T) {
-	us := new(testUserService)
+	user := testUser{"valid@login.ok", "name"}
+	us := new(mocks.UserService)
 	us.On(
 		"UserByAccessToken",
 		"xxx-provider",
-		"xxx").Return(testUser{"valid@login.ok", "name"}, nil)
+		"xxx").Return(user, nil)
 	us.On(
 		"UserByAccessToken",
 		"xxx-provider",
-		"zzz").Return(testUser{"valid@login.ok", "name"}, nil)
+		"zzz").Return(user, nil)
 	us.On(
 		"UserByAccessToken",
 		"xxx-provider",
@@ -79,6 +80,9 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		"OAuth2Token",
 		"unknown@login.ok",
 		"xxx-provider").Return(nil, authkit.NewUserNotFoundError(nil))
+	us.On(
+		"Principal",
+		user).Return(user)
 
 	accessTokenConfig := AccessTokenConfig{
 		PrivateProviderID: "xxx-provider",
@@ -323,41 +327,6 @@ func (u testUser) Email() string {
 
 func (u testUser) PasswordHash() string {
 	return "some-hash"
-}
-
-type testUserService struct {
-	mock.Mock
-}
-
-func (s *testUserService) UserByAccessToken(
-	providerID, accessToken string) (authkit.User, authkit.UserServiceError) {
-	args := s.Called(providerID, accessToken)
-	err := args.Error(1)
-	if err != nil {
-		return nil, err.(authkit.UserServiceError)
-	}
-	return args.Get(0).(authkit.User), nil
-}
-
-func (s *testUserService) OAuth2Token(
-	login, providerID string) (*oauth2.Token, authkit.UserServiceError) {
-	args := s.Called(login, providerID)
-	err := args.Error(1)
-	if err != nil {
-		return nil, err.(authkit.UserServiceError)
-	}
-	return args.Get(0).(*oauth2.Token), nil
-}
-
-func (s *testUserService) UpdateOAuth2Token(
-	login, providerID string,
-	token *oauth2.Token) authkit.UserServiceError {
-	args := s.Called(login, providerID, token)
-	return args.Error(0).(authkit.UserServiceError)
-}
-
-func (s *testUserService) Principal(user authkit.User) interface{} {
-	return user
 }
 
 type testPermMapper struct{}

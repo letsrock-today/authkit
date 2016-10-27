@@ -47,31 +47,24 @@ var (
 )
 
 type config struct {
-	PrivateProviderID               string `mapstructure:"-"`
-	PrivateProviderIDTrustedContext string `mapstructure:"-"`
-
-	ListenAddr            string `mapstructure:"listen-addr"`
-	TLSCertFile           string `mapstructure:"tls-cert-file"`
-	TLSKeyFile            string `mapstructure:"tls-key-file"`
-	TLSInsecureSkipVerify bool   `mapstructure:"tls-insecure-skip-verify"`
-
-	HydraAddr         string `mapstructure:"hydra-addr"`
-	ExternalBaseURL   string `mapstructure:"external-base-url"`
-	OAuth2RedirectURL string `mapstructure:"oauth2-redirect-url"`
-
-	ChallengeLifespan        time.Duration `mapstructure:"challenge-lifespan"`
-	ConfirmationLinkLifespan time.Duration `mapstructure:"confirmation-link-lifespan"`
-
-	AuthCookieName string `mapstructure:"auth-cookie-name"`
-
-	EmailConfig EmailConfig `mapstructure:"email-config"`
-
-	MongoDB DBConfig `mapstructure:"mongodb"`
-
-	OAuth2State           oauth2State      `mapstructure:"oauth2-state"`
-	PrivateOAuth2Provider *oauth2Provider  `mapstructure:"private-oauth2-provider"`
-	OAuth2Providers       []oauth2Provider `mapstructure:"oauth2-providers"`
-	modTime               time.Time
+	PrivateProviderID               string           `mapstructure:"-"`
+	PrivateProviderIDTrustedContext string           `mapstructure:"-"`
+	ListenAddr                      string           `mapstructure:"listen-addr"`
+	TLSCertFile                     string           `mapstructure:"tls-cert-file"`
+	TLSKeyFile                      string           `mapstructure:"tls-key-file"`
+	TLSInsecureSkipVerify           bool             `mapstructure:"tls-insecure-skip-verify"`
+	HydraAddr                       string           `mapstructure:"hydra-addr"`
+	ExternalBaseURL                 string           `mapstructure:"external-base-url"`
+	OAuth2RedirectURL               string           `mapstructure:"oauth2-redirect-url"`
+	ChallengeLifespan               time.Duration    `mapstructure:"challenge-lifespan"`
+	ConfirmationLinkLifespan        time.Duration    `mapstructure:"confirmation-link-lifespan"`
+	AuthCookieName                  string           `mapstructure:"auth-cookie-name"`
+	EmailConfig                     EmailConfig      `mapstructure:"email-config"`
+	MongoDB                         DBConfig         `mapstructure:"mongodb"`
+	OAuth2State                     oauth2State      `mapstructure:"oauth2-state"`
+	PrivateOAuth2Provider           *oauth2Provider  `mapstructure:"private-oauth2-provider"`
+	OAuth2Providers                 []oauth2Provider `mapstructure:"oauth2-providers"`
+	modTime                         time.Time
 }
 
 type EmailConfig struct {

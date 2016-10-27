@@ -58,3 +58,5 @@ type (
 		RequiredPermissioin(method, path string) (interface{}, error)
 	}
 )
+
+//go:generate mockery -name AuthService

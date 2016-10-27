@@ -13,11 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/authkit/mocks"
 )
 
 func TestConsentLogin(t *testing.T) {
 
-	as := new(testAuthService)
+	as := new(mocks.AuthService)
 	as.On(
 		"GenerateConsentToken",
 		"valid@login.ok",
@@ -44,7 +45,7 @@ func TestConsentLogin(t *testing.T) {
 		[]string{"valid_scope"},
 		"valid_challenge").Return("valid_token", nil)
 
-	us := new(testUserService)
+	us := new(mocks.UserService)
 	us.On(
 		"Authenticate",
 		"valid@login.ok",

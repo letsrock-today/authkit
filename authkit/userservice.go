@@ -238,3 +238,6 @@ func IsRequestConfirmationError(err error) bool {
 		return ok && e1.IsRequestConfirmationError()
 	})
 }
+
+//go:generate mockery -name UserService
+//go:generate mockery -name TokenStore

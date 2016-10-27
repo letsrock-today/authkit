@@ -4,17 +4,12 @@ import (
 	"bytes"
 	"io"
 	"mime/multipart"
-	"net/http"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
 
-	context2 "golang.org/x/net/context"
-	"golang.org/x/oauth2"
-
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
@@ -147,124 +142,6 @@ func (testErrorCustomizer) UserAuthenticationError(error) interface{} {
 	}
 }
 
-type testAuthService struct {
-	mock.Mock
-}
-
-func (m *testAuthService) GenerateConsentToken(
-	subj string,
-	scopes []string,
-	challenge string) (string, error) {
-	args := m.Called(subj, scopes, challenge)
-	return args.String(0), args.Error(1)
-}
-
-func (m *testAuthService) IssueConsentToken(
-	clientID string,
-	scopes []string) (string, error) {
-	args := m.Called(clientID, scopes)
-	return args.String(0), args.Error(1)
-}
-
-func (m *testAuthService) IssueToken(
-	login string) (*oauth2.Token, error) {
-	args := m.Called(login)
-	return args.Get(0).(*oauth2.Token), args.Error(1)
-}
-
-type testUserService struct {
-	mock.Mock
-}
-
-func (m *testUserService) OAuth2Token(
-	login, providerID string) (*oauth2.Token, authkit.UserServiceError) {
-	args := m.Called(login, providerID)
-	if err, ok := args.Error(1).(authkit.UserServiceError); ok {
-		return nil, err
-	}
-	return args.Get(0).(*oauth2.Token), nil
-}
-
-func (m *testUserService) UpdateOAuth2Token(
-	login, providerID string, token *oauth2.Token) authkit.UserServiceError {
-	args := m.Called(login, providerID, token)
-	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
-		return err
-	}
-	return nil
-}
-
-func (m *testUserService) Create(
-	login, password string) authkit.UserServiceError {
-	args := m.Called(login, password)
-	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
-		return err
-	}
-	return nil
-}
-
-func (m *testUserService) CreateEnabled(
-	login, password string) authkit.UserServiceError {
-	args := m.Called(login, password)
-	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
-		return err
-	}
-	return nil
-}
-
-func (m *testUserService) Enable(login string) authkit.UserServiceError {
-	args := m.Called(login)
-	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
-		return err
-	}
-	return nil
-}
-
-func (m *testUserService) Authenticate(
-	login, password string) authkit.UserServiceError {
-	args := m.Called(login, password)
-	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
-		return err
-	}
-	return nil
-}
-
-func (m *testUserService) User(login string) (
-	authkit.User, authkit.UserServiceError) {
-	args := m.Called(login)
-	if err, ok := args.Error(1).(authkit.UserServiceError); ok {
-		return nil, err
-	}
-	return args.Get(0).(authkit.User), nil
-}
-
-func (m *testUserService) UpdatePassword(
-	login, oldPasswordHash, newPassword string) authkit.UserServiceError {
-	args := m.Called(login, oldPasswordHash, newPassword)
-	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
-		return err
-	}
-	return nil
-}
-
-func (m *testUserService) RequestEmailConfirmation(
-	login string) authkit.UserServiceError {
-	args := m.Called(login)
-	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
-		return err
-	}
-	return nil
-}
-
-func (m *testUserService) RequestPasswordChangeConfirmation(
-	login, passwordHash string) authkit.UserServiceError {
-	args := m.Called(login, passwordHash)
-	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
-		return err
-	}
-	return nil
-}
-
 type testUser struct {
 	login        string
 	email        string
@@ -281,50 +158,6 @@ func (u testUser) Email() string {
 
 func (u testUser) PasswordHash() string {
 	return u.passwordHash
-}
-
-type testProfileService struct {
-	mock.Mock
-}
-
-func (m *testProfileService) EnsureExists(login string) error {
-	args := m.Called(login)
-	return args.Error(0)
-}
-
-func (m *testProfileService) Save(p authkit.Profile) error {
-	args := m.Called(p)
-	return args.Error(0)
-}
-
-type testOAuth2Config struct {
-	mock.Mock
-	oauth2.Config
-}
-
-func (m *testOAuth2Config) Exchange(c context2.Context, code string) (*oauth2.Token, error) {
-	args := m.Called(c, code)
-	return args.Get(0).(*oauth2.Token), args.Error(1)
-}
-
-type testSocialProfileServices struct {
-	mock.Mock
-}
-
-func (m *testSocialProfileServices) SocialProfileService(
-	providerID string) (authkit.SocialProfileService, error) {
-	args := m.Called(providerID)
-	return args.Get(0).(authkit.SocialProfileService), args.Error(1)
-}
-
-type testSocialProfileService struct {
-	mock.Mock
-}
-
-func (m *testSocialProfileService) SocialProfile(
-	client *http.Client) (authkit.Profile, error) {
-	args := m.Called(client)
-	return args.Get(0).(authkit.Profile), args.Error(1)
 }
 
 type testProfile struct {

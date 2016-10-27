@@ -32,3 +32,8 @@ type (
 		SocialProfile(client *http.Client) (Profile, error)
 	}
 )
+
+//go:generate mockery -name Profile
+//go:generate mockery -name ProfileService
+//go:generate mockery -name SocialProfileService
+//go:generate mockery -name SocialProfileServices

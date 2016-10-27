@@ -15,10 +15,11 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/authkit/mocks"
 )
 
 func TestConfirmEmail(t *testing.T) {
-	us := new(testUserService)
+	us := new(mocks.UserService)
 	us.On(
 		"Enable",
 		"valid@login.ok").Return(nil)
@@ -29,7 +30,7 @@ func TestConfirmEmail(t *testing.T) {
 		"Enable",
 		"invalid@login.ok").Return(authkit.NewUserNotFoundError(nil))
 
-	ps := new(testProfileService)
+	ps := new(mocks.ProfileService)
 	ps.On(
 		"EnsureExists",
 		"valid@login.ok").Return(nil)

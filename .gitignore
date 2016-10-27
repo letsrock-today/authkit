@@ -31,6 +31,7 @@ _testmain.go
 **/vendor
 **/node_modules
 **/.build/
+**/mocks/
 
 **/backend/env/dev.yaml
 **/backend/env/dev-server.crt

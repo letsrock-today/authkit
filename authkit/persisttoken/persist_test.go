@@ -2,7 +2,6 @@ package persisttoken
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/authkit/mocks"
 )
 
 func TestPersistToken(t *testing.T) {
@@ -22,7 +21,7 @@ func TestPersistToken(t *testing.T) {
 	new := &oauth2.Token{
 		AccessToken: "new",
 		Expiry:      time.Now().Add(1 * time.Hour)}
-	ts := &testTokenStore{}
+	ts := &mocks.TokenStore{}
 	ts.On(
 		"OAuth2Token",
 		"valid@login.ok",
@@ -45,7 +44,7 @@ func TestPersistToken(t *testing.T) {
 		mock.Anything,
 		mock.Anything).Return(nil).Once()
 
-	testCfg := &testOAuth2Config{}
+	testCfg := &mocks.OAuth2Config{}
 	testCfg.On(
 		"TokenSource",
 		mock.Anything,
@@ -68,65 +67,4 @@ func TestPersistToken(t *testing.T) {
 	}
 
 	ts.AssertNumberOfCalls(t, "UpdateOAuth2Token", 1)
-}
-
-type testTokenStore struct {
-	mock.Mock
-}
-
-func (m *testTokenStore) OAuth2Token(
-	login, providerID string) (*oauth2.Token, authkit.UserServiceError) {
-	args := m.Called(login, providerID)
-	if err, ok := args.Error(1).(authkit.UserServiceError); ok {
-		return nil, err
-	}
-	return args.Get(0).(*oauth2.Token), nil
-}
-
-func (m *testTokenStore) UpdateOAuth2Token(
-	login, providerID string, token *oauth2.Token) authkit.UserServiceError {
-	args := m.Called(login, providerID, token)
-	if err, ok := args.Error(0).(authkit.UserServiceError); ok {
-		return err
-	}
-	return nil
-}
-
-type testOAuth2Config struct {
-	mock.Mock
-}
-
-func (m *testOAuth2Config) Client(
-	ctx context.Context,
-	t *oauth2.Token) *http.Client {
-	args := m.Called(ctx, t)
-	return args.Get(0).(*http.Client)
-}
-
-func (m *testOAuth2Config) TokenSource(
-	ctx context.Context,
-	t *oauth2.Token) oauth2.TokenSource {
-	args := m.Called(ctx, t)
-	return args.Get(0).(oauth2.TokenSource)
-}
-
-func (m *testOAuth2Config) AuthCodeURL(
-	state string,
-	opts ...oauth2.AuthCodeOption) string {
-	args := m.Called(state, opts)
-	return args.String(0)
-}
-
-func (m *testOAuth2Config) PasswordCredentialsToken(
-	ctx context.Context,
-	username, password string) (*oauth2.Token, error) {
-	args := m.Called(ctx, username, password)
-	return args.Get(0).(*oauth2.Token), args.Error(1)
-}
-
-func (m *testOAuth2Config) Exchange(
-	ctx context.Context,
-	code string) (*oauth2.Token, error) {
-	args := m.Called(ctx, code)
-	return args.Get(0).(*oauth2.Token), args.Error(1)
 }

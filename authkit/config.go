@@ -67,3 +67,5 @@ type (
 		Client(ctx context.Context, t *oauth2.Token) *http.Client
 	}
 )
+
+//go:generate mockery -name OAuth2Config

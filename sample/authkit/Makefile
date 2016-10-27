@@ -3,25 +3,33 @@ GOLDFLAGS ?= "-w -s"
 .PHONY: \
 	all \
 	clean \
+	test \
 	build \
 	up \
 	down
 
 all: \
 	clean \
+	test \
 	build
 	@echo "All Done."
 
 clean:
 	@echo "Clean"
 	@rm -rf ./.build
+	@go clean -i -r \
+		github.com/letsrock-today/hydra-sample/sample/authkit/backend
 	@echo "Clean Done."
 
-build:
-	@echo "Build"
+test:
+	@echo "Test"
 	@glide nv | xargs go test
 	@-glide nv | xargs go vet
 	@-glide nv | xargs golint
+	@echo "Test Done."
+
+build:
+	@echo "Build"
 	@rm -rf ./.build
 	@mkdir -p ./.build
 	@go build -ldflags $(GOLDFLAGS) \

@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/hydra-sample/authkit/mocks"
 )
 
 func TestCallback(t *testing.T) {
@@ -22,7 +23,7 @@ func TestCallback(t *testing.T) {
 	exttoken := &oauth2.Token{}
 	inttoken := &oauth2.Token{}
 
-	us := new(testUserService)
+	us := new(mocks.UserService)
 	us.On(
 		"UpdateOAuth2Token",
 		"valid@login.ok",
@@ -59,29 +60,37 @@ func TestCallback(t *testing.T) {
 		"new.valid@login.ok",
 		mock.Anything).Return(nil)
 
-	privCfg := new(testOAuth2Config)
+	privCfg := new(mocks.OAuth2Config)
 	privCfg.On(
 		"Exchange",
 		mock.Anything,
 		"valid_code").Return(inttoken, nil)
+	privCfg.On(
+		"Client",
+		mock.Anything,
+		mock.Anything).Return(http.DefaultClient, nil)
 
-	extCfg := new(testOAuth2Config)
+	extCfg := new(mocks.OAuth2Config)
 	extCfg.On(
 		"Exchange",
 		mock.Anything,
 		"valid_code").Return(exttoken, nil)
+	extCfg.On(
+		"Client",
+		mock.Anything,
+		mock.Anything).Return(http.DefaultClient, nil)
 
-	sp := new(testSocialProfileService)
+	sp := new(mocks.SocialProfileService)
 	sp.On(
 		"SocialProfile",
 		mock.Anything).Return(&testProfile{login: "valid@login.ok"}, nil)
 
-	spn := new(testSocialProfileService)
+	spn := new(mocks.SocialProfileService)
 	spn.On(
 		"SocialProfile",
 		mock.Anything).Return(&testProfile{login: "new.valid@login.ok"}, nil)
 
-	sps := new(testSocialProfileServices)
+	sps := new(mocks.SocialProfileServices)
 	sps.On(
 		"SocialProfileService",
 		"external-id").Return(sp, nil)
@@ -89,7 +98,7 @@ func TestCallback(t *testing.T) {
 		"SocialProfileService",
 		"external-id-new").Return(spn, nil)
 
-	as := new(testAuthService)
+	as := new(mocks.AuthService)
 	as.On(
 		"IssueToken",
 		"valid@login.ok").Return(inttoken, nil)
@@ -97,7 +106,7 @@ func TestCallback(t *testing.T) {
 		"IssueToken",
 		"new.valid@login.ok").Return(inttoken, nil)
 
-	ps := new(testProfileService)
+	ps := new(mocks.ProfileService)
 	ps.On(
 		"Save",
 		mock.Anything).Return(nil)
