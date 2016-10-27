@@ -6,18 +6,10 @@ import (
 	"time"
 
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/bitbucket"
 	"golang.org/x/oauth2/clientcredentials"
 	"golang.org/x/oauth2/facebook"
-	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
-	"golang.org/x/oauth2/heroku"
 	"golang.org/x/oauth2/linkedin"
-	"golang.org/x/oauth2/odnoklassniki"
-	"golang.org/x/oauth2/paypal"
-	"golang.org/x/oauth2/slack"
-	"golang.org/x/oauth2/uber"
-	"golang.org/x/oauth2/vk"
 
 	"github.com/pkg/errors"
 
@@ -32,17 +24,12 @@ const (
 var (
 	c         Config
 	endpoints = map[string]oauth2.Endpoint{
-		"fb":        facebook.Endpoint,
-		"google":    google.Endpoint,
-		"linkedin":  linkedin.Endpoint,
-		"ok":        odnoklassniki.Endpoint,
-		"paypal":    paypal.Endpoint,
-		"vk":        vk.Endpoint,
-		"bitbucket": bitbucket.Endpoint,
-		"github":    github.Endpoint,
-		"heroku":    heroku.Endpoint,
-		"slack":     slack.Endpoint,
-		"uber":      uber.Endpoint,
+		// Add as much as you need,
+		// ID here should correspond
+		// to ID in tne configuration file.
+		"fb":       facebook.Endpoint,
+		"google":   google.Endpoint,
+		"linkedin": linkedin.Endpoint,
 	}
 )
 
