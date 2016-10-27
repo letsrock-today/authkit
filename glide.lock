@@ -1,5 +1,5 @@
 hash: ebe8cd3dca53eefb7a0b48ebead731c7d6592c550326407b7ca508a08448bac9
-updated: 2016-10-27T22:18:57.213893707+07:00
+updated: 2016-10-28T02:24:40.950448812+07:00
 imports:
 - name: cloud.google.com/go
   version: 40fedcdb51cfb298ab6a204da4c54a03d6d40a3e
@@ -87,7 +87,7 @@ imports:
   - ed25519/internal/edwards25519
   - ssh
 - name: golang.org/x/net
-  version: c46f265c325130a7a6c7b27db8c6fe14b64f1a68
+  version: b626cca987fa6333e5dd25baa0fd61708c145011
   subpackages:
   - context
   - context/ctxhttp
