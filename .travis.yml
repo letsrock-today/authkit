@@ -11,6 +11,7 @@ before_install:
     - sudo apt-get -y install glide nodejs
     - npm install webpack -g
     - go get github.com/vektra/mockery/.../
+    - go get github.com/nikolay-turpitko/x-go/wrapstruct/.../
 install:
     - glide up
     - pushd $TRAVIS_BUILD_DIR/sample/authkit/ui-web && npm install && popd

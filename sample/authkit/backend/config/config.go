@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/spf13/viper"
 )
@@ -25,18 +24,19 @@ func Init(prefPath, prefName string) {
 	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
-	err = viper.Unmarshal(&c.c)
+	c := &config{}
+	err = viper.Unmarshal(c)
 	if err != nil {
 		panic(err)
 	}
-	c.c.PrivateProviderID = "hydra-sample"
-	c.c.PrivateProviderIDTrustedContext = "hydra-sample-trusted"
-	c.c.PrivateOAuth2Provider.ID = c.c.PrivateProviderID
-	c.c.modTime = time.Now()
+	c.init()
+	cfg = Config{&configWrapper{c}}
 
 	// log.Printf("Effective config:\n%#v\n", c.c)
 }
 
 func Get() Config {
-	return c
+	return cfg
 }
+
+var cfg Config
