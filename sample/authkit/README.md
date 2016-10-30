@@ -34,6 +34,8 @@ suppress TLS verification and to enable autologon (human interaction required
 otherwise). Also, all client secrets in the sample configuration file are
 compromised. It's OK for demo app, but should not be used in production.
 
+_HINT_: use `make down up ARGS="-dbg"` to resturt app with debug log.
+
 
 ## Configuration
 

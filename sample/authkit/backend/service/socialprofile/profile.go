@@ -54,6 +54,7 @@ func (p providers) SocialProfileService(providerID string) (
 var _providers = providers{
 	"fb":       facebook{},
 	"linkedin": linkedin{},
+	"google":   google{},
 }
 
 func normalizeGender(g string) string {

@@ -45,7 +45,7 @@ up: clean \
 	build 
 	@echo "Starting App"
 	@cd ./docker-compose && sudo docker-compose up -d
-	@cd ./.build/backend && ./authkit-sample >app.log 2>app.err.log &
+	@cd ./.build/backend && ./authkit-sample $(ARGS) >app.log 2>app.err.log &
 	@sleep 5
 	-sensible-browser "https://localhost:8080" >/dev/null 2>/dev/null &
 	-sensible-browser "https://localhost:8080/oauth2/auth?client_id=a8a9bffa-d748-440d-9d67-bd161018a495&response_type=code&scope=core+hydra.keys.get&state=vboeidlizlxrywkwlsgeggff" >/dev/null 2>/dev/null &

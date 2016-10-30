@@ -2,7 +2,6 @@ package route
 
 import (
 	"crypto/tls"
-	"log"
 	"net/http"
 
 	"golang.org/x/oauth2"
@@ -35,8 +34,6 @@ func Init(
 			c.PrivateProviderID:               httpclient,
 			c.PrivateProviderIDTrustedContext: httpclient,
 		})
-
-	log.Printf("########: %#v\n%#v\n", c, c.PrivateOAuth2Provider)
 
 	as := hydra.New(
 		c.HydraAddr,

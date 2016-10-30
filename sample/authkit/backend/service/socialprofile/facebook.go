@@ -32,14 +32,14 @@ type fbPictureData struct {
 	Url string `json:"url"`
 }
 
-type fbErrorResponse struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
 type fbLocation struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type fbErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
 type fbFriendsResponse struct {

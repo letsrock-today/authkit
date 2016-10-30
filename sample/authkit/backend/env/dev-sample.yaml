@@ -118,3 +118,55 @@ oauth2-providers:
              05NS4yMDYgYyAwLC01MC45OTYgLTI3LjIyNywtNzQuNzE5IC02My41MzUsLTc0Ljc\
              xOSB6IiBpZD0icGF0aDE1IiBzdHlsZT0iZmlsbDojZmZmZmZmIi8+PC9nPjwvZz48\
              L3N2Zz4="
+
+    - id: google
+      name: Google+ (https://plus.google.com/)
+      client-id: "xxx"
+      client-secret: "xxx"
+      scopes:
+          - "https://www.googleapis.com/auth/plus.login"
+          - "https://www.googleapis.com/auth/contacts.readonly"
+          - "https://www.googleapis.com/auth/user.addresses.read"
+          - "https://www.googleapis.com/auth/user.birthday.read"
+          - "https://www.googleapis.com/auth/user.emails.read"
+          - "https://www.googleapis.com/auth/user.phonenumbers.read"
+      icon: "\
+            data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0\
+            idXRmLTgiPz48IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEu\
+            MS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zd\
+            mcxMS5kdGQiPjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeG1sbnM9Im\
+            h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d\
+            3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiIHdpZHRoPSIxMzQu\
+            NjU4cHgiIGhlaWdodD0iMTMxLjY0NnB4IiB2aWV3Qm94PSIwIDAgMTM0LjY1OCAxM\
+            zEuNjQ2IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAxMzQuNjU4IDEzMS42ND\
+            YiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxnPjxwYXRoIGZpbGw9IiNEQzRBMzgiIGQ\
+            9Ik0xMjYuNTE1LDQuMTA5SDguMTQ0Yy0yLjE3NywwLTMuOTQsMS43NjMtMy45NCwz\
+            LjkzOHYxMTUuNTQ2YzAsMi4xNzksMS43NjMsMy45NDIsMy45NCwzLjk0MmgxMTguM\
+            zcxYzIuMTc3LDAsMy45NC0xLjc2NCwzLjk0LTMuOTQyVjguMDQ4QzEzMC40NTUsNS\
+            44NzIsMTI4LjY5MSw0LjEwOSwxMjYuNTE1LDQuMTA5eiIvPjxnPjxwYXRoIGZpbGw\
+            9IiNGRkZGRkYiIGQ9Ik03MC40NzksNzEuODQ1bC0zLjk4My0zLjA5M2MtMS4yMTMt\
+            MS4wMDYtMi44NzItMi4zMzQtMi44NzItNC43NjVjMC0yLjQ0MSwxLjY1OS0zLjk5M\
+            ywzLjA5OS01LjQzYzQuNjQtMy42NTIsOS4yNzYtNy41MzksOS4yNzYtMTUuNzNjMC\
+            04LjQyMy01LjMtMTIuODU0LTcuODQtMTQuOTU2aDYuODQ5bDcuMTg5LTQuNTE3SDY\
+            wLjQxOGMtNS45NzYsMC0xNC41ODgsMS40MTQtMjAuODkzLDYuNjE5Yy00Ljc1Miw0\
+            LjEtNy4wNyw5Ljc1My03LjA3LDE0Ljg0MmMwLDguNjM5LDYuNjMzLDE3LjM5NiwxO\
+            C4zNDYsMTcuMzk2YzEuMTA2LDAsMi4zMTYtMC4xMDksMy41MzQtMC4yMjJjLTAuNT\
+            Q3LDEuMzMxLTEuMSwyLjQzOS0xLjEsNC4zMmMwLDMuNDMxLDEuNzYzLDUuNTM1LDM\
+            uMzE3LDcuNTI4Yy00Ljk3NywwLjM0Mi0xNC4yNjgsMC44OTMtMjEuMTE3LDUuMTAz\
+            Yy02LjUyMywzLjg3OS04LjUwOCw5LjUyNS04LjUwOCwxMy41MWMwLDguMjAyLDcuN\
+            zMxLDE1Ljg0MiwyMy43NjIsMTUuODQyYzE5LjAxLDAsMjkuMDc0LTEwLjUxOSwyOS\
+            4wNzQtMjAuOTMyQzc5Ljc2NCw3OS43MDksNzUuMzQ0LDc1Ljk0Myw3MC40NzksNzE\
+            uODQ1eiBNNTYsNTkuMTA3Yy05LjUxLDAtMTMuODE4LTEyLjI5NC0xMy44MTgtMTku\
+            NzEyYzAtMi44ODgsMC41NDctNS44NywyLjQyOC04LjE5OWMxLjc3My0yLjIxOCw0L\
+            jg2MS0zLjY1Nyw3Ljc0NC0zLjY1N2M5LjE2OCwwLDEzLjkyMywxMi40MDQsMTMuOT\
+            IzLDIwLjM4MmMwLDEuOTk2LTAuMjIsNS41MzMtMi43NjIsOC4wOUM2MS43MzcsNTc\
+            uNzg1LDU4Ljc2Miw1OS4xMDcsNTYsNTkuMTA3eiBNNTYuMTA5LDEwMy42NWMtMTEu\
+            ODI2LDAtMTkuNDUyLTUuNjU3LTE5LjQ1Mi0xMy41MjNjMC03Ljg2NCw3LjA3MS0xM\
+            C41MjQsOS41MDQtMTEuNDA1YzQuNjQtMS41NjEsMTAuNjExLTEuNzc5LDExLjYwNy\
+            0xLjc3OWMxLjEwNSwwLDEuNjU4LDAsMi41MzgsMC4xMTFjOC40MDcsNS45ODMsMTI\
+            uMDU2LDguOTY1LDEyLjA1NiwxNC42MjlDNzIuMzYyLDk4LjU0Miw2Ni43MjMsMTAz\
+            LjY1LDU2LjEwOSwxMDMuNjV6Ii8+PHBvbHlnb24gZmlsbD0iI0ZGRkZGRiIgcG9pb\
+            nRzPSI5OC4zOTMsNTguOTM4IDk4LjM5Myw0Ny44NjMgOTIuOTIzLDQ3Ljg2MyA5Mi\
+            45MjMsNTguOTM4IDgxLjg2Niw1OC45MzggODEuODY2LDY0LjQ2OSA5Mi45MjMsNjQ\
+            uNDY5IDkyLjkyMyw3NS42MTIgOTguMzkzLDc1LjYxMiA5OC4zOTMsNjQuNDY5IDEw\
+            OS41MDYsNjQuNDY5IDEwOS41MDYsNTguOTM4ICIvPjwvZz48L2c+PC9zdmc+"
