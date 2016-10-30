@@ -2,6 +2,7 @@ package route
 
 import (
 	"crypto/tls"
+	"log"
 	"net/http"
 
 	"golang.org/x/oauth2"
@@ -26,25 +27,27 @@ func Init(
 	httpclient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: c.TLSInsecureSkipVerify(),
+				InsecureSkipVerify: c.TLSInsecureSkipVerify,
 			}}}
 
 	cc := authkit.NewCustomHTTPClientContextCreator(
 		map[string]*http.Client{
-			c.PrivateProviderID():               httpclient,
-			c.PrivateProviderIDTrustedContext(): httpclient,
+			c.PrivateProviderID:               httpclient,
+			c.PrivateProviderIDTrustedContext: httpclient,
 		})
 
+	log.Printf("########: %#v\n%#v\n", c, c.PrivateOAuth2Provider)
+
 	as := hydra.New(
-		c.HydraAddr(),
-		c.PrivateProviderID(),
-		c.PrivateProviderIDTrustedContext(),
-		c.ChallengeLifespan(),
-		c.PrivateOAuth2Provider().PrivateOAuth2Config().(*oauth2.Config),
-		c.OAuth2ClientCredentials(),
-		c.OAuth2State(),
+		c.HydraAddr,
+		c.PrivateProviderID,
+		c.PrivateProviderIDTrustedContext,
+		c.ChallengeLifespan,
+		c.PrivateOAuth2Provider.PrivateOAuth2Config.(*oauth2.Config),
+		c.OAuth2ClientCredentials,
+		c.OAuth2State.ToAuthkitType(),
 		cc,
-		c.TLSInsecureSkipVerify())
+		c.TLSInsecureSkipVerify)
 
 	sps := socialprofile.Providers()
 	userService := struct {
@@ -58,5 +61,5 @@ func Init(
 	initMiddleware(e, c, as, us, cc)
 	initReverseProxy(e)
 	initStatic(e)
-	initAPI(e, c, as, userService, ps, sps, cc)
+	initAPI(e, c.ToAuthkitType(), as, userService, ps, sps, cc)
 }

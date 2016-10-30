@@ -18,8 +18,7 @@ func NewHandler(
 	sps authkit.SocialProfileServices,
 	cc authkit.ContextCreator,
 	pv govalidator.Validator) authkit.Handler {
-	if c == nil ||
-		ec == nil ||
+	if ec == nil ||
 		as == nil ||
 		us == nil ||
 		ps == nil ||

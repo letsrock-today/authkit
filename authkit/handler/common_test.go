@@ -15,96 +15,6 @@ import (
 	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
 )
 
-type testConfig struct {
-	oauth2State           testOAuth2State
-	oauth2Providers       []testOAuth2Provider
-	privateOAuth2Provider testOAuth2Provider
-	modTime               time.Time
-	tlsInsecureSkipVerify bool
-}
-
-func (c testConfig) OAuth2Providers() chan authkit.OAuth2Provider {
-	ch := make(chan authkit.OAuth2Provider)
-	go func() {
-		for _, p := range c.oauth2Providers {
-			ch <- p
-		}
-		close(ch)
-	}()
-	return ch
-}
-
-func (c testConfig) OAuth2ProviderByID(id string) authkit.OAuth2Provider {
-	for _, p := range c.oauth2Providers {
-		if id == p.ID() {
-			return p
-		}
-	}
-	return nil
-}
-
-func (c testConfig) PrivateOAuth2Provider() authkit.OAuth2Provider {
-	return c.privateOAuth2Provider
-}
-
-func (c testConfig) OAuth2State() authkit.OAuth2State {
-	return c.oauth2State
-}
-
-func (c testConfig) AuthCookieName() string {
-	return "xxx-auth-cookie"
-}
-
-func (c testConfig) ModTime() time.Time {
-	return c.modTime
-}
-
-type testOAuth2State struct {
-	tokenIssuer  string
-	tokenSignKey []byte
-	expiration   time.Duration
-}
-
-func (s testOAuth2State) TokenIssuer() string {
-	return s.tokenIssuer
-}
-
-func (s testOAuth2State) TokenSignKey() []byte {
-	return s.tokenSignKey
-}
-
-func (s testOAuth2State) Expiration() time.Duration {
-	return s.expiration
-}
-
-type testOAuth2Provider struct {
-	id               string
-	name             string
-	iconURL          string
-	oauth2Config     authkit.OAuth2Config
-	privOAuth2Config authkit.OAuth2Config
-}
-
-func (p testOAuth2Provider) ID() string {
-	return p.id
-}
-
-func (p testOAuth2Provider) Name() string {
-	return p.name
-}
-
-func (p testOAuth2Provider) IconURL() string {
-	return p.iconURL
-}
-
-func (p testOAuth2Provider) OAuth2Config() authkit.OAuth2Config {
-	return p.oauth2Config
-}
-
-func (p testOAuth2Provider) PrivateOAuth2Config() authkit.OAuth2Config {
-	return p.privOAuth2Config
-}
-
 type testErrorCustomizer struct{}
 
 func (testErrorCustomizer) InvalidRequestParameterError(error) interface{} {
@@ -226,11 +136,11 @@ func testNewEmailTokenString(
 		exp = -1 * time.Hour
 	}
 	s, err := apptoken.NewEmailTokenString(
-		config.OAuth2State().TokenIssuer(),
+		config.OAuth2State.TokenIssuer,
 		email,
 		passwordHash,
 		exp,
-		config.OAuth2State().TokenSignKey())
+		config.OAuth2State.TokenSignKey)
 	assert.NoError(t, err)
 	return []string{s}
 }
@@ -246,19 +156,19 @@ func testNewStateTokenString(
 	}
 	if login == "" {
 		s, err := apptoken.NewStateTokenString(
-			config.OAuth2State().TokenIssuer(),
+			config.OAuth2State.TokenIssuer,
 			pid,
 			exp,
-			config.OAuth2State().TokenSignKey())
+			config.OAuth2State.TokenSignKey)
 		assert.NoError(t, err)
 		return []string{s}
 	}
 	s, err := apptoken.NewStateWithLoginTokenString(
-		config.OAuth2State().TokenIssuer(),
+		config.OAuth2State.TokenIssuer,
 		pid,
 		login,
 		exp,
-		config.OAuth2State().TokenSignKey())
+		config.OAuth2State.TokenSignKey)
 	assert.NoError(t, err)
 	return []string{s}
 }

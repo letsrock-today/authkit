@@ -16,7 +16,6 @@ clean:
 	@echo "Clean"
 	@glide nv | xargs go clean -i -r
 	@find ./authkit/mocks/ -type f -path *.go ! -name doc.go -delete
-	@find ./sample/ -type f -path *_generated.go -delete
 	@echo "Clean Done."
 
 generate:

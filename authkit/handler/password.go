@@ -71,11 +71,11 @@ func (h handler) ChangePassword(c echo.Context) error {
 			h.errorCustomizer.InvalidRequestParameterError(err))
 	}
 
-	s := h.config.OAuth2State()
+	s := h.config.OAuth2State
 	t, err := apptoken.ParseEmailToken(
-		s.TokenIssuer(),
+		s.TokenIssuer,
 		cp.Token,
-		s.TokenSignKey())
+		s.TokenSignKey)
 	if err != nil {
 		if err, ok := errors.Cause(err).(*jwt.ValidationError); ok {
 			c.Logger().Debugf("%+v", errors.WithStack(err))

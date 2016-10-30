@@ -32,36 +32,36 @@ var (
 	}
 )
 
-type config struct {
-	PrivateProviderID               string                    `mapstructure:"-"`
-	PrivateProviderIDTrustedContext string                    `mapstructure:"-"`
-	ListenAddr                      string                    `mapstructure:"listen-addr"`
-	TLSCertFile                     string                    `mapstructure:"tls-cert-file"`
-	TLSKeyFile                      string                    `mapstructure:"tls-key-file"`
-	TLSInsecureSkipVerify           bool                      `mapstructure:"tls-insecure-skip-verify"`
-	HydraAddr                       string                    `mapstructure:"hydra-addr"`
-	ExternalBaseURL                 string                    `mapstructure:"external-base-url"`
-	OAuth2RedirectURL               string                    `mapstructure:"oauth2-redirect-url"`
-	ChallengeLifespan               time.Duration             `mapstructure:"challenge-lifespan"`
-	ConfirmationLinkLifespan        time.Duration             `mapstructure:"confirmation-link-lifespan"`
-	AuthCookieName                  string                    `mapstructure:"auth-cookie-name"`
-	EmailConfig                     EmailConfig               `mapstructure:"email-config"`
-	MongoDB                         DBConfig                  `mapstructure:"mongodb"`
-	OAuth2State                     oauth2State               `mapstructure:"oauth2-state" wrapstruct:"-"`
-	PrivateOAuth2Provider           *oauth2Provider           `mapstructure:"private-oauth2-provider"`
-	OAuth2Providers                 []*oauth2Provider         `mapstructure:"oauth2-providers" wrapstruct:"-"`
-	oauth2ClientCredentials         *clientcredentials.Config `wrapstruct:"OAuth2ClientCredentials"`
-	modTime                         time.Time
+type Config struct {
+	PrivateProviderID               string            `mapstructure:"-"`
+	PrivateProviderIDTrustedContext string            `mapstructure:"-"`
+	ListenAddr                      string            `mapstructure:"listen-addr"`
+	TLSCertFile                     string            `mapstructure:"tls-cert-file"`
+	TLSKeyFile                      string            `mapstructure:"tls-key-file"`
+	TLSInsecureSkipVerify           bool              `mapstructure:"tls-insecure-skip-verify"`
+	HydraAddr                       string            `mapstructure:"hydra-addr"`
+	ExternalBaseURL                 string            `mapstructure:"external-base-url"`
+	OAuth2RedirectURL               string            `mapstructure:"oauth2-redirect-url"`
+	ChallengeLifespan               time.Duration     `mapstructure:"challenge-lifespan"`
+	ConfirmationLinkLifespan        time.Duration     `mapstructure:"confirmation-link-lifespan"`
+	AuthCookieName                  string            `mapstructure:"auth-cookie-name"`
+	EmailConfig                     EmailConfig       `mapstructure:"email-config"`
+	MongoDB                         DBConfig          `mapstructure:"mongodb"`
+	OAuth2State                     OAuth2State       `mapstructure:"oauth2-state"`
+	PrivateOAuth2Provider           *OAuth2Provider   `mapstructure:"private-oauth2-provider"`
+	OAuth2Providers                 []*OAuth2Provider `mapstructure:"oauth2-providers"`
+	OAuth2ClientCredentials         *clientcredentials.Config
+	ModTime                         time.Time
 }
 
-func (c *config) init() {
+func (c *Config) init() {
 	c.PrivateProviderID = "hydra-sample"
 	c.PrivateProviderIDTrustedContext = "hydra-sample-trusted"
 	c.PrivateOAuth2Provider.ID = c.PrivateProviderID
 
 	c.OAuth2State.init()
 
-	c.oauth2ClientCredentials = &clientcredentials.Config{
+	c.OAuth2ClientCredentials = &clientcredentials.Config{
 		ClientID:     c.PrivateOAuth2Provider.ClientID,
 		ClientSecret: c.PrivateOAuth2Provider.ClientSecret,
 		Scopes:       c.PrivateOAuth2Provider.Scopes,
@@ -73,18 +73,18 @@ func (c *config) init() {
 	}
 
 	p := c.PrivateOAuth2Provider
-	p.oauth2Config = c.newOAuth2Config(p, false)
-	p.privateOAuth2Config = c.newOAuth2Config(p, true)
+	p.OAuth2Config = c.newOAuth2Config(p, false)
+	p.PrivateOAuth2Config = c.newOAuth2Config(p, true)
 
 	for _, p := range c.OAuth2Providers {
-		p.oauth2Config = c.newOAuth2Config(p, false)
+		p.OAuth2Config = c.newOAuth2Config(p, false)
 	}
 
-	c.modTime = time.Now()
+	c.ModTime = time.Now()
 }
 
-func (c *config) newOAuth2Config(
-	p *oauth2Provider,
+func (c *Config) newOAuth2Config(
+	p *OAuth2Provider,
 	privateConfig bool) authkit.OAuth2Config {
 	var endpoint oauth2.Endpoint
 	if p.ID == c.PrivateProviderID {
@@ -117,6 +117,21 @@ func (c *config) newOAuth2Config(
 	}
 }
 
+func (c Config) ToAuthkitType() authkit.Config {
+	app := []authkit.OAuth2Provider{}
+	for _, p := range c.OAuth2Providers {
+		app = append(app, p.ToAuthkitType())
+	}
+	ac := authkit.Config{
+		OAuth2Providers:       app,
+		PrivateOAuth2Provider: c.PrivateOAuth2Provider.ToAuthkitType(),
+		OAuth2State:           c.OAuth2State.ToAuthkitType(),
+		AuthCookieName:        c.AuthCookieName,
+		ModTime:               c.ModTime,
+	}
+	return ac
+}
+
 type EmailConfig struct {
 	Sender     string `mapstructure:"sender"`
 	SenderPass string `mapstructure:"sender-pass"`
@@ -129,82 +144,51 @@ type DBConfig struct {
 	Name string `mapstructure:"name"`
 }
 
-type oauth2State struct {
+type OAuth2State struct {
 	TokenIssuer     string        `mapstructure:"token-issuer"`
-	TokenSignKeyHex string        `mapstructure:"token-sign-key" wrapstruct:"-"`
+	TokenSignKeyHex string        `mapstructure:"token-sign-key"`
 	Expiration      time.Duration `mapstructure:"expiration"`
-	tokenSignKey    []byte
+	TokenSignKey    []byte
 }
 
-func (s *oauth2State) init() {
+func (s *OAuth2State) init() {
 	var err error
-	s.tokenSignKey, err = hex.DecodeString(s.TokenSignKeyHex)
+	s.TokenSignKey, err = hex.DecodeString(s.TokenSignKeyHex)
 	if err != nil {
 		panic(err)
 	}
 }
 
-type oauth2Provider struct {
-	ID                  string               `mapstructure:"id"`
-	Name                string               `mapstructure:"name"`
-	ClientID            string               `mapstructure:"client-id"`
-	ClientSecret        string               `mapstructure:"client-secret"`
-	PublicKey           string               `mapstructure:"public-key"`
-	Scopes              []string             `mapstructure:"scopes"`
-	IconURL             string               `mapstructure:"icon"`
-	TokenURL            string               `mapstructure:"token-url"`
-	AuthURL             string               `mapstructure:"auth-url"`
-	oauth2Config        authkit.OAuth2Config `wrapstruct:"-"`
-	privateOAuth2Config authkit.OAuth2Config `wrapstruct:"-"`
-}
-
-//go:generate wrapstruct -src oauth2Provider -dst oauth2ProviderWrapper -o provider_generated.go
-//go:generate wrapstruct -src oauth2State -dst oauth2StateWrapper -o state_generated.go
-//go:generate wrapstruct -src config -dst configWrapper -o config_generated.go
-
-type Config struct {
-	*configWrapper
-}
-
-func (c Config) OAuth2Providers() chan authkit.OAuth2Provider {
-	ch := make(chan authkit.OAuth2Provider)
-	go func() {
-		for _, p := range c.w.OAuth2Providers {
-			p := p
-			ch <- &oauth2ProviderWrapperEx{&oauth2ProviderWrapper{p}}
-		}
-		close(ch)
-	}()
-	return ch
-}
-
-func (c Config) OAuth2ProviderByID(id string) authkit.OAuth2Provider {
-	for _, p := range c.w.OAuth2Providers {
-		if p.ID == id {
-			p := p
-			return &oauth2ProviderWrapperEx{&oauth2ProviderWrapper{p}}
-		}
+func (s OAuth2State) ToAuthkitType() authkit.OAuth2State {
+	as := authkit.OAuth2State{
+		TokenIssuer:  s.TokenIssuer,
+		Expiration:   s.Expiration,
+		TokenSignKey: s.TokenSignKey,
 	}
-	return nil
+	return as
 }
 
-func (c Config) OAuth2State() authkit.OAuth2State {
-	return &oauth2StateWrapper{&c.w.OAuth2State}
+type OAuth2Provider struct {
+	ID                  string   `mapstructure:"id"`
+	Name                string   `mapstructure:"name"`
+	ClientID            string   `mapstructure:"client-id"`
+	ClientSecret        string   `mapstructure:"client-secret"`
+	PublicKey           string   `mapstructure:"public-key"`
+	Scopes              []string `mapstructure:"scopes"`
+	IconURL             string   `mapstructure:"icon"`
+	TokenURL            string   `mapstructure:"token-url"`
+	AuthURL             string   `mapstructure:"auth-url"`
+	OAuth2Config        authkit.OAuth2Config
+	PrivateOAuth2Config authkit.OAuth2Config
 }
 
-func (c Config) PrivateOAuth2Provider() authkit.OAuth2Provider {
-	p := c.w.PrivateOAuth2Provider
-	return &oauth2ProviderWrapperEx{&oauth2ProviderWrapper{p}}
-}
-
-type oauth2ProviderWrapperEx struct {
-	*oauth2ProviderWrapper
-}
-
-func (p oauth2ProviderWrapperEx) OAuth2Config() authkit.OAuth2Config {
-	return p.w.oauth2Config
-}
-
-func (p oauth2ProviderWrapperEx) PrivateOAuth2Config() authkit.OAuth2Config {
-	return p.w.privateOAuth2Config
+func (p OAuth2Provider) ToAuthkitType() authkit.OAuth2Provider {
+	ap := authkit.OAuth2Provider{
+		ID:                  p.ID,
+		Name:                p.Name,
+		IconURL:             p.IconURL,
+		OAuth2Config:        p.OAuth2Config,
+		PrivateOAuth2Config: p.PrivateOAuth2Config,
+	}
+	return ap
 }

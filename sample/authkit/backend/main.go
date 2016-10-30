@@ -32,18 +32,18 @@ func main() {
 	// store implementations can be replaced here
 
 	us, err := user.New(
-		c.MongoDB().URL,
-		c.MongoDB().Name,
+		c.MongoDB.URL,
+		c.MongoDB.Name,
 		"users",
-		c.ConfirmationLinkLifespan())
+		c.ConfirmationLinkLifespan)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer us.Close()
 
 	ps, err := profile.New(
-		c.MongoDB().URL,
-		c.MongoDB().Name,
+		c.MongoDB.URL,
+		c.MongoDB.Name,
 		"profiles")
 	if err != nil {
 		log.Fatal(err)
@@ -63,14 +63,14 @@ func main() {
 		templates: template.Must(template.ParseGlob("../ui-web/templates/*.html")),
 	})
 
-	log.Printf("Serving at address: '%s'.", c.ListenAddr())
+	log.Printf("Serving at address: '%s'.", c.ListenAddr)
 	log.Printf("Use 'https://' prefix in browser.")
 	log.Printf("Press Ctrl+C to exit.")
 
 	e.Run(standard.WithConfig(engine.Config{
-		Address:     c.ListenAddr(),
-		TLSCertFile: c.TLSCertFile(),
-		TLSKeyFile:  c.TLSKeyFile(),
+		Address:     c.ListenAddr,
+		TLSCertFile: c.TLSCertFile,
+		TLSKeyFile:  c.TLSKeyFile,
 	}))
 }
 

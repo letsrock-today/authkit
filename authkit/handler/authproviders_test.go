@@ -8,6 +8,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,18 +19,18 @@ func TestAuthProviders(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
-	cfg := &testConfig{
-		modTime: time.Now(),
-		oauth2Providers: []testOAuth2Provider{
+	cfg := authkit.Config{
+		ModTime: time.Now(),
+		OAuth2Providers: []authkit.OAuth2Provider{
 			{
-				id:      "aaa",
-				name:    "Aaa",
-				iconURL: "http://aaa.aa/icon.png",
+				ID:      "aaa",
+				Name:    "Aaa",
+				IconURL: "http://aaa.aa/icon.png",
 			},
 			{
-				id:      "bbb",
-				name:    "Bbb",
-				iconURL: "http://bbb.bb/icon.png",
+				ID:      "bbb",
+				Name:    "Bbb",
+				IconURL: "http://bbb.bb/icon.png",
 			},
 		},
 	}

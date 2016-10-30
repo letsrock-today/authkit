@@ -10,6 +10,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
+	"github.com/letsrock-today/hydra-sample/authkit"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,16 +21,16 @@ func TestAuthCodeURLs(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
-	cfg := &testConfig{
-		oauth2State: testOAuth2State{
-			tokenIssuer:  "zzz",
-			tokenSignKey: []byte("xxx"),
-			expiration:   1 * time.Hour,
+	cfg := authkit.Config{
+		OAuth2State: authkit.OAuth2State{
+			TokenIssuer:  "zzz",
+			TokenSignKey: []byte("xxx"),
+			Expiration:   1 * time.Hour,
 		},
-		oauth2Providers: []testOAuth2Provider{
+		OAuth2Providers: []authkit.OAuth2Provider{
 			{
-				id: "aaa",
-				oauth2Config: &oauth2.Config{
+				ID: "aaa",
+				OAuth2Config: &oauth2.Config{
 					ClientID:     "aaa-id",
 					ClientSecret: "aaa-secret",
 					Scopes:       []string{"111", "222"},
@@ -41,8 +42,8 @@ func TestAuthCodeURLs(t *testing.T) {
 				},
 			},
 			{
-				id: "bbb",
-				oauth2Config: &oauth2.Config{
+				ID: "bbb",
+				OAuth2Config: &oauth2.Config{
 					ClientID:     "bbb-id",
 					ClientSecret: "bbb-secret",
 					Scopes:       []string{"111", "222"},

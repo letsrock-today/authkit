@@ -134,7 +134,6 @@ umake go
 umake nodejs
 
 go get github.com/vektra/mockery/.../
-go get github.com/nikolay-turpitko/x-go/wrapstruct/.../
 
 npm install webpack -g
 

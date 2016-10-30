@@ -39,8 +39,7 @@ func New(
 		providerIDTrustedContext == "" ||
 		challengeLifespan == 0 ||
 		oauth2Config == nil ||
-		clientCredentials == nil ||
-		oauth2State == nil {
+		clientCredentials == nil {
 		panic("invalid argument")
 	}
 	if contextCreator == nil {
@@ -152,13 +151,13 @@ func (h hydra) IssueToken(login string) (*oauth2.Token, error) {
 	}
 
 	claims := jwt.StandardClaims{
-		ExpiresAt: time.Now().Add(h.oauth2State.Expiration()).Unix(),
-		Issuer:    h.oauth2State.TokenIssuer(),
+		ExpiresAt: time.Now().Add(h.oauth2State.Expiration).Unix(),
+		Issuer:    h.oauth2State.TokenIssuer,
 		Audience:  login,
 		Subject:   h.providerID,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	state, err := token.SignedString(h.oauth2State.TokenSignKey())
+	state, err := token.SignedString(h.oauth2State.TokenSignKey)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

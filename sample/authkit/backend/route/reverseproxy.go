@@ -17,13 +17,13 @@ import (
 
 func initReverseProxy(e *echo.Echo) {
 	c := config.Get()
-	u, err := url.Parse(c.HydraAddr())
+	u, err := url.Parse(c.HydraAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
 	proxy := httputil.NewSingleHostReverseProxy(u)
 	proxy.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: c.TLSInsecureSkipVerify()},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: c.TLSInsecureSkipVerify},
 	}
 
 	e.Any("/oauth2/*", standard.WrapHandler(proxy))

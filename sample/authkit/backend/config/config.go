@@ -24,15 +24,14 @@ func Init(prefPath, prefName string) {
 	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
-	c := &config{}
-	err = viper.Unmarshal(c)
+	cfg = Config{}
+	err = viper.Unmarshal(&cfg)
 	if err != nil {
 		panic(err)
 	}
-	c.init()
-	cfg = Config{&configWrapper{c}}
+	cfg.init()
 
-	// log.Printf("Effective config:\n%#v\n", c.c)
+	//log.Printf("Effective config:\n%#v\n" cfg, *cfg.PrivateOAuth2Provider)
 }
 
 func Get() Config {

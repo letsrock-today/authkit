@@ -6,8 +6,9 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-// StateToken represents state token.
 type (
+
+	// StateToken represents state token.
 	StateToken interface {
 
 		// ProviderID is an ID of OAuth2 provider, used to initiate auth request.

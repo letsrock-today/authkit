@@ -70,20 +70,20 @@ func (h handler) Login(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, customizedError(err))
 	}
 
-	pp := h.config.PrivateOAuth2Provider()
-	cfg := pp.OAuth2Config().(*oauth2.Config)
+	pp := h.config.PrivateOAuth2Provider
+	cfg := pp.OAuth2Config.(*oauth2.Config)
 	t, err := h.auth.IssueConsentToken(cfg.ClientID, cfg.Scopes)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	s := h.config.OAuth2State()
+	s := h.config.OAuth2State
 	state, err := apptoken.NewStateWithLoginTokenString(
-		s.TokenIssuer(),
-		pp.ID(),
+		s.TokenIssuer,
+		pp.ID,
 		lf.Login,
-		s.Expiration(),
-		s.TokenSignKey())
+		s.Expiration,
+		s.TokenSignKey)
 	if err != nil {
 		return errors.WithStack(err)
 	}

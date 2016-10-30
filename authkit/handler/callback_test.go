@@ -117,27 +117,28 @@ func TestCallback(t *testing.T) {
 		users:           us,
 		profiles:        ps,
 		socialProfiles:  sps,
-		config: testConfig{
-			oauth2State: testOAuth2State{
-				tokenIssuer:  "zzz",
-				tokenSignKey: []byte("xxx"),
-				expiration:   1 * time.Hour,
+		config: authkit.Config{
+			OAuth2State: authkit.OAuth2State{
+				TokenIssuer:  "zzz",
+				TokenSignKey: []byte("xxx"),
+				Expiration:   1 * time.Hour,
 			},
-			privateOAuth2Provider: testOAuth2Provider{
-				id:               "private-id",
-				oauth2Config:     privCfg,
-				privOAuth2Config: privCfg,
+			PrivateOAuth2Provider: authkit.OAuth2Provider{
+				ID:                  "private-id",
+				OAuth2Config:        privCfg,
+				PrivateOAuth2Config: privCfg,
 			},
-			oauth2Providers: []testOAuth2Provider{
+			OAuth2Providers: []authkit.OAuth2Provider{
 				{
-					id:           "external-id",
-					oauth2Config: extCfg,
+					ID:           "external-id",
+					OAuth2Config: extCfg,
 				},
 				{
-					id:           "external-id-new",
-					oauth2Config: extCfg,
+					ID:           "external-id-new",
+					OAuth2Config: extCfg,
 				},
 			},
+			AuthCookieName: "xxx-auth-cookie",
 		},
 		contextCreator: authkit.DefaultContextCreator{},
 	}

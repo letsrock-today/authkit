@@ -45,11 +45,11 @@ func TestConfirmEmail(t *testing.T) {
 		errorCustomizer: testErrorCustomizer{},
 		users:           us,
 		profiles:        ps,
-		config: testConfig{
-			oauth2State: testOAuth2State{
-				tokenIssuer:  "zzz",
-				tokenSignKey: []byte("xxx"),
-				expiration:   1 * time.Hour,
+		config: authkit.Config{
+			OAuth2State: authkit.OAuth2State{
+				TokenIssuer:  "zzz",
+				TokenSignKey: []byte("xxx"),
+				Expiration:   1 * time.Hour,
 			},
 		},
 	}

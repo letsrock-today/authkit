@@ -48,29 +48,29 @@ func (h handler) Callback(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	oauth2State := h.config.OAuth2State()
+	oauth2State := h.config.OAuth2State
 	state, err := apptoken.ParseStateToken(
-		oauth2State.TokenIssuer(),
+		oauth2State.TokenIssuer,
 		cr.State,
-		oauth2State.TokenSignKey())
+		oauth2State.TokenSignKey)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	var oauth2cfg authkit.OAuth2Config
-	privateProvider := h.config.PrivateOAuth2Provider()
-	privPID := privateProvider.ID()
+	privateProvider := h.config.PrivateOAuth2Provider
+	privPID := privateProvider.ID
 	ctx := h.contextCreator.CreateContext(privPID)
 
 	if state.ProviderID() == privPID {
-		oauth2cfg = privateProvider.PrivateOAuth2Config()
+		oauth2cfg = privateProvider.PrivateOAuth2Config
 	} else {
-		p := h.config.OAuth2ProviderByID(state.ProviderID())
+		p := oauth2ProviderByID(h.config.OAuth2Providers, state.ProviderID())
 		if p == nil {
 			err := fmt.Errorf("Unknown provider: %s", state.ProviderID())
 			return errors.WithStack(err)
 		}
-		oauth2cfg = p.OAuth2Config()
+		oauth2cfg = p.OAuth2Config
 	}
 
 	token, err := oauth2cfg.Exchange(ctx, cr.Code)
@@ -134,7 +134,7 @@ func (h handler) Callback(c echo.Context) error {
 	// Return private provider's token to client end exit
 	// (redirect client to / with token in header).
 	cookie := createCookie(
-		h.config.AuthCookieName(),
+		h.config.AuthCookieName,
 		privToken.AccessToken)
 	c.SetCookie(cookie)
 	return c.Redirect(http.StatusFound, "/")
@@ -145,13 +145,13 @@ func (h handler) handlePrivateProvider(
 	if state.Login() == "" {
 		return errors.WithStack(errors.New("illegal state, empty login"))
 	}
-	pid := h.config.PrivateOAuth2Provider().ID()
+	pid := h.config.PrivateOAuth2Provider.ID
 	if err := h.users.UpdateOAuth2Token(state.Login(), pid, token); err != nil {
 		return errors.WithStack(err)
 	}
 	// our trusted provider, just return access token to client
 	cookie := createCookie(
-		h.config.AuthCookieName(),
+		h.config.AuthCookieName,
 		token.AccessToken)
 	c.SetCookie(cookie)
 	return c.Redirect(http.StatusFound, "/")
@@ -184,7 +184,7 @@ func (h handler) issuePrivateProvidersToken(
 	login string,
 	freshUser bool) (*oauth2.Token, error) {
 	// Check if we have one in DB first.
-	privPID := h.config.PrivateOAuth2Provider().ID()
+	privPID := h.config.PrivateOAuth2Provider.ID
 	var privToken *oauth2.Token
 	if !freshUser {
 		var err error
@@ -216,6 +216,17 @@ func (h handler) issuePrivateProvidersToken(
 	}
 
 	return privToken, nil
+}
+
+func oauth2ProviderByID(
+	providers []authkit.OAuth2Provider,
+	id string) *authkit.OAuth2Provider {
+	for _, p := range providers {
+		if p.ID == id {
+			return &p
+		}
+	}
+	return nil
 }
 
 func makeRandomPassword() (string, error) {

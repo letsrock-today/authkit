@@ -199,29 +199,11 @@ func testCreateHydra() *hydra {
 		&clientcredentials.Config{
 			TokenURL: "http://foo.com/auth/token",
 		},
-		testOAuth2State{
-			tokenIssuer:  "some-issuer",
-			tokenSignKey: []byte("some-key"),
-			expiration:   1 * time.Hour,
+		authkit.OAuth2State{
+			TokenIssuer:  "some-issuer",
+			TokenSignKey: []byte("some-key"),
+			Expiration:   1 * time.Hour,
 		},
 		authkit.DefaultContextCreator{},
 		false).(*hydra)
-}
-
-type testOAuth2State struct {
-	tokenIssuer  string
-	tokenSignKey []byte
-	expiration   time.Duration
-}
-
-func (s testOAuth2State) TokenIssuer() string {
-	return s.tokenIssuer
-}
-
-func (s testOAuth2State) TokenSignKey() []byte {
-	return s.tokenSignKey
-}
-
-func (s testOAuth2State) Expiration() time.Duration {
-	return s.expiration
 }

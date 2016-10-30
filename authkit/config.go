@@ -10,51 +10,47 @@ import (
 
 type (
 
-	// Config represents configuration provided by the application.
-	Config interface {
+	// Config used to pass configuration to the authkit.Handler.
+	Config struct {
 
-		// OAuth2Providers returns chanel which can be used to iterate over
-		// all registered OAuth2 providers (app should not put private oauth2
-		// provider here).
-		OAuth2Providers() chan OAuth2Provider
+		// OAuth2Providers stores configuration of all registered external OAuth2
+		// providers (except application's private OAuth2 provider).
+		OAuth2Providers []OAuth2Provider
 
-		// OAuth2ProviderByID returns OAuth2 provider by ID.
-		OAuth2ProviderByID(id string) OAuth2Provider
-
-		// PrivateOAuth2Provider returns configuration of private oauth2
+		// PrivateOAuth2Provider is a configuration of private OAuth2
 		// provider. Private provider can be implemented by the app itself,
 		// or it can be a third-party application. In both cases, it should
 		// be available via http.
-		PrivateOAuth2Provider() OAuth2Provider
+		PrivateOAuth2Provider OAuth2Provider
 
-		// OAuth2State returns configuration of OAuth2 code flow state token.
-		OAuth2State() OAuth2State
+		// OAuth2State is a configuration of OAuth2 code flow state token.
+		OAuth2State OAuth2State
 
-		// AuthCookieName returns name of cookie to be used to save auth token.
-		AuthCookieName() string
+		// AuthCookieName is a name of cookie to be used to save auth token.
+		AuthCookieName string
 
-		// ModTime returns configuration modification time. It is used to
+		// ModTime is a configuration modification time. It is used to
 		// cache list of providers on client (with "If-Modified_Since" header).
-		ModTime() time.Time
+		ModTime time.Time
 	}
 
-	// OAuth2State describes configuration parameters for OAuth2 code flow state token.
-	OAuth2State interface {
-		TokenIssuer() string
-		TokenSignKey() []byte
-		Expiration() time.Duration
+	// OAuth2State holds configuration parameters for OAuth2 code flow state token.
+	OAuth2State struct {
+		TokenIssuer  string
+		TokenSignKey []byte
+		Expiration   time.Duration
 	}
 
-	// OAuth2Provider describes OAuth2 provider.
-	OAuth2Provider interface {
-		ID() string
-		Name() string
-		IconURL() string
-		OAuth2Config() OAuth2Config
+	// OAuth2Provider holds OAuth2 provider's configuraton.
+	OAuth2Provider struct {
+		ID           string
+		Name         string
+		IconURL      string
+		OAuth2Config OAuth2Config
 
 		// PrivateOAuth2Config used to access private provider via private network.
 		// So, URLs may be accessible only within DMZ, hence different config.
-		PrivateOAuth2Config() OAuth2Config
+		PrivateOAuth2Config OAuth2Config
 	}
 
 	// OAuth2Config is an interface extracted from the "golang.org/x/oauth2".Config.

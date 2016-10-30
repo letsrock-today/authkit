@@ -65,10 +65,10 @@ func TestLogin(t *testing.T) {
 		errorCustomizer: testErrorCustomizer{},
 		auth:            as,
 		users:           us,
-		config: &testConfig{
-			privateOAuth2Provider: testOAuth2Provider{
-				id: "some_id",
-				oauth2Config: &oauth2.Config{
+		config: authkit.Config{
+			PrivateOAuth2Provider: authkit.OAuth2Provider{
+				ID: "some_id",
+				OAuth2Config: &oauth2.Config{
 					ClientID: "some_client_id",
 					Scopes:   []string{"some_scope"},
 				},
@@ -80,10 +80,10 @@ func TestLogin(t *testing.T) {
 		errorCustomizer: testErrorCustomizer{},
 		auth:            as,
 		users:           us,
-		config: &testConfig{
-			privateOAuth2Provider: testOAuth2Provider{
-				id: "some_id",
-				oauth2Config: &oauth2.Config{
+		config: authkit.Config{
+			PrivateOAuth2Provider: authkit.OAuth2Provider{
+				ID: "some_id",
+				OAuth2Config: &oauth2.Config{
 					ClientID: "unknown_client_id",
 					Scopes:   []string{"some_scope"},
 				},

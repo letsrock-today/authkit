@@ -146,12 +146,13 @@ func TestChangePassword(t *testing.T) {
 	h := handler{
 		errorCustomizer: testErrorCustomizer{},
 		users:           us,
-		config: testConfig{
-			oauth2State: testOAuth2State{
-				tokenIssuer:  "zzz",
-				tokenSignKey: []byte("xxx"),
-				expiration:   1 * time.Hour,
+		config: authkit.Config{
+			OAuth2State: authkit.OAuth2State{
+				TokenIssuer:  "zzz",
+				TokenSignKey: []byte("xxx"),
+				Expiration:   1 * time.Hour,
 			},
+			AuthCookieName: "xxx-auth-cookie",
 		},
 	}
 

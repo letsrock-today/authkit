@@ -29,11 +29,11 @@ func initMiddleware(
 	e.Use(middleware.Secure())
 	e.Use(middleware.CSRF())
 
-	oauth2Config := c.PrivateOAuth2Provider().PrivateOAuth2Config()
+	oauth2Config := c.PrivateOAuth2Provider.PrivateOAuth2Config
 
 	profileMiddleware = _middleware.AccessTokenWithConfig(
 		_middleware.AccessTokenConfig{
-			PrivateProviderID: c.PrivateProviderID(),
+			PrivateProviderID: c.PrivateProviderID,
 			ContextKey:        _middleware.DefaultContextKey,
 			TokenValidator:    tokenValidator,
 			UserService:       userService,
@@ -42,7 +42,7 @@ func initMiddleware(
 		})
 	friendsMiddleware = _middleware.AccessTokenWithConfig(
 		_middleware.AccessTokenConfig{
-			PrivateProviderID: c.PrivateProviderID(),
+			PrivateProviderID: c.PrivateProviderID,
 			ContextKey:        _middleware.DefaultContextKey,
 			TokenValidator:    tokenValidator,
 			UserService:       userService,
