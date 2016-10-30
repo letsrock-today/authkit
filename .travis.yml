@@ -15,8 +15,8 @@ install:
     - glide up
     - pushd $TRAVIS_BUILD_DIR/sample/authkit/ui-web && npm install && popd
 script:
-    - pushd $TRAVIS_BUILD_DIR/ && make
-    - pushd $TRAVIS_BUILD_DIR/sample/authkit/ && make up && make down
+    - make
+    - pushd $TRAVIS_BUILD_DIR/sample/authkit/ && make up down ARGS="-dbg" && popd
 notifications:
     email: false
     slack:
