@@ -2,6 +2,8 @@
 
 # authkit
 
+__Status__: unstable, experimental.
+
 "authkit" is a set of http handlers and middleware to implement auth2
 authorization and SSO in the web application (from the resource owner point of view).
 
