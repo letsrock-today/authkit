@@ -16,6 +16,9 @@ one of this libraries:
 - https://github.com/golang/oauth2;
 - https://github.com/markbates/goth.
 
+Even better, consider to use https://auth0.com/ or http://www.janrain.com/ or similar.
+They are feature-reach and easy to start, albeit with their own restrictions.
+
 Our project uses golang/oauth2 and simplifies configuration a bit
 (in our opinion). Though, this task is may be already straightforward enough.
 
