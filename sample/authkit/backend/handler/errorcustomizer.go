@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/asaskevich/govalidator"
-	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/authkit/authkit"
 )
 
 func NewErrorCustomizer() authkit.ErrorCustomizer {

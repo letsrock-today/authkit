@@ -6,9 +6,9 @@ import (
 
 	"github.com/labstack/echo"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/authkit/middleware"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
+	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/authkit/middleware"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/service/socialprofile"
 )
 
 func (h handler) Friends(c echo.Context) error {

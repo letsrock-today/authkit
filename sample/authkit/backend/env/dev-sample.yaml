@@ -28,10 +28,10 @@ email-config:
 
 mongodb:
     url: "localhost"
-    name: "hydra-sample"
+    name: "authkit"
 
 oauth2-state:
-    token-issuer: hydra-sample
+    token-issuer: authkit
     # cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32
     token-sign-key: "xxx"
     expiration: 15m

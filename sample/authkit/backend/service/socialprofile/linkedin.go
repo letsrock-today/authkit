@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/authkit/authkit"
 )
 
 type lnPhoneNumber struct {

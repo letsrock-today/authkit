@@ -13,7 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/authkit/authkit"
 )
 
 const (
@@ -55,8 +55,8 @@ type Config struct {
 }
 
 func (c *Config) init() {
-	c.PrivateProviderID = "hydra-sample"
-	c.PrivateProviderIDTrustedContext = "hydra-sample-trusted"
+	c.PrivateProviderID = "authkit"
+	c.PrivateProviderIDTrustedContext = "authkit-trusted"
 	c.PrivateOAuth2Provider.ID = c.PrivateProviderID
 
 	c.OAuth2State.init()

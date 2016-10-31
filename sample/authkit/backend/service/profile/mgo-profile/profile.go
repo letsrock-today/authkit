@@ -4,9 +4,9 @@ import (
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/profile"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
+	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/service/profile"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/service/socialprofile"
 )
 
 type service struct {

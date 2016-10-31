@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
-	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/authkit/authkit"
 	"github.com/stretchr/testify/assert"
 )
 

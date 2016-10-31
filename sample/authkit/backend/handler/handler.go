@@ -5,9 +5,9 @@ import (
 
 	"github.com/labstack/echo"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/authkit/persisttoken"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/profile"
+	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/authkit/persisttoken"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/service/profile"
 )
 
 type Handler interface {

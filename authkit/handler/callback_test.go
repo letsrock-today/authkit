@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/authkit/mocks"
+	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/authkit/mocks"
 )
 
 func TestCallback(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/authkit/authkit"
 )
 
 type googleConnectionsResponse struct {

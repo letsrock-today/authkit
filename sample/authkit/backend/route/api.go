@@ -3,10 +3,10 @@ package route
 import (
 	"github.com/labstack/echo"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	authkithandler "github.com/letsrock-today/hydra-sample/authkit/handler"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/handler"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/profile"
+	"github.com/letsrock-today/authkit/authkit"
+	authkithandler "github.com/letsrock-today/authkit/authkit/handler"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/handler"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/service/profile"
 )
 
 const confirmEmailURL = "/email-confirm"

@@ -6,7 +6,7 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/authkit/authkit"
 )
 
 // WrapOAuth2Config wraps authkit.OAuth2Config or oauth2.Config with

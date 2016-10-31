@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"net/smtp"
 
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/config"
 )
 
 const (

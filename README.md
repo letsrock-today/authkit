@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/letsrock-today/hydra-sample.svg?branch=master)](https://travis-ci.org/letsrock-today/hydra-sample)
+[![Build Status](https://travis-ci.org/letsrock-today/authkit.svg?branch=master)](https://travis-ci.org/letsrock-today/authkit)
 
 # authkit
 
@@ -157,11 +157,11 @@ exit
 WRK_DIR=$GOPATH/src/github.com/letsrock-today
 mkdir -p $WRK_DIR
 cd $WRK_DIR
-git clone https://github.com/letsrock-today/hydra-sample.git
+git clone https://github.com/letsrock-today/authkit.git
 
 # update go dependencies
 
-cd $WRK_DIR/hydra-sample
+cd $WRK_DIR/authkit
 glide up
 
 # update npm dependencies for every sample

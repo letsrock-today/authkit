@@ -3,9 +3,9 @@ package confirmer
 import (
 	"fmt"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
+	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/authkit/apptoken"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/config"
 )
 
 type confirmer struct {

@@ -11,8 +11,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
+	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/authkit/apptoken"
 )
 
 type testErrorCustomizer struct{}

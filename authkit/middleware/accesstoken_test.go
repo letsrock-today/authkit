@@ -13,8 +13,8 @@ import (
 	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/authkit/mocks"
+	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/authkit/mocks"
 )
 
 func TestConfigValidation(t *testing.T) {

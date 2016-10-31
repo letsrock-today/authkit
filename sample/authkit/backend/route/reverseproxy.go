@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/config"
 )
 
 // we use proxy for hydra requests, so that all interaction with UI went via single port

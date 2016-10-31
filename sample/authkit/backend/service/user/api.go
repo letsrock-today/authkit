@@ -3,7 +3,7 @@ package user
 import (
 	"io"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/authkit/authkit"
 )
 
 // Store combines io.Closer and authkit.UserService.

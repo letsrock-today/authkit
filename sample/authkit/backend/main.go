@@ -10,10 +10,10 @@ import (
 	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/engine/standard"
 
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/route"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/profile/mgo-profile"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user/mgo-user"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/config"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/route"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/service/profile/mgo-profile"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/service/user/mgo-user"
 )
 
 var (

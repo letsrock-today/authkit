@@ -3,7 +3,7 @@ package profile
 import (
 	"io"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/authkit/authkit"
 )
 
 // Service represents locally stored user's profile.

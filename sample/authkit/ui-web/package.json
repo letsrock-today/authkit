@@ -1,5 +1,5 @@
 {
-  "name": "hydra-sample",
+  "name": "authkit",
   "description": "A sample of usage Hydra",
   "license": "MIT",
   "scripts": {

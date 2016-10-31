@@ -1,8 +1,8 @@
-hash: ebe8cd3dca53eefb7a0b48ebead731c7d6592c550326407b7ca508a08448bac9
-updated: 2016-10-28T02:24:40.950448812+07:00
+hash: ffd67c708054d366ad6e5c8e2c5e1a7b195362cd7d112fa79bbd3db18a27f6d8
+updated: 2016-10-31T14:14:32.426609465+07:00
 imports:
 - name: cloud.google.com/go
-  version: 40fedcdb51cfb298ab6a204da4c54a03d6d40a3e
+  version: 7ee19e74f7fd11897ae3b7c4782d8205e810faa7
   subpackages:
   - compute/metadata
   - internal
@@ -17,7 +17,7 @@ imports:
   subpackages:
   - proto
 - name: github.com/hashicorp/hcl
-  version: 99ce73d4fe576449f7a689d4fc2b2ad09a86bdaa
+  version: 8fa153c5b4e9d1ccecda7075821ffc7c1f6d912b
   subpackages:
   - hcl/ast
   - hcl/parser
@@ -76,18 +76,18 @@ imports:
 - name: github.com/spf13/pflag
   version: 5ccb023bc27df288a957c5e994cd44fd19619465
 - name: github.com/spf13/viper
-  version: 80ab6657f9ec7e5761f6603320d3d58dfe6970f6
+  version: 651d9d916abc3c3d6a91a12549495caba5edffd2
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: golang.org/x/crypto
-  version: ca7e7f10cb9fd9c1a6ff7f60436c086d73714180
+  version: b2fa06b6af4b7c9bfeb8569ab7b17f04550717bf
   subpackages:
   - curve25519
   - ed25519
   - ed25519/internal/edwards25519
   - ssh
 - name: golang.org/x/net
-  version: b626cca987fa6333e5dd25baa0fd61708c145011
+  version: 4cfeeeb61ae8daa2a4b06572024786e56f23504c
   subpackages:
   - context
   - context/ctxhttp

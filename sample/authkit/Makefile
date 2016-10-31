@@ -18,7 +18,7 @@ clean:
 	@echo "Clean"
 	@rm -rf ./.build
 	@go clean -i -r \
-		github.com/letsrock-today/hydra-sample/sample/authkit/backend
+		github.com/letsrock-today/authkit/sample/authkit/backend
 	@echo "Clean Done."
 
 test:
@@ -34,7 +34,7 @@ build:
 	@mkdir -p ./.build
 	@go build -ldflags $(GOLDFLAGS) \
 		-o ./.build/backend/authkit-sample \
-		github.com/letsrock-today/hydra-sample/sample/authkit/backend
+		github.com/letsrock-today/authkit/sample/authkit/backend
 	@cd ./ui-web && npm run dist -- --output-path ../.build/ui-web/dist
 	@cp -r ./ui-web/html ./.build/ui-web
 	@cp -r ./ui-web/templates ./.build/ui-web

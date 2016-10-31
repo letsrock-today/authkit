@@ -1,4 +1,4 @@
-package: github.com/letsrock-today/hydra-sample
+package: github.com/letsrock-today/authkit
 import:
 - package: github.com/asaskevich/govalidator
   version: ^5.0.0

@@ -11,8 +11,8 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user"
+	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/service/user"
 )
 
 type userData struct {

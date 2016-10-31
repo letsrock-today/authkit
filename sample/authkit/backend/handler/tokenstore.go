@@ -3,7 +3,7 @@ package handler
 import (
 	"golang.org/x/oauth2"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
+	"github.com/letsrock-today/authkit/authkit"
 )
 
 // userTokenStore retrieves tokens from user, saving one database request.

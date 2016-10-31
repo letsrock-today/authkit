@@ -12,8 +12,8 @@ import (
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/authkit/apptoken"
+	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/authkit/apptoken"
 )
 
 type (

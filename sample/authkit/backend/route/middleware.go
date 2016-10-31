@@ -4,9 +4,9 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	_middleware "github.com/letsrock-today/hydra-sample/authkit/middleware"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
+	"github.com/letsrock-today/authkit/authkit"
+	_middleware "github.com/letsrock-today/authkit/authkit/middleware"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/config"
 )
 
 var (

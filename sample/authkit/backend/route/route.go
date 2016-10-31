@@ -8,13 +8,13 @@ import (
 
 	"github.com/labstack/echo"
 
-	"github.com/letsrock-today/hydra-sample/authkit"
-	"github.com/letsrock-today/hydra-sample/authkit/hydra"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/config"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/confirmer"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/profile"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/socialprofile"
-	"github.com/letsrock-today/hydra-sample/sample/authkit/backend/service/user"
+	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/authkit/hydra"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/config"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/confirmer"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/service/profile"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/service/socialprofile"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/service/user"
 )
 
 func Init(
