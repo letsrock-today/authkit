@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/authkit/peculiarproviders/deezer"
 )
 
 const (
@@ -29,6 +30,7 @@ var (
 		"fb":       facebook.Endpoint,
 		"google":   google.Endpoint,
 		"linkedin": linkedin.Endpoint,
+		"deezer":   deezer.Endpoint,
 	}
 )
 
@@ -108,13 +110,18 @@ func (c *Config) newOAuth2Config(
 				privateConfig))
 		}
 	}
-	return &oauth2.Config{
+	cfg := &oauth2.Config{
 		ClientID:     p.ClientID,
 		ClientSecret: p.ClientSecret,
 		Scopes:       p.Scopes,
 		Endpoint:     endpoint,
 		RedirectURL:  c.OAuth2RedirectURL,
 	}
+	// for peculiar providers we need custom wrappers
+	if p.ID == "deezer" {
+		return &deezer.Config{cfg}
+	}
+	return cfg
 }
 
 func (c Config) ToAuthkitType() authkit.Config {

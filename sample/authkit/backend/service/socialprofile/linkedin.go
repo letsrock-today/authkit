@@ -38,6 +38,9 @@ const (
 )
 
 func (linkedin) SocialProfile(client *http.Client) (authkit.Profile, error) {
+	//TODO: Similar approach in Deezer. Every request has additional query
+	// param with access token. May be to introduce custom http.Client for
+	// every such provider and move this code there?
 	transport, ok := client.Transport.(*oauth2.Transport)
 	if !ok {
 		return nil, errors.New("Cannot retrieve token from http.Client")
@@ -46,10 +49,7 @@ func (linkedin) SocialProfile(client *http.Client) (authkit.Profile, error) {
 	if err != nil {
 		return nil, err
 	}
-	url := fmt.Sprintf(
-		lnProfileURL,
-		lnProfileQueryURLOpaque,
-		token.AccessToken)
+	url := fmt.Sprintf(lnProfileURL, lnProfileQueryURLOpaque, token.AccessToken)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err

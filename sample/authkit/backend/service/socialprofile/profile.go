@@ -55,6 +55,7 @@ var _providers = providers{
 	"fb":       facebook{},
 	"linkedin": linkedin{},
 	"google":   google{},
+	"deezer":   deezer{},
 }
 
 func normalizeGender(g string) string {
