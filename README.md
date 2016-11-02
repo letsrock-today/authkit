@@ -85,17 +85,6 @@ Our aim is to provide:
 - [x] sample web app implementation using [Riot.js](http://riotjs.com/);
 - [ ] sample Android app implementation;
 
-TODO:
-- how simple it would be to reuse providers' implementations from markbates/goth?
-- if we use swagger or another lib to generate SDK from provider's API, or
-  ready-to-use SDK from provider in our app, is it still convenient to use
-  something like markbates/goth (we assume, that application creator still
-  needs provider's API for other features)?
-- should we try to implement example with Iris to learn is it simple/possible?
-- if we use swagger or another lib to generate server-side stubs from app's API
-  description, how it would affect usage of the lib? could we provide custom
-  templates to generate code, which is used our lib and Echo?
-
 Finally, when the lib is ready, we want to migrate our own application
 (https://letsrock.today/) to it and to enjoy benefits of going open-source.
 
