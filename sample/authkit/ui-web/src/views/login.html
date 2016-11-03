@@ -26,7 +26,8 @@ import jwt from 'jwt-decode';
                     <error-msg error="{ error }"/>
                     <auth if="{ showAuth }"
                           onlogin="{ onLogin }"
-                          onsignup="{ onSignUp }"/>
+                          onsignup="{ onSignUp }"
+                          onerror="{ onError }"/>
                     <consent if="{ !showAuth }"
                              onconsent="{ onConsent }"
                              onabort="{ onAbortConsent }"
@@ -101,6 +102,9 @@ import jwt from 'jwt-decode';
                 self.decodedChallenge.redir,
                 'consent',
                 '');
+        }
+        self.onError = (error) => {
+            self.update({error:error});
         }
     </script>
 </login>

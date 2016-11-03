@@ -11,7 +11,7 @@
     display: block;
 }
 .modal-dialog {
-    width: 400px !important;
+    width: 600px !important;
 }
 .username-in-bar {
     margin: 13px;
@@ -40,4 +40,9 @@ button, input {
 }
 .user-picture {
     text-align: center;
+}
+.ellipsed-container a {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

@@ -13,7 +13,14 @@
                    name="password"
                    placeholder="Password"
                    oninput="{ onInput }"/>
-            <button type="submit"
+            <input if="{ signupAction }"
+                   type="password" 
+                   class="form-control"
+                   name="password2"
+                   placeholder="Re-type password"
+                   oninput="{ onInput }"/>
+            <button if="{ !signupAction }"
+                    type="submit"
                     class="btn btn-default"
                     name="signin"
                     disabled
@@ -24,11 +31,18 @@
                     disabled
                     onclick="{ onSignUp }">Sign Up</button>
         </form>
-        <br/>
-        <a href="/password-reset">Forget password?</a>
+        <div if="{ !signupAction }">
+            <br/>
+            <a href="/password-reset">Forgot password?</a>
+        </div>
     </div>
     <script>
         let self = this;
+        self.init = () => {
+            self.signupAction = false;
+            self.login.value = '';
+            self.password.value = '';
+        }
         self.onInput = () => {
             self.signup.disabled =
                 self.signin.disabled = !self.login.value || !self.password.value;
@@ -38,7 +52,17 @@
             opts.onlogin(self['login-form']);
         }
         self.onSignUp = () => {
-            opts.onsignup(self['login-form']);
+            if (self.signupAction) {
+                if (self.password.value !== self.password2.value) {
+                    opts.onerror('Password values do not match.');
+                    return;
+                }
+                opts.onsignup(self['login-form']);
+                return;
+            }
+            self.signupAction = true;
+            self.password2.value = '';
+            self.update();
         }
     </script>
 </auth>

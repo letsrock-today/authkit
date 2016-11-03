@@ -22,17 +22,31 @@ import respHelper from '../util/response-helper';
                     <h4 class="modal-title">Login</h4>
                 </div>
                 <div name="modalBody"
-                     class="modal-body">
-                    <error-msg error="{ error }"/>
-                    <auth onlogin="{ onLogin }"
-                          onsignup="{ onSignUp }"/>
-                    <hr/>
-                    <div>
-                        <login-provider each="{ p in loginProviders }"
-                                        icon="{ p.iconUrl }"
-                                        href="{ p.authCodeUrl }">
-                            { p.name }
-                        </login-provider>
+                     class="modal-body container-fluid">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <error-msg error="{ error }"/>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <auth onlogin="{ onLogin }"
+                                  onsignup="{ onSignUp }"
+                                  onerror="{ onError }"/>
+                            <div class="checkbox"
+                                 style="text-align:center">
+                                <label><input type="checkbox" name="staysigned"/>
+                                    Stay signed in</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 ellipsed-container"
+                             stype="height: 300px; overflow: auto;">
+                            <login-provider each="{ p in loginProviders }"
+                                            icon="{ p.iconUrl }"
+                                            href="{ p.authCodeUrl }">
+                                { p.name }
+                            </login-provider>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -42,6 +56,8 @@ import respHelper from '../util/response-helper';
         let self = this;
         self.visible = false;
         self.show = () => {
+            self.error = '';
+            self.tags.auth.init();
             self.visible = true;
             self.update();
         }
@@ -87,6 +103,9 @@ import respHelper from '../util/response-helper';
         }
         self.onSignUp = (loginForm) => {
             loginOrSignup('signup', loginForm, 'Could not create user. ');
+        }
+        self.onError = (error) => {
+            self.update({error:error});
         }
     </script>
 </dlg-login>
