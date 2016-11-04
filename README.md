@@ -2,48 +2,38 @@
 
 # authkit
 
+TL;DR: may be you will be happy with one of following:
+
+- https://auth0.com/
+- http://www.janrain.com/
+- https://github.com/golang/oauth2
+- https://github.com/markbates/goth
+- https://github.com/ory-am/hydra
+
 __Status__: unstable, experimental.
 
-"authkit" is a set of http handlers and middleware to implement auth2
-authorization and SSO in the web application (from the resource owner point of view).
+"authkit" is a set of reusable peaces of code (HTTP handlers, middleware, helpers
+and other primitives), mostly on Go programming language, useful to implement
+OAuth 2 authorization and SSO at the server-side, accompanied with relatively
+complete demo implementation.
 
-This project is not aimed to create yet another OAuth2 provider or client
-library, it is rather aimed to glue existing implementations, to fill gaps
-between them and to represent demo (blueprint?) solution(s) for particular
-authorization scenario(s). Also, any piece of code (helper, handler, middleware)
-should be customizable and reusable.
+Package is not a framework, yet another OAuth2 provider or OAuth2 client library.
+Instead of trying to create more general library, we are striving to focus
+on the scenarios we currently need and use in our own projects, prototype them
+here and extract reusable code into library package. Project can be seen as an
+example, blueprint and related glue code for particular authorization scenario(s).
 
-If you simply need a social login via one provider from the list, you may use
-one of this libraries:
-- https://github.com/golang/oauth2;
-- https://github.com/markbates/goth.
+Before we started this project, we already implemented some relevant parts in
+several different projects. We wanted to add Hydra support and gather all
+scattered pieces in one place, somewhat brush and simplify messy parts, etc.
 
-Even better, consider to use https://auth0.com/ or http://www.janrain.com/ or similar.
-They are feature-reach and easy to start, albeit with their own restrictions.
-
-Our project uses golang/oauth2 and simplifies configuration a bit
-(in our opinion). Though, this task is may be already straightforward enough.
-
-markbates/goth is good for the task of using many different auth providers from
-predefined list, it provides ability to configure providers and to implement
-new ones. It even goes as far as to retrieve user-related data from provider
-(like user name, location or avatar URL from social network). But it leaves
-couple of gaps unfilled:
-- it seems that it has no ready-to-use integration with form-based login;
-- it seems that it has no ready-to-use token-based auth middleware;
-- it seems that it has no ready-to-use integration with on-promise
-  oauth2 provider (so that app would make it's API accessible to 3rd party
-  with login via OAuth2);
-
-This gaps may be filled with other projects. Echo, Gorilla, Negrony, Iris, etc
-can be used to provide necessary handlers and middleware. And our project is an
-attempt to provide some reusable pieces to fill this gap.
-
-We started this project from porting and tailoring
+So, we started this project from porting and tailoring
 [Hydra usage example](https://github.com/ory-am/hydra-idp-react). It may be seen
-as more elaborated usage example of Hydra, oauth2, Echo and related stuff.
+as more elaborated usage example of Hydra, oauth2, Echo and related stuff. And 
+later we start to add our other existing code here, experimenting, rethinking
+and refactoring it on the way.
 
-Initially, we are focused on the following task:
+Mainly, we are focused on the following scenario:
 
 - we have custom http API;
 - we want this API or part of it be available only to authorized users;
@@ -52,8 +42,8 @@ Initially, we are focused on the following task:
 - we want to be able to provide username/password login as well;
 - we want that no matter which type of login user choose, API would be protected
   using single approach with access token, issued by our side;
-- we want to be able to make our API or parts of it available to third parties
-  via OAuth2 code flow;
+- we want to be able to make our API or parts of it accessible to third parties
+  via OAuth2;
 - we want to expose single IP address to our clients (or several equivalent
   addresses), so, for example, we want to proxy requests to Hydra via Nginx or
   our own application.
@@ -80,17 +70,13 @@ Our aim is to provide:
 
 - [x] a set of server-side primitives (http handlers, routes, middleware, helpers)
       usable to implement different oauth2 scenarios;
-- [ ] binary auth module for Nginx (see http://nginx.org/en/docs/http/ngx_http_auth_request_module.html);
-- [ ] examples of our library usage in both modes: directly and behind Nginx;
 - [x] sample web app implementation using [Riot.js](http://riotjs.com/);
+- [ ] binary auth module for Nginx (see http://nginx.org/en/docs/http/ngx_http_auth_request_module.html);
+- [ ] example of Nginx module usage;
 - [ ] sample Android app implementation;
 
 Finally, when the lib is ready, we want to migrate our own application
 (https://letsrock.today/) to it and to enjoy benefits of going open-source.
-
-Currently almost all of relevant parts are implemented in our closed-source
-application or in samples, but code is a bit messy and scattered, so we are not
-ready to open it as it is.
 
 At the time of writing this text we are using Go 1.7.
 We use Glide to manage dependencies.
