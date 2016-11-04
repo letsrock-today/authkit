@@ -52,3 +52,7 @@ _HINT_: use `make down up ARGS="-dbg"` to resturt app with debug log.
 
         cp ./backend/env/dev-sample.yaml ./backend/env/dev.yaml
         vim ./backend/env/dev.yaml
+
+_Note_: we will be surprised if this sample happened to work in any version of IE.
+If it does, it is purely coincidental, because we have no resources to support it.
+We test it mostly in recent versions of FF and less rigorously in Chromium and Opera.
