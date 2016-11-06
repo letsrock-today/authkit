@@ -65,7 +65,10 @@ func TestVerifyConsentChallenge(t *testing.T) {
 
 	h := testCreateHydra()
 
-	consent, err := h.IssueConsentToken("client-id", []string{"some.scope"})
+	consent, err := h.GenerateConsentTokenPriv(
+		"valid@login.ok",
+		[]string{"some.scope"},
+		"client-id")
 	assert.NoError(err)
 	token, err := h.verifyConsentChallenge(consent)
 	assert.NoError(err)
@@ -81,7 +84,10 @@ func TestGenerateConsentToken(t *testing.T) {
 
 	h := testCreateHydra()
 
-	consent, err := h.IssueConsentToken("client-id", []string{"some.scope"})
+	consent, err := h.GenerateConsentTokenPriv(
+		"valid@login.ok",
+		[]string{"some.scope"},
+		"client-id")
 	assert.NoError(err)
 	token, err := h.GenerateConsentToken(
 		"valid@email.ok",
@@ -133,16 +139,17 @@ func TestValidate(t *testing.T) {
 	gock.New("http://foo.com").
 		Post("/warden/token/allowed").
 		Reply(200).
-		JSON(map[string]interface{}{"allowed": true})
+		JSON(map[string]interface{}{"allowed": true, "sub": "valid@login.ok"})
 
 	h := testCreateHydra()
 
-	err := h.Validate("access-token", &middleware.DefaultPermission{
+	subj, err := h.Validate("access-token", &middleware.DefaultPermission{
 		Resource: "some-resource",
 		Action:   "some-action",
 		Scopes:   []string{"some.scope"},
 	})
 	assert.NoError(err)
+	assert.Equal("valid@login.ok", subj)
 }
 
 func TestRevokeAccessToken(t *testing.T) {

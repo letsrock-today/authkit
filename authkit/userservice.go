@@ -11,8 +11,11 @@ type (
 	}
 
 	// UserStore provides methods to persist users.
+	// This interface exists for app's convenience, app may choose to implement
+	// MiddlewareUserService and HandlerUserService in separate objects.
 	UserStore interface {
 		TokenStore
+		commonMethods
 		middlewareMethods
 		handlerMethods
 	}
@@ -28,15 +31,21 @@ type (
 
 	// MiddlewareUserService provides methods to persist user.
 	// Methods of this interface are specific to middleware package.
+	// This interface is a middleware's "view" of the UserService, subset of
+	// methods, which middleware requires from it.
 	MiddlewareUserService interface {
 		TokenStore
+		commonMethods
 		middlewareMethods
 	}
 
 	// HandlerUserService provides methods to persist user.
 	// Methods of this interface are specific to handler package.
+	// This interface is a handler's "view" of the UserService, subset of
+	// methods, which handler requires from it.
 	HandlerUserService interface {
 		TokenStore
+		commonMethods
 		handlerMethods
 		Confirmer
 	}
@@ -55,15 +64,20 @@ type (
 		RevokeAccessToken(providerID, accessToken string) UserServiceError
 	}
 
-	middlewareMethods interface {
-		// UserByAccessToken returns user data by access token.
-		UserByAccessToken(providerID, accessToken string) (User, UserServiceError)
+	// commonMethods contains methods, common for both middleware and handler.
+	commonMethods interface {
+		// User returns user by login.
+		User(login string) (User, UserServiceError)
+	}
 
+	// middlewareMethods contains methods specific to middleware.
+	middlewareMethods interface {
 		// Principal returns user data to be stored in the echo.Context.
 		// It may return same structure which is passed to it or some fields from it.
 		Principal(user User) interface{}
 	}
 
+	// handlerMethods contains methods specific to handler.
 	handlerMethods interface {
 		// Create creates new disabled user.
 		Create(login, password string) UserServiceError
@@ -76,9 +90,6 @@ type (
 
 		// Authenticate authenticates user, returns nil, if account exists and enabled.
 		Authenticate(login, password string) UserServiceError
-
-		// User returns user by login.
-		User(login string) (User, UserServiceError)
 
 		// UpdatePassword updates user's password.
 		UpdatePassword(login, oldPasswordHash, newPassword string) UserServiceError

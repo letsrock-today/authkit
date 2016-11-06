@@ -17,17 +17,19 @@ type (
 	HandlerAuthService interface {
 
 		// GenerateConsentToken returns consent token used to create redirect
-		// URL to redirect to OAuth2 backend from consent page.
+		// URL, which is used to redirect to OAuth2 backend from consent page.
 		GenerateConsentToken(
 			subj string,
 			scopes []string,
 			challenge string) (string, error)
 
-		// IssueConsentToken returns consent token used to create redirect URL
-		// to redirect to OAuth2 backend from web app's own login page.
-		IssueConsentToken(
-			clientID string,
-			scopes []string) (string, error)
+		// GenerateConsentTokenPriv returns consent token used to create redirect
+		// URL, which is used to redirect to OAuth2 backend from web app's own
+		// login page (that is suffix "Priv" means "private" or "privileged" use).
+		GenerateConsentTokenPriv(
+			subj string,
+			scopes []string,
+			clientID string) (string, error)
 
 		// IssueToken returns a token from OAuth2 backend for own web app
 		// in case of form-based login within app.
@@ -46,7 +48,10 @@ type (
 	TokenValidator interface {
 
 		// Validate checks if token is valid and has required permission.
-		Validate(accessToken string, permissionDescriptor interface{}) error
+		// Valideate returns subject related to provided access token.
+		Validate(
+			accessToken string,
+			permissionDescriptor interface{}) (subj string, err error)
 	}
 
 	// PermissionMapper used to map method and path of http request to desirable

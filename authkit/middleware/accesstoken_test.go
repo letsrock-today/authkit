@@ -58,17 +58,11 @@ func TestAccessTokenWithConfig(t *testing.T) {
 	user := testUser{"valid@login.ok", "name"}
 	us := new(mocks.UserService)
 	us.On(
-		"UserByAccessToken",
-		"xxx-provider",
-		"xxx").Return(user, nil)
+		"User",
+		"valid@login.ok").Return(user, nil)
 	us.On(
-		"UserByAccessToken",
-		"xxx-provider",
-		"zzz").Return(user, nil)
-	us.On(
-		"UserByAccessToken",
-		"xxx-provider",
-		"yyy").Return(nil, authkit.NewUserNotFoundError(nil))
+		"User",
+		"unknown@login.ok").Return(nil, authkit.NewUserNotFoundError(nil))
 	us.On(
 		"OAuth2Token",
 		"valid@login.ok",
@@ -340,11 +334,20 @@ type testTokenValidator struct {
 	allowed map[string]bool
 }
 
-func (v testTokenValidator) Validate(token string, perm interface{}) error {
+func (v testTokenValidator) Validate(
+	token string,
+	perm interface{}) (string, error) {
 	if b, ok := v.allowed[perm.(string)+":"+token]; !ok || !b {
-		return errors.New("forbidden")
+		return "", errors.New("forbidden")
 	}
-	return nil
+	login := ""
+	switch token {
+	case "xxx":
+		login = "valid@login.ok"
+	case "yyy":
+		login = "unknown@login.ok"
+	}
+	return login, nil
 }
 
 type testOAuth2Config struct{}

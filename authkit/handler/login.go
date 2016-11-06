@@ -72,7 +72,10 @@ func (h handler) Login(c echo.Context) error {
 
 	pp := h.config.PrivateOAuth2Provider
 	cfg := pp.OAuth2Config.(*oauth2.Config)
-	t, err := h.auth.IssueConsentToken(cfg.ClientID, cfg.Scopes)
+	t, err := h.auth.GenerateConsentTokenPriv(
+		lf.Login,
+		cfg.Scopes,
+		cfg.ClientID)
 	if err != nil {
 		return errors.WithStack(err)
 	}

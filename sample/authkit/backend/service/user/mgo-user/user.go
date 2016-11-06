@@ -233,26 +233,6 @@ func (s store) UpdateOAuth2Token(
 	return err
 }
 
-func (s store) UserByAccessToken(
-	providerID, accessToken string) (authkit.User, authkit.UserServiceError) {
-	u := &_user{}
-	err := s.users.Find(
-		bson.M{
-			"tokens." + providerID + ".accesstoken": accessToken,
-		}).One(u)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, errors.WithStack(authkit.NewUserNotFoundError(err))
-		}
-		return nil, err
-	}
-	if err == nil && u.data.Disabled != nil {
-		return nil, errors.WithStack(authkit.NewAccountDisabledError(nil))
-	}
-	return u, nil
-
-}
-
 func (s store) RevokeAccessToken(
 	providerID, accessToken string) authkit.UserServiceError {
 	err := s.users.Update(

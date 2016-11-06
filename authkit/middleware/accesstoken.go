@@ -113,9 +113,8 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 				return errAccessDenied
 			}
 
-			// Find user.
-			user, err := config.UserService.UserByAccessToken(
-				config.PrivateProviderID, token)
+			// Validate token's permissions and retrieve subject (login).
+			login, err := config.TokenValidator.Validate(token, perm)
 			if err != nil {
 				c.Logger().Debugf("%+v", errors.WithStack(err))
 				return errAccessDenied
@@ -131,7 +130,7 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 						config.PrivateProviderID)
 					_, err := persisttoken.WrapOAuth2Config(
 						config.OAuth2Config,
-						user.Login(),
+						login,
 						config.PrivateProviderID,
 						config.UserService).TokenSource(ctx, nil).Token()
 					if err != nil {
@@ -141,13 +140,14 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 				}()
 			}
 
-			// Validate token's permissions.
-			if err := config.TokenValidator.Validate(token, perm); err != nil {
+			// Find user.
+			user, err := config.UserService.User(login)
+			if err != nil {
 				c.Logger().Debugf("%+v", errors.WithStack(err))
 				return errAccessDenied
 			}
 
-			// Store user login to context.
+			// Map user to principal and put it into context.
 			c.Set(config.ContextKey, config.UserService.Principal(user))
 
 			// Make the whole call synchronouse.

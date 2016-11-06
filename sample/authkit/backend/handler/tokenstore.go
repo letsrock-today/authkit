@@ -7,9 +7,10 @@ import (
 )
 
 // userTokenStore retrieves tokens from user, saving one database request.
-// If supplied user doesn't provide method OAuth2TokenByProviderID(),
-// then userTokenStore fall back to authkit.TokenStore implementation, which is
-// to retrieve token from store with separate request.
+// If supplied user doesn't provide method OAuth2TokenByProviderID() (or if
+// it doesn't contain valid token), then userTokenStore falls back to
+// authkit.TokenStore implementation, which is to retrieve token from store
+// with separate request.
 type userTokenStore struct {
 	authkit.TokenStore
 	u authkit.User
@@ -24,7 +25,10 @@ func (uts userTokenStore) OAuth2Token(
 		OAuth2TokenByProviderID(string) *oauth2.Token
 	}
 	if u, ok := uts.u.(user); ok {
-		return u.OAuth2TokenByProviderID(providerID), nil
+		t := u.OAuth2TokenByProviderID(providerID)
+		if t != nil && t.Valid() {
+			return t, nil
+		}
 	}
 	return uts.TokenStore.OAuth2Token(login, providerID)
 }

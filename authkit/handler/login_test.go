@@ -22,13 +22,15 @@ func TestLogin(t *testing.T) {
 
 	as := new(mocks.AuthService)
 	as.On(
-		"IssueConsentToken",
-		"some_client_id",
-		[]string{"some_scope"}).Return("valid_token", nil)
+		"GenerateConsentTokenPriv",
+		"valid@login.ok",
+		[]string{"some_scope"},
+		"some_client_id").Return("valid_token", nil)
 	as.On(
-		"IssueConsentToken",
-		"unknown_client_id",
-		[]string{"some_scope"}).Return("", errors.New("unknown_client"))
+		"GenerateConsentTokenPriv",
+		"valid@login.ok",
+		[]string{"some_scope"},
+		"unknown_client_id").Return("", errors.New("unknown_client"))
 
 	us := new(mocks.UserService)
 	us.On(
@@ -97,13 +99,13 @@ func TestLogin(t *testing.T) {
 	})
 
 	cases := []struct {
-		name                  string
-		params                url.Values
-		expStatusCode         int
-		expBody               string
-		expBodyRegex          bool
-		internalError         bool
-		failIssueConsentToken bool
+		name                         string
+		params                       url.Values
+		expStatusCode                int
+		expBody                      string
+		expBodyRegex                 bool
+		internalError                bool
+		failGenerateConsentTokenPriv bool
 	}{
 		{
 			name:          "No params",
@@ -173,14 +175,14 @@ func TestLogin(t *testing.T) {
 			internalError: true,
 		},
 		{
-			name: "Login: fail IssueConsentToken",
+			name: "Login: fail GenerateConsentTokenPriv",
 			params: url.Values{
 				"action":   []string{"login"},
 				"login":    []string{"valid@login.ok"},
 				"password": []string{"valid_password"},
 			},
-			internalError:         true,
-			failIssueConsentToken: true,
+			internalError:                true,
+			failGenerateConsentTokenPriv: true,
 		},
 	}
 
@@ -201,7 +203,7 @@ func TestLogin(t *testing.T) {
 					standard.NewResponse(rec, e.Logger()))
 				ctx.Request().Header().Set(echo.HeaderContentType, enc.contentType)
 
-				if c.failIssueConsentToken {
+				if c.failGenerateConsentTokenPriv {
 					err = h2.Login(ctx)
 				} else {
 					err = h.Login(ctx)

@@ -17,7 +17,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/mendsley/gojwk"
-	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 
 	"github.com/letsrock-today/authkit/authkit"
@@ -113,18 +112,19 @@ func (h hydra) GenerateConsentToken(
 	return s, nil
 }
 
-func (h hydra) IssueConsentToken(
-	clientID string,
-	scopes []string) (string, error) {
+func (h hydra) GenerateConsentTokenPriv(
+	subj string,
+	scopes []string,
+	clientID string) (string, error) {
 	key, err := h.getConsentResponsePrivateKey()
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
 	claims := challengeClaims{
 		jwt.StandardClaims{
-			Id:        uuid.New(),
 			Audience:  clientID,
 			ExpiresAt: time.Now().Add(h.challengeLifespan).Unix(),
+			Subject:   subj,
 		},
 		scopes,
 		"",
@@ -146,7 +146,10 @@ func (h hydra) IssueToken(login string) (*oauth2.Token, error) {
 	// and want to give him similar token, as for third-party user,
 	// so that tokens in both cases could be validated with same middleware.
 	conf := h.oauth2Config
-	signedTokenString, err := h.IssueConsentToken(conf.ClientID, conf.Scopes)
+	signedTokenString, err := h.GenerateConsentTokenPriv(
+		login,
+		conf.Scopes,
+		conf.ClientID)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -204,10 +207,12 @@ func (h hydra) IssueToken(login string) (*oauth2.Token, error) {
 	return t, nil
 }
 
-func (h hydra) Validate(accessToken string, permissionDescriptor interface{}) error {
+func (h hydra) Validate(
+	accessToken string,
+	permissionDescriptor interface{}) (string, error) {
 	p, ok := permissionDescriptor.(*middleware.DefaultPermission)
 	if !ok {
-		return errors.WithStack(errors.New("invalid permission object"))
+		return "", errors.WithStack(errors.New("invalid permission object"))
 	}
 	conf := h.clientCredentials
 	ctx := h.contextCreator.CreateContext(h.providerIDTrustedContext)
@@ -226,19 +231,19 @@ func (h hydra) Validate(accessToken string, permissionDescriptor interface{}) er
 		Scopes:   p.Scopes,
 	})
 	if err != nil {
-		return errors.WithStack(err)
+		return "", errors.WithStack(err)
 	}
 	req, err := http.NewRequest("POST", url, bytes.NewReader(b))
 	if err != nil {
-		return errors.WithStack(err)
+		return "", errors.WithStack(err)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return errors.WithStack(err)
+		return "", errors.WithStack(err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.WithStack(
+		return "", errors.WithStack(
 			errors.Errorf(
 				"unexpected status from Hydra: %d, %s",
 				resp.StatusCode,
@@ -247,20 +252,21 @@ func (h hydra) Validate(accessToken string, permissionDescriptor interface{}) er
 	var r map[string]interface{}
 	b, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = json.Unmarshal(b, &r)
 	if err != nil {
-		return errors.WithStack(err)
+		return "", errors.WithStack(err)
 	}
-	v, ok := r["allowed"]
-	if !ok {
-		return errors.WithStack(errors.New("unexpected Hydra response format"))
+	v1, ok1 := r["allowed"]
+	v2, ok2 := r["sub"]
+	if !ok1 || !ok2 {
+		return "", errors.WithStack(errors.New("unexpected Hydra response format"))
 	}
-	if allowed, ok := v.(bool); !ok || !allowed {
-		return errors.WithStack(errors.New("Hydra denied access"))
+	if allowed, ok := v1.(bool); !ok || !allowed {
+		return "", errors.WithStack(errors.New("Hydra denied access"))
 	}
-	return nil
+	return v2.(string), nil
 }
 
 func (h hydra) RevokeAccessToken(accessToken string) error {
