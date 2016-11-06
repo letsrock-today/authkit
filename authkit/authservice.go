@@ -33,6 +33,9 @@ type (
 		// in case of form-based login within app.
 		// Used for already authorized users.
 		IssueToken(login string) (*oauth2.Token, error)
+
+		// RevokeAccessToken revokes access token.
+		RevokeAccessToken(accessToken string) error
 	}
 
 	// TokenValidator used to validate token and to check if token has

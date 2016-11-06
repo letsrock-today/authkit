@@ -29,6 +29,9 @@ type Handler interface {
 	// Login handles login requests from the application's login page.
 	Login(echo.Context) error
 
+	// Logout handles logout requests and revokes access token.
+	Logout(echo.Context) error
+
 	// RestorePassword handles request to restore password
 	// ("forgot password" link in the login form).
 	RestorePassword(echo.Context) error

@@ -145,6 +145,25 @@ func TestValidate(t *testing.T) {
 	assert.NoError(err)
 }
 
+func TestRevokeAccessToken(t *testing.T) {
+	defer gock.Off()
+
+	assert := assert.New(t)
+
+	testPrepareKeysResponder(t, 0)
+
+	gock.New("http://foo.com").
+		Post("/oauth2/revoke").
+		BodyString("token=access-token").
+		Reply(200).
+		BodyString("")
+
+	h := testCreateHydra()
+
+	err := h.RevokeAccessToken("access-token")
+	assert.NoError(err)
+}
+
 func testPrepareKeysResponder(t *testing.T, timesForKeys int) {
 	assert := assert.New(t)
 

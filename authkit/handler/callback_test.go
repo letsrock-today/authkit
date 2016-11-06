@@ -21,7 +21,7 @@ import (
 func TestCallback(t *testing.T) {
 
 	exttoken := &oauth2.Token{}
-	inttoken := &oauth2.Token{}
+	inttoken := &oauth2.Token{AccessToken: "xxx-access-token"}
 
 	us := new(mocks.UserService)
 	us.On(
@@ -179,7 +179,7 @@ func TestCallback(t *testing.T) {
 				"code":  []string{"valid_code"},
 			},
 			expStatusCode: http.StatusFound,
-			expCookie:     "xxx-auth-cookie=; Secure",
+			expCookie:     "xxx-auth-cookie=xxx-access-token; Secure",
 		},
 		{
 			name: "everything OK, external",
@@ -188,7 +188,7 @@ func TestCallback(t *testing.T) {
 				"code":  []string{"valid_code"},
 			},
 			expStatusCode: http.StatusFound,
-			expCookie:     "xxx-auth-cookie=; Secure",
+			expCookie:     "xxx-auth-cookie=xxx-access-token; Secure",
 		},
 		{
 			name: "everything OK, external, new user",
@@ -197,7 +197,7 @@ func TestCallback(t *testing.T) {
 				"code":  []string{"valid_code"},
 			},
 			expStatusCode: http.StatusFound,
-			expCookie:     "xxx-auth-cookie=; Secure",
+			expCookie:     "xxx-auth-cookie=xxx-access-token; Secure",
 		},
 	}
 

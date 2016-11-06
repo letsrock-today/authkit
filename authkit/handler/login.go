@@ -29,7 +29,7 @@ type (
 	}
 )
 
-// PrivateLogin is a login handler for "pivate" or "priveleged" client - app's own UI.
+// Login is a login handler for "pivate" or "priveleged" client - app's own UI.
 func (h handler) Login(c echo.Context) error {
 	var lf loginForm
 	if err := c.Bind(&lf); err != nil {

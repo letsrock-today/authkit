@@ -253,6 +253,23 @@ func (s store) UserByAccessToken(
 
 }
 
+func (s store) RevokeAccessToken(
+	providerID, accessToken string) authkit.UserServiceError {
+	err := s.users.Update(
+		bson.M{
+			"tokens." + providerID + ".accesstoken": accessToken,
+		},
+		bson.M{
+			"$set": bson.M{
+				"tokens." + providerID + ".accesstoken": nil,
+			},
+		})
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+	return err
+}
+
 func (s store) Principal(u authkit.User) interface{} {
 	return u
 }

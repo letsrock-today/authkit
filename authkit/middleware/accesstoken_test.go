@@ -242,7 +242,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 			assert := assert.New(st)
 			r := cs.r
 			w := cs.w
-			cs.r.Header.Set("Authorization", cs.accessTokenHeader)
+			cs.r.Header.Set(echo.HeaderAuthorization, cs.accessTokenHeader)
 			e.ServeHTTP(
 				standard.NewRequest(r, e.Logger()),
 				standard.NewResponse(w, e.Logger()))

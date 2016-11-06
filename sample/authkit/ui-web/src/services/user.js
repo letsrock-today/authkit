@@ -90,10 +90,11 @@ function _login() {
         });
 }
 
-const authCookieName = 'X-App-Auth';
+const authTokenKey = 'X-App-Auth-Token';
 
 function _logout() {
-    document.cookie = cookies.serialize(authCookieName, "", {expires: new Date(0)});
+    _fetch.fetch('/api/logout');
+    localStorage.removeItem(authTokenKey);
     dispatcher.trigger(
         dispatcher.PROFILE_CHANGED, {
             username: '',
@@ -102,8 +103,15 @@ function _logout() {
 }
 
 (window.onpopstate = function () {
-    _fetch.setAuthCookieName(authCookieName);
+    const authCookieName = 'X-App-Auth';
+    _fetch.setAuthTokenKey(authTokenKey);
     let token = cookies.parse(document.cookie)[authCookieName];
+    if (token) {
+        localStorage.setItem(authTokenKey, token);
+        document.cookie = cookies.serialize(authCookieName, "", {expires: new Date(0)});
+    } else {
+        token = localStorage.getItem(authTokenKey);
+    }
     if (token) {
         _fetch.fetch('/api/profile')
             .then(r => {

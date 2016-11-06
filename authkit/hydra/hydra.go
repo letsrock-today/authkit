@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -258,6 +259,33 @@ func (h hydra) Validate(accessToken string, permissionDescriptor interface{}) er
 	}
 	if allowed, ok := v.(bool); !ok || !allowed {
 		return errors.WithStack(errors.New("Hydra denied access"))
+	}
+	return nil
+}
+
+func (h hydra) RevokeAccessToken(accessToken string) error {
+	conf := h.clientCredentials
+	ctx := h.contextCreator.CreateContext(h.providerIDTrustedContext)
+	client := http.DefaultClient
+	if hc, ok := ctx.Value(oauth2.HTTPClient).(*http.Client); ok {
+		client.Transport = hc.Transport
+	}
+	u := fmt.Sprintf("%s/oauth2/revoke", h.hydraURL)
+	data := url.Values{"token": []string{accessToken}}
+	req, err := http.NewRequest("POST", u, bytes.NewBufferString(data.Encode()))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+	req.SetBasicAuth(conf.ClientID, conf.ClientSecret)
+	resp, err := client.Do(req)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		err := fmt.Errorf("failed to revoke access token at Hydra, status: %v", resp.Status)
+		return errors.WithStack(err)
 	}
 	return nil
 }

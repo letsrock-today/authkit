@@ -27,6 +27,7 @@ func initAPI(
 	e.GET("/api/auth-code-urls", ah.AuthCodeURLs)
 	e.POST("/api/login", ah.ConsentLogin)
 	e.POST("/api/login-priv", ah.Login)
+	e.GET("/api/logout", ah.Logout)
 	e.GET(confirmEmailURL, ah.ConfirmEmail)
 	e.POST("/password-reset", ah.RestorePassword)
 	e.POST("/password-change", ah.ChangePassword)
