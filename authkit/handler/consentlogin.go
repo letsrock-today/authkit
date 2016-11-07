@@ -11,8 +11,6 @@ import (
 )
 
 type (
-	//TODO: remove assamption login == email?
-
 	consentLoginForm struct {
 		P         loginForm `valid:"required"`
 		Challenge string    `form:"challenge" valid:"required"`

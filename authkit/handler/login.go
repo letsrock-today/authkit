@@ -16,8 +16,6 @@ import (
 )
 
 type (
-	//TODO: remove assamption login == email?
-
 	loginForm struct {
 		Action   string `form:"action" valid:"required,matches(login|signup)"`
 		Login    string `form:"login" valid:"required~login-required,email~login-format"`

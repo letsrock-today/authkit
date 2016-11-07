@@ -5,8 +5,6 @@ import "github.com/labstack/echo"
 // ConfirmEmailTemplateName is a template name for ConfirmEmail response.
 const ConfirmEmailTemplateName = "authkit-ConfirmEmail-response.html"
 
-//TODO: describe API in swagger format.
-
 // Handler combines http-handlers useful to create login logic.
 type Handler interface {
 

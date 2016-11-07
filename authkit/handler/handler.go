@@ -35,9 +35,6 @@ func NewHandler(
 	return handler{c, ec, as, us, ps, sps, cc}
 }
 
-//TODO: currently handler marshals response as JSON; we may provide setting
-// (marshalling func in config) to change response type (for ex. c.XML()).
-
 // handler implements Handler interface.
 // Note: methods are implemented in separate files.
 type handler struct {

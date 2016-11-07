@@ -43,7 +43,10 @@ func parseToken(
 	if !ok || !token.Valid {
 		return nil, errors.WithStack(ErrInvalidToken)
 	}
-	if claims.Issuer != tokenIssuer {
+	if claims.VerifyExpiresAt(time.Now().Unix(), true) {
+		return nil, errors.WithStack(ErrInvalidToken)
+	}
+	if claims.VerifyIssuer(tokenIssuer, true) {
 		return nil, errors.WithStack(ErrInvalidToken)
 	}
 	return claims, nil

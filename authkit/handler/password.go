@@ -14,8 +14,6 @@ import (
 )
 
 type (
-	//TODO: remove assumption login == email?
-
 	restorePasswordForm struct {
 		Email string `form:"email" valid:"required~email-required,email~email-format"`
 	}
