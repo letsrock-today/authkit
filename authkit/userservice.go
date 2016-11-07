@@ -58,7 +58,7 @@ type (
 		// UpdateOAuth2Token saves or updates oauth2 token for user and provider.
 		UpdateOAuth2Token(login, providerID string, token *oauth2.Token) UserServiceError
 
-		// RevokeAccessToken revokes access token (or, rither, informs store
+		// RevokeAccessToken revokes access token (or, rather, informs store
 		// about revoked token, because token should be revoked by call to
 		// AuthService).
 		RevokeAccessToken(providerID, accessToken string) UserServiceError
