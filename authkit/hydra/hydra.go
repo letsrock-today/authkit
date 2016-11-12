@@ -261,7 +261,11 @@ func (h hydra) Validate(
 	v1, ok1 := r["allowed"]
 	v2, ok2 := r["sub"]
 	if !ok1 || !ok2 {
-		return "", errors.WithStack(errors.New("unexpected Hydra response format"))
+		return "", errors.WithStack(
+			errors.Errorf(
+				"unexpected Hydra response format, orig: %s, parsed: %v",
+				string(b),
+				r))
 	}
 	if allowed, ok := v1.(bool); !ok || !allowed {
 		return "", errors.WithStack(errors.New("Hydra denied access"))

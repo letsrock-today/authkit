@@ -9,9 +9,11 @@ import (
 	"github.com/labstack/echo"
 
 	"github.com/letsrock-today/authkit/authkit"
+	authkithandler "github.com/letsrock-today/authkit/authkit/handler"
 	"github.com/letsrock-today/authkit/authkit/hydra"
 	"github.com/letsrock-today/authkit/sample/authkit/backend/config"
 	"github.com/letsrock-today/authkit/sample/authkit/backend/confirmer"
+	"github.com/letsrock-today/authkit/sample/authkit/backend/handler"
 	"github.com/letsrock-today/authkit/sample/authkit/backend/service/profile"
 	"github.com/letsrock-today/authkit/sample/authkit/backend/service/socialprofile"
 	"github.com/letsrock-today/authkit/sample/authkit/backend/service/user"
@@ -58,5 +60,15 @@ func Init(
 	initMiddleware(e, c, as, us, cc)
 	initReverseProxy(e)
 	initStatic(e)
-	initAPI(e, c.ToAuthkitType(), as, userService, ps, sps, cc)
+	initAPI(
+		e,
+		c.ToAuthkitType(),
+		authkithandler.Config{
+			ErrorCustomizer:       handler.NewErrorCustomizer(),
+			AuthService:           as,
+			UserService:           userService,
+			ProfileService:        ps,
+			SocialProfileServices: sps,
+			ContextCreator:        cc,
+		})
 }

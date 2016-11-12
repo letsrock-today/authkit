@@ -1,5 +1,8 @@
 'use strict';
 
+import _fetch from '../util/fetch';
+import respHelper from '../util/response-helper';
+
 <auth>
     <div style="text-align:center">
         <form name="login-form">
@@ -32,7 +35,7 @@
         </form>
         <div if="{ !signupAction }">
             <br/>
-            <a href="/password-reset">Forgot password?</a>
+            <a href="javascript:void(0)" onclick="{ onResetPassword }">Forgot password?</a>
         </div>
     </div>
     <script>
@@ -48,6 +51,7 @@
             return true;
         }
         self.onLogin = () => {
+            self.signupAction = false;
             opts.onlogin(self['login-form']);
         }
         self.onSignUp = () => {
@@ -62,6 +66,29 @@
             self.signupAction = true;
             self.password2.value = '';
             self.update();
+        }
+        self.onResetPassword = () => {
+            self.signupAction = false;
+            let body = new FormData(self['login-form']);
+            body.delete('password');
+            body.delete('password2');
+            _fetch.fetch('/password-reset', {
+                method: 'POST',
+                body: body
+            })
+            .then(r => {
+                return respHelper.handleStatus(r);
+            })
+            .then(data => {
+                opts.onerror('The link to reset password has been sent to your email.');
+            })
+            .catch(e => {
+                let error = 'Could not reset password. ';
+                if (e.msg) {
+                    error += e.msg;
+                }
+                opts.onerror(error);
+            });
         }
     </script>
 </auth>

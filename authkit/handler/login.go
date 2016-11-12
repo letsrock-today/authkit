@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"unicode"
 
 	"golang.org/x/oauth2"
 
@@ -18,7 +19,7 @@ import (
 type (
 	loginForm struct {
 		Action   string `form:"action" valid:"required,matches(login|signup)"`
-		Login    string `form:"login" valid:"required~login-required,email~login-format"`
+		Login    string `form:"login" valid:"required~login-required,login~login-format"`
 		Password string `form:"password" valid:"required~password-required,password~password-format"`
 	}
 
@@ -44,12 +45,26 @@ func (h handler) Login(c echo.Context) error {
 	var (
 		action          func(login, password string) authkit.UserServiceError
 		customizedError func(error) interface{}
+		email           = ""
 	)
 
 	signup := lf.Action == "signup"
 
 	if signup {
-		action = h.users.Create
+		action = func(login, password string) authkit.UserServiceError {
+			if err := h.users.Create(login, password); err != nil {
+				return err
+			}
+			// Create empty profile for new user.
+			if govalidator.IsEmail(login) {
+				email = login
+			}
+			if err := h.profiles.EnsureExists(login, email); err != nil {
+				return err
+			}
+			return nil
+		}
+
 		customizedError = h.errorCustomizer.UserCreationError
 	} else {
 		action = h.users.Authenticate
@@ -57,13 +72,6 @@ func (h handler) Login(c echo.Context) error {
 	}
 
 	if err := action(lf.Login, lf.Password); err != nil {
-		if signup {
-			if authkit.IsAccountDisabled(err) {
-				if err := h.users.RequestEmailConfirmation(lf.Login); err != nil {
-					return errors.WithStack(err)
-				}
-			}
-		}
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(http.StatusUnauthorized, customizedError(err))
 	}
@@ -76,6 +84,17 @@ func (h handler) Login(c echo.Context) error {
 		cfg.ClientID)
 	if err != nil {
 		return errors.WithStack(err)
+	}
+
+	if email != "" {
+		go func() {
+			if err := h.users.RequestEmailConfirmation(
+				lf.Login,
+				email,
+				""); err != nil {
+				c.Logger().Debugf("%+v", errors.WithStack(err))
+			}
+		}()
 	}
 
 	s := h.config.OAuth2State
@@ -106,4 +125,33 @@ func (h handler) Login(c echo.Context) error {
 	}
 	c.Logger().Debugf("%+v", errors.WithStack(err))
 	return c.JSON(http.StatusOK, reply)
+}
+
+// SimpleLoginValidator checks user name (login) against following rules:
+// - length 5..20 chars
+// - first char is a letter
+// - allowed chars: latin letters, digits, hyphen, underscore.
+// Note: these restrictions are pure arbitrary, just to have some
+// (we should have some as a proiphylactic against injections).
+func SimpleLoginValidator(s string) bool {
+	l := len(s)
+	if l < 5 || l > 20 {
+		return false
+	}
+	if !unicode.IsLetter([]rune(s)[0]) {
+		return false
+	}
+	for _, r := range s {
+		if !unicode.IsLetter(r) &&
+			!unicode.IsDigit(r) &&
+			r != '-' &&
+			r != '_' {
+			return false
+		}
+	}
+	return true
+}
+
+func emailOrLoginValidator(s string) bool {
+	return SimpleLoginValidator(s) || govalidator.IsEmail(s)
 }

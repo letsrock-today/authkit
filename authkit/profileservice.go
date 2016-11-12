@@ -8,17 +8,30 @@ type (
 	// Actually, it's assumed that application maps social profiles to local ones
 	// in the SocialProfileService.
 	Profile interface {
-		Login() string
+		GetLogin() string
+		SetLogin(string)
+		GetEmail() string
+		IsEmailConfirmed() bool
+		GetFormattedName() string
 	}
 
 	// ProfileService provides methods to persist user profiles (locally).
 	ProfileService interface {
 
 		// EnsureExists creates new empty profile if it is not exists already.
-		EnsureExists(login string) error
+		EnsureExists(login, email string) error
 
 		// Save saves profile.
 		Save(Profile) error
+
+		// SetEmailConfirmed sets email confirmed flag.
+		SetEmailConfirmed(login, email string, confirmed bool) error
+
+		// Email returns (confirmed or not) email address (and user name) by login.
+		Email(login string) (email, name string, err error)
+
+		// ConfirmedEmail returns confirmed email address (and user name) by login.
+		ConfirmedEmail(login string) (email, name string, err error)
 	}
 
 	// SocialProfileServices allows to discover SocialProfileService by provider ID.

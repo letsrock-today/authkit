@@ -95,7 +95,7 @@ func (h handler) Callback(c echo.Context) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	login := p.Login()
+	login := p.GetLogin()
 
 	// Check that internal user exists for external user.
 	user, err := h.users.User(login)
@@ -139,7 +139,7 @@ func (h handler) Callback(c echo.Context) error {
 func (h handler) handlePrivateProvider(
 	c echo.Context, state apptoken.StateToken, token *oauth2.Token) error {
 	if state.Login() == "" {
-		return errors.WithStack(errors.New("illegal state, empty login"))
+		return errors.WithStack(errors.New("invalid state, empty login"))
 	}
 	pid := h.config.PrivateOAuth2Provider.ID
 	if err := h.users.UpdateOAuth2Token(state.Login(), pid, token); err != nil {
@@ -162,7 +162,7 @@ func (h handler) createInternalUser(
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	if err := h.users.CreateEnabled(login, pass); err != nil {
+	if err := h.users.Create(login, pass); err != nil {
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -170,6 +170,17 @@ func (h handler) createInternalUser(
 	// - Save user's profile from external provider to our profile db.
 	if err := h.profiles.Save(p); err != nil {
 		return errors.WithStack(err)
+	}
+	// - Send email confirmation request.
+	if p.GetEmail() != "" {
+		go func() {
+			if err := h.users.RequestEmailConfirmation(
+				login,
+				p.GetEmail(),
+				p.GetFormattedName()); err != nil {
+				c.Logger().Debugf("%+v", errors.WithStack(err))
+			}
+		}()
 	}
 
 	return nil

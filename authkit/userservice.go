@@ -23,10 +23,10 @@ type (
 	// Confirmer provides methods to request confirmations.
 	Confirmer interface {
 		// RequestEmailConfirmation requests user to confirm email address.
-		RequestEmailConfirmation(login string) UserServiceError
+		RequestEmailConfirmation(login, email, name string) UserServiceError
 
 		// RequestPasswordChangeConfirmation requests user confirmation to change password (via email).
-		RequestPasswordChangeConfirmation(login, passwordHash string) UserServiceError
+		RequestPasswordChangeConfirmation(login, email, name, passwordHash string) UserServiceError
 	}
 
 	// MiddlewareUserService provides methods to persist user.
@@ -79,14 +79,8 @@ type (
 
 	// handlerMethods contains methods specific to handler.
 	handlerMethods interface {
-		// Create creates new disabled user.
+		// Create creates new user.
 		Create(login, password string) UserServiceError
-
-		// CreateEnabled creates new enabled user.
-		CreateEnabled(login, password string) UserServiceError
-
-		// Enable enables user account.
-		Enable(login string) UserServiceError
 
 		// Authenticate authenticates user, returns nil, if account exists and enabled.
 		Authenticate(login, password string) UserServiceError
@@ -98,7 +92,6 @@ type (
 	// User provides basic information about user, required for login logic.
 	User interface {
 		Login() string
-		Email() string
 		PasswordHash() string
 	}
 
@@ -128,13 +121,6 @@ type (
 		IsUserNotFound() bool
 	}
 
-	// AccountDisabledError indicates that user's account is disabled.
-	AccountDisabledError interface {
-		UserServiceError
-		causer
-		IsAccountDisabled() bool
-	}
-
 	// RequestConfirmationError indicates request confirmation failure.
 	RequestConfirmationError interface {
 		UserServiceError
@@ -148,7 +134,6 @@ type (
 
 	duplicateUserError       struct{ userServiceError }
 	userNotFoundError        struct{ userServiceError }
-	accountDisabledError     struct{ userServiceError }
 	requestConfirmationError struct{ userServiceError }
 )
 
@@ -179,19 +164,6 @@ func (userNotFoundError) Error() string {
 }
 
 func (userNotFoundError) IsUserNotFound() bool {
-	return true
-}
-
-// NewAccountDisabledError return new AccountDisabledError.
-func NewAccountDisabledError(cause error) AccountDisabledError {
-	return accountDisabledError{userServiceError{cause}}
-}
-
-func (accountDisabledError) Error() string {
-	return "account disabled"
-}
-
-func (accountDisabledError) IsAccountDisabled() bool {
 	return true
 }
 
@@ -235,14 +207,6 @@ func IsUserNotFound(err error) bool {
 	return existsCause(err, func(e error) bool {
 		e1, ok := e.(UserNotFoundError)
 		return ok && e1.IsUserNotFound()
-	})
-}
-
-// IsAccountDisabled checks whether error is or caused by the AccountDisabledError.
-func IsAccountDisabled(err error) bool {
-	return existsCause(err, func(e error) bool {
-		e1, ok := e.(AccountDisabledError)
-		return ok && e1.IsAccountDisabled()
 	})
 }
 

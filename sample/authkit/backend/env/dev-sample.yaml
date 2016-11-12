@@ -45,6 +45,7 @@ private-oauth2-provider:
         - hydra.keys.get
         - hydra.warden
         - offline
+        - api.confirm-email.post
         - api.profile.get
         - api.profile.post
         - api.friends.get

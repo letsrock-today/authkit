@@ -33,7 +33,6 @@ cfg=/etc/service/hydra/.hydra.yml
     --config="$cfg" \
     --skip-tls-verify
 
-
 /go/bin/hydra policies create \
     --allow \
     -r "rn:api:<[^:]+>" \
@@ -45,6 +44,14 @@ cfg=/etc/service/hydra/.hydra.yml
 /go/bin/hydra policies create \
     --allow \
     -r "rn:api:profile" \
+    -s "<.*>" \
+    -a "post" \
+    --config="$cfg" \
+    --skip-tls-verify
+
+/go/bin/hydra policies create \
+    --allow \
+    -r "rn:api:confirm-email" \
     -s "<.*>" \
     -a "post" \
     --config="$cfg" \

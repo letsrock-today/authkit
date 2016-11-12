@@ -25,6 +25,7 @@ type googleError struct {
 }
 
 type googleProfile struct {
+	ResourceName string              `json:"resourceName"`
 	Emails       []googleEmail       `json:"emailAddresses"`
 	Names        []googleName        `json:"names"`
 	Addresses    []googleAddress     `json:"addresses"`
@@ -122,12 +123,12 @@ func (google) Friends(client *http.Client) ([]Profile, error) {
 
 	var res []Profile
 	for _, p := range cr.Connections {
-		res = append(res, convertProfile(p))
+		res = append(res, *convertProfile(p))
 	}
 	return res, nil
 }
 
-func convertProfile(p googleProfile) Profile {
+func convertProfile(p googleProfile) *Profile {
 	email := ""
 	if len(p.Emails) > 0 {
 		email = p.Emails[0].Value
@@ -183,7 +184,8 @@ func convertProfile(p googleProfile) Profile {
 		}
 	}
 
-	return Profile{
+	return &Profile{
+		Login:         MakeLogin("google", p.ResourceName),
 		Email:         email,
 		FormattedName: name,
 		Location:      address,

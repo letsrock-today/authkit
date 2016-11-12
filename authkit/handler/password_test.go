@@ -16,38 +16,51 @@ import (
 	"github.com/letsrock-today/authkit/authkit/mocks"
 )
 
-func TestForgotPassword(t *testing.T) {
+func TestRestorePassword(t *testing.T) {
 	us := new(mocks.UserService)
 	us.On(
 		"User",
-		"valid@login.ok").Return(testUser{
-		login:        "valid@login.ok",
-		email:        "valid@login.ok",
+		"valid-login").Return(testUser{
+		login:        "valid-login",
 		passwordHash: "valid_password_hash",
 	}, nil)
 	us.On(
 		"User",
-		"unreachable@login.ok").Return(testUser{
-		login:        "unreachable@login.ok",
-		email:        "unreachable@login.ok",
+		"unreachable-login").Return(testUser{
+		login:        "unreachable-login",
 		passwordHash: "valid_password_hash",
 	}, nil)
 	us.On(
 		"User",
-		"unknown@login.ok").Return(nil, authkit.NewUserNotFoundError(nil))
+		"unknown-login").Return(nil, authkit.NewUserNotFoundError(nil))
 	us.On(
 		"RequestPasswordChangeConfirmation",
+		"valid-login",
 		"valid@login.ok",
+		"",
 		"valid_password_hash").Return(nil)
 	us.On(
 		"RequestPasswordChangeConfirmation",
+		"unreachable-login",
 		"unreachable@login.ok",
+		"",
 		"valid_password_hash").Return(authkit.NewRequestConfirmationError(nil))
+
+	ps := new(mocks.ProfileService)
+	ps.On(
+		"ConfirmedEmail",
+		"unreachable-login").Return("unreachable@login.ok", "", nil)
+	ps.On(
+		"ConfirmedEmail",
+		"valid-login").Return("valid@login.ok", "", nil)
 
 	h := handler{
 		errorCustomizer: testErrorCustomizer{},
 		users:           us,
+		profiles:        ps,
 	}
+
+	govalidator.TagMap["login"] = govalidator.Validator(emailOrLoginValidator)
 
 	cases := []struct {
 		name          string
@@ -63,25 +76,25 @@ func TestForgotPassword(t *testing.T) {
 			expBody:       `{"Code":"invalid req param"}`,
 		},
 		{
-			name: "invalid email",
+			name: "invalid login",
 			params: url.Values{
-				"email": []string{"invalidemail"},
+				"login": []string{"@invalidemail"},
 			},
 			expStatusCode: http.StatusBadRequest,
 			expBody:       `{"Code":"invalid req param"}`,
 		},
 		{
-			name: "unknown email",
+			name: "unknown login",
 			params: url.Values{
-				"email": []string{"unknown@login.ok"},
+				"login": []string{"unknown-login"},
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `{"Code":"user auth err"}`,
 		},
 		{
-			name: "valid email",
+			name: "valid login",
 			params: url.Values{
-				"email": []string{"valid@login.ok"},
+				"login": []string{"valid-login"},
 			},
 			expStatusCode: http.StatusOK,
 			expBody:       `{}`,
@@ -89,7 +102,7 @@ func TestForgotPassword(t *testing.T) {
 		{
 			name: "cannot send email",
 			params: url.Values{
-				"email": []string{"unreachable@login.ok"},
+				"login": []string{"unreachable-login"},
 			},
 			internalError: true,
 		},
@@ -182,6 +195,7 @@ func TestChangePassword(t *testing.T) {
 					t,
 					h.config,
 					"valid@login.ok",
+					"valid@login.ok",
 					"valid_password_hash"),
 			},
 			expStatusCode: http.StatusBadRequest,
@@ -194,6 +208,7 @@ func TestChangePassword(t *testing.T) {
 				"token": testNewEmailTokenString(
 					t,
 					h.config,
+					"valid@login.ok",
 					"valid@login.ok",
 					"invalid_password_hash"),
 			},
@@ -208,6 +223,7 @@ func TestChangePassword(t *testing.T) {
 					t,
 					h.config,
 					"unknown@login.ok",
+					"unknown@login.ok",
 					"valid_password_hash"),
 			},
 			expStatusCode: http.StatusUnauthorized,
@@ -220,6 +236,7 @@ func TestChangePassword(t *testing.T) {
 				"token": testNewEmailTokenString(
 					t,
 					h.config,
+					"valid@login.ok",
 					"valid@login.ok",
 					"valid_password_hash",
 					true),
@@ -234,6 +251,7 @@ func TestChangePassword(t *testing.T) {
 				"token": testNewEmailTokenString(
 					t,
 					h.config,
+					"valid@login.ok",
 					"valid@login.ok",
 					"valid_password_hash"),
 			},

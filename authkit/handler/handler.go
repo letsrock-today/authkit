@@ -5,34 +5,56 @@ import (
 	"github.com/letsrock-today/authkit/authkit"
 )
 
+// Config holds configuration parmeters for handler.NewHandler().
+type Config struct {
+	ErrorCustomizer       authkit.ErrorCustomizer
+	AuthService           authkit.HandlerAuthService
+	UserService           authkit.HandlerUserService
+	ProfileService        authkit.ProfileService
+	SocialProfileServices authkit.SocialProfileServices
+	ContextCreator        authkit.ContextCreator
+	PasswordValidator     govalidator.Validator
+	LoginValidator        govalidator.Validator
+}
+
+func (c Config) Valid() bool {
+	return c.ErrorCustomizer != nil &&
+		c.AuthService != nil &&
+		c.UserService != nil &&
+		c.ProfileService != nil &&
+		c.SocialProfileServices != nil
+}
+
 // NewHandler returns default Handler implemetation.
 // All arguments except ContextCreator and Validator must be provided.
 // If ContextCreator is nil, then DefaultContextCreator is used.
 // If Validator is nil, then default password validator is used.
 func NewHandler(
-	c authkit.Config,
-	ec authkit.ErrorCustomizer,
-	as authkit.HandlerAuthService,
-	us authkit.HandlerUserService,
-	ps authkit.ProfileService,
-	sps authkit.SocialProfileServices,
-	cc authkit.ContextCreator,
-	pv govalidator.Validator) authkit.Handler {
-	if ec == nil ||
-		as == nil ||
-		us == nil ||
-		ps == nil ||
-		sps == nil {
+	ac authkit.Config,
+	hc Config) authkit.Handler {
+	if !hc.Valid() {
 		panic("invalid argument")
 	}
-	if cc == nil {
-		cc = authkit.DefaultContextCreator{}
+	if hc.ContextCreator == nil {
+		hc.ContextCreator = authkit.DefaultContextCreator{}
 	}
-	if pv == nil {
-		pv = govalidator.Validator(defaultPasswordValidator)
+	if hc.PasswordValidator == nil {
+		hc.PasswordValidator = govalidator.Validator(defaultPasswordValidator)
 	}
-	govalidator.TagMap["password"] = pv
-	return handler{c, ec, as, us, ps, sps, cc}
+	govalidator.TagMap["password"] = hc.PasswordValidator
+	if hc.LoginValidator == nil {
+		hc.LoginValidator = govalidator.Validator(emailOrLoginValidator)
+	}
+	govalidator.TagMap["login"] = hc.LoginValidator
+	return handler{
+		ac,
+		hc.ErrorCustomizer,
+		hc.AuthService,
+		hc.UserService,
+		hc.ProfileService,
+		hc.SocialProfileServices,
+		hc.ContextCreator,
+	}
 }
 
 // handler implements Handler interface.

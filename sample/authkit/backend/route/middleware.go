@@ -10,8 +10,7 @@ import (
 )
 
 var (
-	profileMiddleware echo.MiddlewareFunc
-	friendsMiddleware echo.MiddlewareFunc
+	middlwr echo.MiddlewareFunc
 )
 
 func initMiddleware(
@@ -31,16 +30,7 @@ func initMiddleware(
 
 	oauth2Config := c.PrivateOAuth2Provider.PrivateOAuth2Config
 
-	profileMiddleware = _middleware.AccessTokenWithConfig(
-		_middleware.AccessTokenConfig{
-			PrivateProviderID: c.PrivateProviderID,
-			ContextKey:        _middleware.DefaultContextKey,
-			TokenValidator:    tokenValidator,
-			UserService:       userService,
-			OAuth2Config:      oauth2Config,
-			ContextCreator:    contextCreator,
-		})
-	friendsMiddleware = _middleware.AccessTokenWithConfig(
+	middlwr = _middleware.AccessTokenWithConfig(
 		_middleware.AccessTokenConfig{
 			PrivateProviderID: c.PrivateProviderID,
 			ContextKey:        _middleware.DefaultContextKey,

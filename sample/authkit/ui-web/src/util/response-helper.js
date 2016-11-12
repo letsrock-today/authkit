@@ -75,11 +75,7 @@ function msgForErr(err) {
             // but can be localized here
             return err.message + '.';
         case 'invalid_req_param':
-            return 'Invalid request parameter.';
-        case 'account_disabled':
-            return 'Account created but not activated yet. ' +
-                'Please follow the link sent you by email to activate account ' +
-                'and than try to login again.';
+            return 'Invalid request parameter: ' + err.message + '.';
         case 'duplicate_account':
             return 'Sorry, this username already in use.';
         case 'auth_err':

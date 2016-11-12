@@ -15,7 +15,7 @@ import (
 
 type (
 	restorePasswordForm struct {
-		Email string `form:"email" valid:"required~email-required,email~email-format"`
+		Login string `form:"login" valid:"required~login-required,login~login-format"`
 	}
 
 	changePasswordForm struct {
@@ -38,7 +38,18 @@ func (h handler) RestorePassword(c echo.Context) error {
 			h.errorCustomizer.InvalidRequestParameterError(err))
 	}
 
-	user, err := h.users.User(rp.Email)
+	user, err := h.users.User(rp.Login)
+	if err != nil {
+		if authkit.IsUserNotFound(err) {
+			c.Logger().Debugf("%+v", errors.WithStack(err))
+			return c.JSON(
+				http.StatusUnauthorized,
+				h.errorCustomizer.UserAuthenticationError(err))
+		}
+		return errors.WithStack(err)
+	}
+
+	email, name, err := h.profiles.ConfirmedEmail(rp.Login)
 	if err != nil {
 		if authkit.IsUserNotFound(err) {
 			c.Logger().Debugf("%+v", errors.WithStack(err))
@@ -50,7 +61,9 @@ func (h handler) RestorePassword(c echo.Context) error {
 	}
 
 	if err := h.users.RequestPasswordChangeConfirmation(
-		user.Email(),
+		rp.Login,
+		email,
+		name,
 		user.PasswordHash()); err != nil {
 		return errors.WithStack(err)
 	}

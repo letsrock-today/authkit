@@ -16,9 +16,8 @@ import (
 )
 
 type userData struct {
-	Email        string
+	Login        string
 	PasswordHash string
-	Disabled     *time.Time               `bson:",omitempty"`
 	Tokens       map[string]*oauth2.Token // pid -> token
 }
 
@@ -29,12 +28,7 @@ type _user struct {
 }
 
 func (u *_user) Login() string {
-	//TODO: remove assamption email == login?
-	return u.data.Email
-}
-
-func (u *_user) Email() string {
-	return u.data.Email
+	return u.data.Login
 }
 
 func (u *_user) PasswordHash() string {
@@ -72,7 +66,7 @@ func New(
 	}
 	err = s.users.Create(&mgo.CollectionInfo{
 		Validator: bson.M{
-			"email": bson.M{
+			"login": bson.M{
 				"$exists": true,
 				"$ne":     "",
 			},
@@ -87,15 +81,8 @@ func New(
 		return nil, err
 	}
 	index := mgo.Index{
-		Key:    []string{"email"},
+		Key:    []string{"login"},
 		Unique: true,
-	}
-	if err := s.users.EnsureIndex(index); err != nil {
-		return nil, err
-	}
-	index = mgo.Index{
-		Key:         []string{"disabled"},
-		ExpireAfter: unconfirmedUserLifespan,
 	}
 	return s, s.users.EnsureIndex(index)
 }
@@ -106,49 +93,16 @@ func (s store) Close() error {
 }
 
 func (s store) Create(login, password string) authkit.UserServiceError {
-	t := time.Now()
 	err := s.users.Insert(
 		&_user{
 			userData{
-				Email:        login,
+				Login:        login,
 				PasswordHash: hash(password),
-				Disabled:     &t,
 			},
 		})
 	if mgo.IsDup(err) {
 		return errors.WithStack(authkit.NewDuplicateUserError(err))
 	}
-	if err == nil {
-		return errors.WithStack(authkit.NewAccountDisabledError(nil))
-	}
-	return err
-}
-
-func (s store) CreateEnabled(login, password string) authkit.UserServiceError {
-	err := s.users.Insert(
-		&_user{
-			userData{
-				Email:        login,
-				PasswordHash: hash(password),
-				Disabled:     nil,
-			},
-		})
-	if mgo.IsDup(err) {
-		return errors.WithStack(authkit.NewDuplicateUserError(err))
-	}
-	return err
-}
-
-func (s store) Enable(login string) authkit.UserServiceError {
-	err := s.users.Update(
-		bson.M{
-			"email": login,
-		},
-		bson.M{
-			"$set": bson.M{
-				"disabled": nil,
-			},
-		})
 	if err == mgo.ErrNotFound {
 		return errors.WithStack(authkit.NewUserNotFoundError(err))
 	}
@@ -159,32 +113,23 @@ func (s store) Authenticate(login, password string) authkit.UserServiceError {
 	u := _user{}
 	err := s.users.Find(
 		bson.M{
-			"email":        login,
+			"login":        login,
 			"passwordhash": hash(password),
 		}).One(&u)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return errors.WithStack(authkit.NewUserNotFoundError(nil))
-		}
-		return err
+	if err == mgo.ErrNotFound {
+		return errors.WithStack(authkit.NewUserNotFoundError(err))
 	}
-	if err == nil && u.data.Disabled != nil {
-		return errors.WithStack(authkit.NewAccountDisabledError(nil))
-	}
-	return nil
+	return err
 }
 
 func (s store) User(login string) (authkit.User, authkit.UserServiceError) {
 	u := &_user{}
 	err := s.users.Find(
 		bson.M{
-			"email": login,
+			"login": login,
 		}).One(u)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, errors.WithStack(authkit.NewUserNotFoundError(err))
-		}
-		return nil, err
+	if err == mgo.ErrNotFound {
+		return nil, errors.WithStack(authkit.NewUserNotFoundError(err))
 	}
 	return u, nil
 }
@@ -193,7 +138,7 @@ func (s store) UpdatePassword(
 	login, oldPasswordHash, newPassword string) authkit.UserServiceError {
 	err := s.users.Update(
 		bson.M{
-			"email":        login,
+			"login":        login,
 			"passwordhash": oldPasswordHash,
 		},
 		bson.M{
@@ -220,7 +165,7 @@ func (s store) UpdateOAuth2Token(
 	login, providerID string, token *oauth2.Token) authkit.UserServiceError {
 	err := s.users.Update(
 		bson.M{
-			"email": login,
+			"login": login,
 		},
 		bson.M{
 			"$set": bson.M{

@@ -66,6 +66,7 @@ func (deezer) SocialProfile(client *http.Client) (authkit.Profile, error) {
 		return nil, fmt.Errorf(p.Error.Message)
 	}
 	return &Profile{
+		Login:         MakeLogin("deezer", fmt.Sprintf("%x", p.ID)),
 		Email:         p.Email,
 		FormattedName: p.Name,
 		Picture:       p.Picture,

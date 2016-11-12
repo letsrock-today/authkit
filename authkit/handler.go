@@ -45,6 +45,11 @@ type Handler interface {
 	// in the echo.Context. I18n can be achieved with custom renderer.
 	ConfirmEmail(echo.Context) error
 
+	// SendConfirmationEmail handles request to send confirmation email (email
+	// with link to confirm email address). This handler may be used by app to
+	// allow user to repeat confirmation email from web UI.
+	SendConfirmationEmail(echo.Context) error
+
 	// Callback handles OAuth2 code flow callback requests.
 	Callback(echo.Context) error
 }

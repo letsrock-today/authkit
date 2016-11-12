@@ -4,6 +4,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/pkg/errors"
 )
 
 // EmailToken represents token, used to be sent in confirmation email.
@@ -13,6 +14,9 @@ type (
 		// Login returns user's login.
 		Login() string
 
+		// Email returns users's email which token was issued for.
+		Email() string
+
 		// PasswordHash returns the hash of the password.
 		// Password hash goes into the token and then into the link, which is
 		// included into the email for the user. When the user follow the link,
@@ -21,34 +25,77 @@ type (
 		PasswordHash() string
 	}
 
-	mailToken jwt.StandardClaims
+	mailTokenFields struct {
+		Login        string `json:"login"`
+		Email        string `json:"email"`
+		PasswordHash string `json:"pwdh"`
+	}
+
+	mailToken struct {
+		jwt.StandardClaims
+		mailTokenFields
+	}
 )
 
 // NewEmailTokenString creates new jwt token and converts it to signed string.
 // It may be used to create password reset URL for confirmation email.
 func NewEmailTokenString(
-	issuer, email, passwordHash string,
+	issuer, login, email, passwordHash string,
 	expiration time.Duration,
 	signKey []byte) (string, error) {
-	return newToken(issuer, email, passwordHash, expiration, signKey)
+	claims := mailToken{
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(expiration).Unix(),
+			Issuer:    issuer,
+			Audience:  issuer,
+		},
+		mailTokenFields{
+			login,
+			email,
+			passwordHash,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(signKey)
 }
 
 // ParseEmailToken can parse jwt tokens from strings created by NewEmailTokenString.
 func ParseEmailToken(
 	issuer, token string,
 	signKey []byte) (EmailToken, error) {
-	m, err := parseToken(issuer, token, signKey)
+	t, err := jwt.ParseWithClaims(
+		token,
+		&mailToken{},
+		func(token *jwt.Token) (interface{}, error) {
+			return signKey, nil
+		})
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "invalid token")
 	}
-	t := mailToken(*m)
-	return &t, nil
+	claims, ok := t.Claims.(*mailToken)
+	if !ok || !t.Valid {
+		return nil, errors.WithStack(ErrInvalidToken)
+	}
+	if !claims.VerifyExpiresAt(time.Now().Unix(), true) {
+		return nil, errors.WithStack(ErrInvalidToken)
+	}
+	if !claims.VerifyIssuer(issuer, true) {
+		return nil, errors.WithStack(ErrInvalidToken)
+	}
+	if !claims.VerifyAudience(issuer, true) {
+		return nil, errors.WithStack(ErrInvalidToken)
+	}
+	return claims, nil
 }
 
 func (m *mailToken) Login() string {
-	return m.Audience
+	return m.mailTokenFields.Login
+}
+
+func (m *mailToken) Email() string {
+	return m.mailTokenFields.Email
 }
 
 func (m *mailToken) PasswordHash() string {
-	return m.Subject
+	return m.mailTokenFields.PasswordHash
 }

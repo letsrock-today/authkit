@@ -1,8 +1,6 @@
 'use strict';
 
 import dispatcher from '../dispatcher'
-import _fetch from '../util/fetch';
-import respHelper from '../util/response-helper';
 
 <dlg-login>
     <div if="{ visible }"
@@ -77,26 +75,13 @@ import respHelper from '../util/response-helper';
         });
         let loginOrSignup = (action, loginForm, errMsgPrefix) => {
             self.error = '';
-            let body =new FormData(loginForm);
-            body.append('action', action);
-            _fetch.fetch('/api/login-priv', {
-                method: 'POST',
-                body: body
-            })
-            .then(r => {
-                return respHelper.handleStatus(r);
-            })
-            .then(data => {
-                const {redirUrl} = data;
-                window.location.href = redirUrl;
-            })
-            .catch(e => {
-                self.error = errMsgPrefix;
-                if (e.msg) {
-                    self.error += e.msg;
-                }
-                self.update();
-            });
+            dispatcher.trigger(
+                    dispatcher.DO_LOGIN,
+                    action,
+                    loginForm,
+                    (err) => {
+                        self.update({error: err ? errMsgPrefix + err : '' });
+                    });
         }
         self.onLogin = (loginForm) => {
             loginOrSignup('login', loginForm, 'Could not authenticate. ');
@@ -104,8 +89,6 @@ import respHelper from '../util/response-helper';
         self.onSignUp = (loginForm) => {
             loginOrSignup('signup', loginForm, 'Could not create user. ');
         }
-        self.onError = (error) => {
-            self.update({error:error});
-        }
+        self.onError = (err) => { self.update({error: err}); }
     </script>
 </dlg-login>

@@ -7,7 +7,6 @@ module.exports = {
     app: './src/index.js',
     login: './src/login.js',
     vendor: './src/vendor.js',
-    'password-reset': './src/password-reset.js',
     'password-confirm': './src/password-confirm.js',
   },
   output: {

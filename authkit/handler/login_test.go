@@ -31,6 +31,11 @@ func TestLogin(t *testing.T) {
 		"valid@login.ok",
 		[]string{"some_scope"},
 		"unknown_client_id").Return("", errors.New("unknown_client"))
+	as.On(
+		"GenerateConsentTokenPriv",
+		"new.valid@login.ok",
+		[]string{"some_scope"},
+		"some_client_id").Return("valid_token", nil)
 
 	us := new(mocks.UserService)
 	us.On(
@@ -44,29 +49,32 @@ func TestLogin(t *testing.T) {
 	us.On(
 		"Create",
 		"new.valid@login.ok",
-		"valid_password").Return(authkit.NewAccountDisabledError(nil))
+		"valid_password").Return(nil)
 	us.On(
 		"Create",
 		"broken.valid@login.ok",
-		"valid_password").Return(authkit.NewAccountDisabledError(nil))
+		"valid_password").Return(nil)
 	us.On(
 		"Create",
 		"old.valid@login.ok",
 		"valid_password").Return(authkit.NewDuplicateUserError(nil))
 	us.On(
 		"RequestEmailConfirmation",
+		"new.valid@login.ok",
+		"new.valid@login.ok",
+		"").Return(nil)
+
+	ps := new(mocks.ProfileService)
+	ps.On(
+		"EnsureExists",
+		"new.valid@login.ok",
 		"new.valid@login.ok").Return(nil)
-	us.On(
-		"RequestEmailConfirmation",
-		"old.valid@login.ok").Return(nil)
-	us.On(
-		"RequestEmailConfirmation",
-		"broken.valid@login.ok").Return(authkit.NewRequestConfirmationError(nil))
 
 	h := handler{
 		errorCustomizer: testErrorCustomizer{},
 		auth:            as,
 		users:           us,
+		profiles:        ps,
 		config: authkit.Config{
 			PrivateOAuth2Provider: authkit.OAuth2Provider{
 				ID: "some_id",
@@ -151,9 +159,9 @@ func TestLogin(t *testing.T) {
 				"login":    []string{"new.valid@login.ok"},
 				"password": []string{"valid_password"},
 			},
-			// account disabled until user confirms it
-			expStatusCode: http.StatusUnauthorized,
-			expBody:       `{"Code":"acc disabled"}`,
+			expStatusCode: http.StatusOK,
+			expBodyRegex:  true,
+			expBody:       `\{"redirUrl":".*consent=valid_token.*"\}`,
 		},
 		{
 			name: "Signup: duplicate",
@@ -164,15 +172,6 @@ func TestLogin(t *testing.T) {
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `{"Code":"dup user"}`,
-		},
-		{
-			name: "Signup: cannot send email",
-			params: url.Values{
-				"action":   []string{"signup"},
-				"login":    []string{"broken.valid@login.ok"},
-				"password": []string{"valid_password"},
-			},
-			internalError: true,
 		},
 		{
 			name: "Login: fail GenerateConsentTokenPriv",
@@ -222,5 +221,24 @@ func TestLogin(t *testing.T) {
 			})
 		}
 	}
+}
 
+func TestSimpleLoginValidator(t *testing.T) {
+	assert := assert.New(t)
+	v := SimpleLoginValidator
+	assert.False(v(""), "empty")
+	assert.False(v("zZxx"), "short")
+	assert.False(v(`0000000000zzzzzzzzzzZZZZZZZZZZ1111111111@@@@@@@@@@2222222222`), "too long")
+	assert.False(v("2ZZZ"), "first char is not letter")
+	assert.False(v("zzz222###"), "not allowed chars")
+	assert.True(v("iRobot-2_0"), "good login")
+}
+
+func TestEmailOrLoginValidator(t *testing.T) {
+	assert := assert.New(t)
+	v := emailOrLoginValidator
+	assert.False(v(""), "empty")
+	assert.False(v("zZxx"), "short")
+	assert.True(v("iRobot-2_0"), "good login")
+	assert.True(v("iRobot@gmail.com"), "good email")
 }

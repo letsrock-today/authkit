@@ -17,7 +17,6 @@ import (
 )
 
 func TestConsentLogin(t *testing.T) {
-
 	as := new(mocks.AuthService)
 	as.On(
 		"GenerateConsentToken",
@@ -57,24 +56,15 @@ func TestConsentLogin(t *testing.T) {
 	us.On(
 		"Create",
 		"new.valid@login.ok",
-		"valid_password").Return(authkit.NewAccountDisabledError(nil))
+		"valid_password").Return(nil)
 	us.On(
 		"Create",
 		"broken.valid@login.ok",
-		"valid_password").Return(authkit.NewAccountDisabledError(nil))
+		"valid_password").Return(nil)
 	us.On(
 		"Create",
 		"old.valid@login.ok",
 		"valid_password").Return(authkit.NewDuplicateUserError(nil))
-	us.On(
-		"RequestEmailConfirmation",
-		"new.valid@login.ok").Return(nil)
-	us.On(
-		"RequestEmailConfirmation",
-		"old.valid@login.ok").Return(nil)
-	us.On(
-		"RequestEmailConfirmation",
-		"broken.valid@login.ok").Return(authkit.NewRequestConfirmationError(nil))
 
 	h := handler{
 		errorCustomizer: testErrorCustomizer{},
@@ -92,7 +82,6 @@ func TestConsentLogin(t *testing.T) {
 		params        url.Values
 		expStatusCode int
 		expBody       string
-		internalError bool
 	}{
 		{
 			name:          "No params",
@@ -157,9 +146,8 @@ func TestConsentLogin(t *testing.T) {
 				"password":  []string{"valid_password"},
 				"scopes":    []string{"valid_scope"},
 			},
-			// account disabled until user confirms it
-			expStatusCode: http.StatusUnauthorized,
-			expBody:       `{"Code":"acc disabled"}`,
+			expStatusCode: http.StatusOK,
+			expBody:       `{"consent":"valid_token"}`,
 		},
 		{
 			name: "Signup: duplicate",
@@ -172,17 +160,6 @@ func TestConsentLogin(t *testing.T) {
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `{"Code":"dup user"}`,
-		},
-		{
-			name: "Signup: cannot send email",
-			params: url.Values{
-				"action":    []string{"signup"},
-				"challenge": []string{"valid_challenge"},
-				"login":     []string{"broken.valid@login.ok"},
-				"password":  []string{"valid_password"},
-				"scopes":    []string{"valid_scope"},
-			},
-			internalError: true,
 		},
 	}
 
@@ -204,7 +181,7 @@ func TestConsentLogin(t *testing.T) {
 				ctx.Request().Header().Set(echo.HeaderContentType, enc.contentType)
 
 				err = h.ConsentLogin(ctx)
-				if enc.invalid || c.internalError {
+				if enc.invalid {
 					assert.Error(err)
 				} else {
 					assert.NoError(err)
@@ -214,5 +191,4 @@ func TestConsentLogin(t *testing.T) {
 			})
 		}
 	}
-
 }

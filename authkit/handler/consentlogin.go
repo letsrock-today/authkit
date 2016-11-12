@@ -62,13 +62,6 @@ func (h handler) ConsentLogin(c echo.Context) error {
 	}
 
 	if err := action(lf.P.Login, lf.P.Password); err != nil {
-		if signup {
-			if authkit.IsAccountDisabled(err) {
-				if err := h.users.RequestEmailConfirmation(lf.P.Login); err != nil {
-					return errors.WithStack(err)
-				}
-			}
-		}
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(http.StatusUnauthorized, errorCustomizer(err))
 	}

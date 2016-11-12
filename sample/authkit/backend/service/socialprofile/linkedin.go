@@ -22,8 +22,8 @@ type lnPhoneNumbers struct {
 }
 
 type lnProfile struct {
-	Email         string         `json:"emailAddress"`
 	ID            string         `json:"id"`
+	Email         string         `json:"emailAddress"`
 	FormattedName string         `json:"formattedName"`
 	MainAddress   string         `json:"mainAddress"`
 	Picture       string         `json:"pictureUrl"`
@@ -79,6 +79,7 @@ func (linkedin) SocialProfile(client *http.Client) (authkit.Profile, error) {
 	}
 
 	return &Profile{
+		Login:         MakeLogin("linkedin", p.ID),
 		Email:         p.Email,
 		FormattedName: p.FormattedName,
 		Location:      p.MainAddress,

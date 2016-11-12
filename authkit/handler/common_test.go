@@ -30,8 +30,6 @@ func (testErrorCustomizer) UserCreationError(e error) interface{} {
 	switch e.(type) {
 	case authkit.DuplicateUserError:
 		msg = "dup user"
-	case authkit.AccountDisabledError:
-		msg = "acc disabled"
 	case authkit.RequestConfirmationError:
 		msg = "req confirm error"
 	default:
@@ -54,7 +52,6 @@ func (testErrorCustomizer) UserAuthenticationError(error) interface{} {
 
 type testUser struct {
 	login        string
-	email        string
 	passwordHash string
 }
 
@@ -62,20 +59,35 @@ func (u testUser) Login() string {
 	return u.login
 }
 
-func (u testUser) Email() string {
-	return u.email
-}
-
 func (u testUser) PasswordHash() string {
 	return u.passwordHash
 }
 
 type testProfile struct {
-	login string
+	login          string
+	email          string
+	emailConfirmed bool
+	formattedName  string
 }
 
-func (p testProfile) Login() string {
+func (p testProfile) GetLogin() string {
 	return p.login
+}
+
+func (p *testProfile) SetLogin(l string) {
+	p.login = l
+}
+
+func (p testProfile) GetEmail() string {
+	return p.email
+}
+
+func (p testProfile) IsEmailConfirmed() bool {
+	return p.emailConfirmed
+}
+
+func (p testProfile) GetFormattedName() string {
+	return p.formattedName
 }
 
 type testBodyEncoderFunc func(v url.Values) io.Reader
@@ -129,7 +141,7 @@ var testBodyEncoders = []struct {
 func testNewEmailTokenString(
 	t *testing.T,
 	config authkit.Config,
-	email, passwordHash string,
+	login, email, passwordHash string,
 	expired ...bool) []string {
 	exp := 1 * time.Hour
 	if len(expired) > 0 && expired[0] {
@@ -137,6 +149,7 @@ func testNewEmailTokenString(
 	}
 	s, err := apptoken.NewEmailTokenString(
 		config.OAuth2State.TokenIssuer,
+		login,
 		email,
 		passwordHash,
 		exp,

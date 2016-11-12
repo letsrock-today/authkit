@@ -27,15 +27,30 @@ func (h handler) ProfileSave(c echo.Context) error {
 	if err := c.Bind(p); err != nil {
 		return errors.WithStack(err)
 	}
-	p.Email = u.Login() // we cannot change email, because it used as user's id
+	p.SetLogin(u.Login())
 	if _, err := govalidator.ValidateStruct(p); err != nil {
 		return c.JSON(
 			http.StatusBadRequest,
 			h.errorCustomizer.InvalidRequestParameterError(err))
 	}
 	//TODO: preserve fields absent in the html form.
+	emailChanged := false
+	if pp, err := h.profiles.Profile(u.Login()); err == nil {
+		emailChanged = pp.GetEmail() != p.Email
+		p.EmailConfirmed = !emailChanged && pp.IsEmailConfirmed()
+	}
 	if err := h.profiles.Save(p); err != nil {
 		return errors.WithStack(err)
+	}
+	if emailChanged {
+		go func() {
+			if err := h.users.RequestEmailConfirmation(
+				u.Login(),
+				p.Email,
+				p.FormattedName); err != nil {
+				c.Logger().Debugf("%+v", errors.WithStack(err))
+			}
+		}()
 	}
 	// return profile as it saved in store (assume, that store API could modify it)
 	pf, err := h.profiles.Profile(u.Login())

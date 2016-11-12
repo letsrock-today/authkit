@@ -15,7 +15,7 @@ type fbProfileResponse struct {
 }
 
 type fbProfile struct {
-	Id       string     `json:"id"`
+	ID       string     `json:"id"`
 	Email    string     `json:"email"`
 	Name     string     `json:"name"`
 	Picture  fbPicture  `json:"picture"`
@@ -29,7 +29,7 @@ type fbPicture struct {
 }
 
 type fbPictureData struct {
-	Url string `json:"url"`
+	URL string `json:"url"`
 }
 
 type fbLocation struct {
@@ -73,10 +73,11 @@ func (facebook) SocialProfile(client *http.Client) (authkit.Profile, error) {
 		return nil, fmt.Errorf(p.Error.Message)
 	}
 	return &Profile{
+		Login:         MakeLogin("facebook", p.ID),
 		Email:         p.Email,
 		FormattedName: p.Name,
 		Location:      p.Location.Name,
-		Picture:       p.Picture.Url,
+		Picture:       p.Picture.URL,
 		Birthday:      p.Birthday,
 		Gender:        normalizeGender(p.Gender),
 		Phones:        []string{},
@@ -103,13 +104,14 @@ func (facebook) Friends(client *http.Client) ([]Profile, error) {
 		return nil, fmt.Errorf(friends.Error.Message)
 	}
 
-	res := make([]Profile, 0)
+	var res []Profile
 	for _, p := range friends.Profiles {
 		res = append(res, Profile{
+			Login:         MakeLogin("facebook", p.ID),
 			Email:         p.Email,
 			FormattedName: p.Name,
 			Location:      p.Location.Name,
-			Picture:       p.Picture.Url,
+			Picture:       p.Picture.URL,
 			Birthday:      p.Birthday,
 			Gender:        normalizeGender(p.Gender),
 			Phones:        []string{},

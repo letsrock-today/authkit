@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"html/template"
 	"io"
 	"net/http"
@@ -15,31 +14,33 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/authkit/middleware"
 	"github.com/letsrock-today/authkit/authkit/mocks"
 )
 
 func TestConfirmEmail(t *testing.T) {
 	us := new(mocks.UserService)
 	us.On(
-		"Enable",
-		"valid@login.ok").Return(nil)
+		"User",
+		"valid@login.ok").Return(testUser{}, nil)
 	us.On(
-		"Enable",
-		"fail_create_profile@login.ok").Return(nil)
-	us.On(
-		"Enable",
-		"invalid@login.ok").Return(authkit.NewUserNotFoundError(nil))
+		"User",
+		"invalid@login.ok").Return(nil, authkit.NewUserNotFoundError(nil))
 
 	ps := new(mocks.ProfileService)
 	ps.On(
 		"EnsureExists",
 		"valid@login.ok").Return(nil)
 	ps.On(
-		"EnsureExists",
-		"invalid@login.ok").Return(nil)
+		"SetEmailConfirmed",
+		"valid@login.ok",
+		"valid@login.ok",
+		true).Return(nil)
 	ps.On(
-		"EnsureExists",
-		"fail_create_profile@login.ok").Return(errors.New("cannot create profile"))
+		"SetEmailConfirmed",
+		"invalid@login.ok",
+		"invalid@login.ok",
+		true).Return(authkit.NewUserNotFoundError(nil))
 
 	h := handler{
 		errorCustomizer: testErrorCustomizer{},
@@ -78,23 +79,17 @@ func TestConfirmEmail(t *testing.T) {
 		{
 			name: "expired token",
 			params: url.Values{
-				"token": testNewEmailTokenString(t, h.config, "valid@login.ok", "", true),
+				"token": testNewEmailTokenString(
+					t, h.config, "valid@login.ok", "valid@login.ok", "", true),
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `Error: user auth err`,
 		},
 		{
-			name: "cannot create profile",
-			params: url.Values{
-				"token": testNewEmailTokenString(t, h.config, "fail_create_profile@login.ok", ""),
-			},
-			// it may be other error in PROD if user.Enable() fail first
-			internalError: true,
-		},
-		{
 			name: "invalid login (deleted)",
 			params: url.Values{
-				"token": testNewEmailTokenString(t, h.config, "invalid@login.ok", ""),
+				"token": testNewEmailTokenString(
+					t, h.config, "invalid@login.ok", "invalid@login.ok", ""),
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `Error: user auth err`,
@@ -102,7 +97,8 @@ func TestConfirmEmail(t *testing.T) {
 		{
 			name: "everything OK",
 			params: url.Values{
-				"token": testNewEmailTokenString(t, h.config, "valid@login.ok", ""),
+				"token": testNewEmailTokenString(
+					t, h.config, "valid@login.ok", "valid@login.ok", ""),
 			},
 			expStatusCode: http.StatusOK,
 			expBody:       `OK`,
@@ -135,6 +131,35 @@ func TestConfirmEmail(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSendConfirmationEmail(t *testing.T) {
+	ps := new(mocks.ProfileService)
+	ps.On(
+		"Email",
+		"valid-login").Return("valid@login.ok", "Kate", nil)
+	us := new(mocks.UserService)
+	us.On(
+		"RequestEmailConfirmation",
+		"valid-login",
+		"valid@login.ok",
+		"Kate").Return(nil)
+	h := handler{
+		errorCustomizer: testErrorCustomizer{},
+		users:           us,
+		profiles:        ps,
+	}
+	e := echo.New()
+	req := new(http.Request)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(
+		standard.NewRequest(req, e.Logger()),
+		standard.NewResponse(rec, e.Logger()))
+	c.Set(middleware.DefaultContextKey, testUser{login: "valid-login"})
+	err := h.SendConfirmationEmail(c)
+	assert := assert.New(t)
+	assert.NoError(err)
+	assert.Equal(http.StatusOK, rec.Code)
 }
 
 type testTemplate struct {

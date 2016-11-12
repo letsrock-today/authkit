@@ -15,6 +15,7 @@ func TestEmailToken(t *testing.T) {
 		issuer1      string
 		issuer2      string
 		login        string
+		email        string
 		passwordHash string
 		exp          time.Duration
 		key          string
@@ -25,6 +26,7 @@ func TestEmailToken(t *testing.T) {
 			"some issuer",
 			"some issuer",
 			"sompe login",
+			"some@email.com",
 			"some hash",
 			1 * time.Hour,
 			"some secret",
@@ -35,6 +37,7 @@ func TestEmailToken(t *testing.T) {
 			"some issuer",
 			"some issuer",
 			"sompe login",
+			"some@email.com",
 			"some hash",
 			-1 * time.Hour,
 			"some secret",
@@ -45,6 +48,7 @@ func TestEmailToken(t *testing.T) {
 			"some issuer",
 			"some other issuer",
 			"sompe login",
+			"some@email.com",
 			"some hash",
 			1 * time.Hour,
 			"some secret",
@@ -57,7 +61,7 @@ func TestEmailToken(t *testing.T) {
 			assert := assert.New(st)
 
 			key := []byte(c.key)
-			m, err := NewEmailTokenString(c.issuer1, c.login, c.passwordHash, c.exp, key)
+			m, err := NewEmailTokenString(c.issuer1, c.login, c.email, c.passwordHash, c.exp, key)
 			assert.NoError(err)
 			assert.NotZero(m)
 
@@ -71,8 +75,13 @@ func TestEmailToken(t *testing.T) {
 				}
 			} else {
 				assert.NoError(err)
+				assert.NotNil(token)
+				if token == nil {
+					assert.FailNow("Token is nil")
+				}
 				assert.NotZero(token)
 				assert.Equal(c.login, token.Login())
+				assert.Equal(c.email, token.Email())
 				assert.Equal(c.passwordHash, token.PasswordHash())
 			}
 		})

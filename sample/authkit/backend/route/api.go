@@ -6,23 +6,16 @@ import (
 	"github.com/letsrock-today/authkit/authkit"
 	authkithandler "github.com/letsrock-today/authkit/authkit/handler"
 	"github.com/letsrock-today/authkit/sample/authkit/backend/handler"
-	"github.com/letsrock-today/authkit/sample/authkit/backend/service/profile"
 )
 
 const confirmEmailURL = "/email-confirm"
 
 func initAPI(
 	e *echo.Echo,
-	c authkit.Config,
-	as authkit.HandlerAuthService,
-	us authkit.HandlerUserService,
-	ps profile.Service,
-	sps authkit.SocialProfileServices,
-	cc authkit.ContextCreator) {
+	ac authkit.Config,
+	hc authkithandler.Config) {
 
-	ec := handler.NewErrorCustomizer()
-
-	ah := authkithandler.NewHandler(c, ec, as, us, ps, sps, cc, nil)
+	ah := authkithandler.NewHandler(ac, hc)
 	e.GET("/api/auth-providers", ah.AuthProviders)
 	e.GET("/api/auth-code-urls", ah.AuthCodeURLs)
 	e.POST("/api/login", ah.ConsentLogin)
@@ -33,8 +26,9 @@ func initAPI(
 	e.POST("/password-change", ah.ChangePassword)
 	e.GET("/callback", ah.Callback)
 
-	h := handler.New(c, ec, us, ps, cc)
-	e.GET("/api/profile", h.Profile, profileMiddleware)
-	e.POST("/api/profile", h.ProfileSave, profileMiddleware)
-	e.GET("/api/friends", h.Friends, friendsMiddleware)
+	h := handler.New(ac, hc)
+	e.POST("/api/confirm-email", ah.SendConfirmationEmail, middlwr)
+	e.GET("/api/profile", h.Profile, middlwr)
+	e.POST("/api/profile", h.ProfileSave, middlwr)
+	e.GET("/api/friends", h.Friends, middlwr)
 }

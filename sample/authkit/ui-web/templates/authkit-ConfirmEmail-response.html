@@ -1,5 +1,5 @@
 <html>
     <body>
-        <h3>{{if .}}Error: {{.Message}}{{else}}Email confirmed, account unblocked, try to login.{{end}}</h3>
+        {{if .}}<ul>{{range .}}<li>Error: {{.Message}}</li>{{end}}</ul>{{else}}<h3>Email confirmed.</h3>{{end}}
     </body>
 </html>

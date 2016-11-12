@@ -4,6 +4,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -18,7 +19,15 @@ type (
 		Login() string
 	}
 
-	stateToken jwt.StandardClaims
+	stateTokenFields struct {
+		Login      string `json:"login"`
+		ProviderID string `json:"pid"`
+	}
+
+	stateToken struct {
+		jwt.StandardClaims
+		stateTokenFields
+	}
 )
 
 // NewStateTokenString creates new jwt token and converts it to signed string.
@@ -27,7 +36,19 @@ func NewStateTokenString(
 	issuer, providerID string,
 	expiration time.Duration,
 	signKey []byte) (string, error) {
-	return newToken(issuer, "", providerID, expiration, signKey)
+	claims := stateToken{
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(expiration).Unix(),
+			Issuer:    issuer,
+			Audience:  issuer,
+		},
+		stateTokenFields{
+			"",
+			providerID,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(signKey)
 }
 
 // NewStateWithLoginTokenString creates new jwt token and converts it to signed string.
@@ -38,25 +59,54 @@ func NewStateWithLoginTokenString(
 	issuer, providerID, login string,
 	expiration time.Duration,
 	signKey []byte) (string, error) {
-	return newToken(issuer, login, providerID, expiration, signKey)
+	claims := stateToken{
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(expiration).Unix(),
+			Issuer:    issuer,
+			Audience:  issuer,
+		},
+		stateTokenFields{
+			login,
+			providerID,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(signKey)
 }
 
 // ParseStateToken can parse jwt tokens from strings created by NewStateTokenString or NewStateWithLoginTokenString.
 func ParseStateToken(
 	issuer, token string,
 	signKey []byte) (StateToken, error) {
-	s, err := parseToken(issuer, token, signKey)
+	t, err := jwt.ParseWithClaims(
+		token,
+		&stateToken{},
+		func(token *jwt.Token) (interface{}, error) {
+			return signKey, nil
+		})
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "invalid token")
 	}
-	t := stateToken(*s)
-	return &t, nil
+	claims, ok := t.Claims.(*stateToken)
+	if !ok || !t.Valid {
+		return nil, errors.WithStack(ErrInvalidToken)
+	}
+	if !claims.VerifyExpiresAt(time.Now().Unix(), true) {
+		return nil, errors.WithStack(ErrInvalidToken)
+	}
+	if !claims.VerifyIssuer(issuer, true) {
+		return nil, errors.WithStack(ErrInvalidToken)
+	}
+	if !claims.VerifyAudience(issuer, true) {
+		return nil, errors.WithStack(ErrInvalidToken)
+	}
+	return claims, nil
 }
 
 func (s *stateToken) ProviderID() string {
-	return s.Subject
+	return s.stateTokenFields.ProviderID
 }
 
 func (s *stateToken) Login() string {
-	return s.Audience
+	return s.stateTokenFields.Login
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo"
 
 	"github.com/letsrock-today/authkit/authkit"
+	authkithandler "github.com/letsrock-today/authkit/authkit/handler"
 	"github.com/letsrock-today/authkit/authkit/persisttoken"
 	"github.com/letsrock-today/authkit/sample/authkit/backend/service/profile"
 )
@@ -17,24 +18,26 @@ type Handler interface {
 }
 
 func New(
-	c authkit.Config,
-	ec authkit.ErrorCustomizer,
-	us authkit.HandlerUserService,
-	ps profile.Service,
-	cc authkit.ContextCreator) Handler {
-	if ec == nil || ps == nil {
+	ac authkit.Config,
+	hc authkithandler.Config) Handler {
+	if !hc.Valid() {
 		panic("invalid argument")
 	}
-	if cc == nil {
-		cc = authkit.DefaultContextCreator{}
+	if hc.ContextCreator == nil {
+		hc.ContextCreator = authkit.DefaultContextCreator{}
 	}
-	return handler{c, ec, us, ps, cc}
+	return handler{
+		ac,
+		hc.ErrorCustomizer,
+		hc.UserService,
+		hc.ProfileService.(profile.Service),
+		hc.ContextCreator}
 }
 
 type handler struct {
 	config          authkit.Config
 	errorCustomizer authkit.ErrorCustomizer
-	us              authkit.HandlerUserService
+	users           authkit.HandlerUserService
 	profiles        profile.Service
 	contextCreator  authkit.ContextCreator
 }
@@ -49,5 +52,5 @@ func (h handler) createHTTPClient(
 		p.OAuth2Config,
 		u.Login(),
 		p.ID,
-		userTokenStore{h.us, u}).Client(ctx, nil)
+		userTokenStore{h.users, u}).Client(ctx, nil)
 }

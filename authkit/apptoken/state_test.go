@@ -87,6 +87,10 @@ func TestStateToken(t *testing.T) {
 				}
 			} else {
 				assert.NoError(err)
+				assert.NotNil(token)
+				if token == nil {
+					assert.FailNow("Token is nil")
+				}
 				assert.NotZero(token)
 				assert.Equal(c.pid, token.ProviderID())
 				assert.Equal(c.login, token.Login())

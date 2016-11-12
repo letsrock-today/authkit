@@ -7,8 +7,10 @@ import cookies from 'cookie';
 
 dispatcher.on(dispatcher.TRY_LOGIN, _login);
 dispatcher.on(dispatcher.DO_LOGOUT, _logout);
+dispatcher.on(dispatcher.DO_LOGIN, _doLogin);
 dispatcher.on(dispatcher.SAVE_PROFILE, _saveProfile);
 dispatcher.on(dispatcher.GET_FRIENDS, _getFriends);
+dispatcher.on(dispatcher.CONFIRM_EMAIL, _confirmEmail);
 
 ////////////////////////////////////////////////////
 
@@ -22,20 +24,16 @@ function _saveProfile(profileForm, cb) {
             return respHelper.handleStatus(r);
         })
         .then(data => {
-            const { error } = data;
-            if (error) {
-                console.log(error);
-                cb(error);
-            } else {
-                data.authorized = true;
-                dispatcher.trigger(dispatcher.PROFILE_CHANGED, data);
-            }
+            data.authorized = true;
+            dispatcher.trigger(dispatcher.PROFILE_CHANGED, data);
         })
         .catch(e => {
             console.log(e);
             if (e.error === 'AUTH') {
                 alert('Auth error. Try to re-login');
                 _logout();
+            } else {
+                cb('Error saving profile: ' + e.msg);
             }
         });
 }
@@ -46,18 +44,48 @@ function _getFriends(cb) {
             return respHelper.handleStatus(r);
         })
         .then(data => {
-            const { error } = data;
-            if (error) {
-                console.log(error);
-                cb(null, error);
-            } else {
-                cb(data, '');
-            }
+            cb(data, '');
         })
         .catch(e => {
             console.log(e);
             cb(null, 'Error fetching friends: ' + e.msg);
         });
+}
+
+function _confirmEmail(cb) {
+    _fetch.fetch('/api/confirm-email', {
+            method: 'POST'
+        })
+        .then(r => {
+            return respHelper.handleStatus(r);
+        })
+        .then(data => {
+            cb(data, '');
+        })
+        .catch(e => {
+            console.log(e);
+            cb(null, 'Error confirming email: ' + e.msg);
+        });
+}
+
+function _doLogin(action, loginForm, cb) {
+    let body = new FormData(loginForm);
+    body.append('action', action);
+    _fetch.fetch('/api/login-priv', {
+        method: 'POST',
+        body: body
+    })
+    .then(r => {
+        return respHelper.handleStatus(r);
+    })
+    .then(data => {
+        const {redirUrl} = data;
+        window.location.href = redirUrl;
+    })
+    .catch(e => {
+        console.log(e);
+        cb(e.msg)
+    });
 }
 
 function _login() {
@@ -118,15 +146,8 @@ function _logout() {
                 return respHelper.handleStatus(r);
             })
             .then(data => {
-                const {
-                    error
-                } = data;
-                if (error) {
-                    console.log(error);
-                } else {
-                    data.authorized = true;
-                    dispatcher.trigger(dispatcher.PROFILE_CHANGED, data);
-                }
+                data.authorized = true;
+                dispatcher.trigger(dispatcher.PROFILE_CHANGED, data);
             })
             .catch(e => {
                 console.log(e);

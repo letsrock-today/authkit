@@ -10,6 +10,7 @@ import (
 
 	"github.com/letsrock-today/authkit/authkit"
 	"github.com/letsrock-today/authkit/authkit/apptoken"
+	"github.com/letsrock-today/authkit/authkit/middleware"
 )
 
 type (
@@ -45,18 +46,7 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	// Create empty profile for new user.
-	ch := make(chan error, 1)
-	go func() {
-		if err := h.profiles.EnsureExists(t.Login()); err != nil {
-			c.Logger().Debugf("%+v", errors.WithStack(err))
-			ch <- err
-		}
-		close(ch)
-	}()
-
-	if err := h.users.Enable(t.Login()); err != nil {
-		<-ch
+	if err := h.profiles.SetEmailConfirmed(t.Login(), t.Email(), true); err != nil {
 		if authkit.IsUserNotFound(err) {
 			c.Logger().Debugf("%+v", errors.WithStack(err))
 			return c.Render(
@@ -67,9 +57,24 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	if err := <-ch; err != nil {
+	return c.Render(http.StatusOK, authkit.ConfirmEmailTemplateName, nil)
+}
+
+func (h handler) SendConfirmationEmail(c echo.Context) error {
+	u := c.Get(middleware.DefaultContextKey).(authkit.User)
+	email, name, err := h.profiles.Email(u.Login())
+	if err != nil {
+		c.Logger().Debugf("%+v", errors.WithStack(err))
+		return c.Render(
+			http.StatusUnauthorized,
+			authkit.ConfirmEmailTemplateName,
+			h.errorCustomizer.UserAuthenticationError(err))
+	}
+	if err := h.users.RequestEmailConfirmation(
+		u.Login(),
+		email,
+		name); err != nil {
 		return errors.WithStack(err)
 	}
-
-	return c.Render(http.StatusOK, authkit.ConfirmEmailTemplateName, nil)
+	return c.String(http.StatusOK, "")
 }

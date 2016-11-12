@@ -38,7 +38,7 @@ func (ec) InvalidRequestParameterError(e error) interface{} {
 		case "login-required":
 			je = jsonError{code, "Login is required"}
 		case "login-format":
-			je = jsonError{code, "Login should be a valid email address"}
+			je = jsonError{code, "Login should be a valid email address or 5..20 letters/digits/hyphens/underscores, starting with a letter"}
 		case "password-required":
 			je = jsonError{code, "Password is required"}
 		case "password-format":
@@ -59,10 +59,7 @@ digits and other symbols (at least one of each kind)`}
 
 func (ec) UserCreationError(e error) interface{} {
 	msg := e.Error()
-	switch {
-	case authkit.IsAccountDisabled(e):
-		return []jsonError{{"account_disabled", msg}}
-	case authkit.IsDuplicateUser(e):
+	if authkit.IsDuplicateUser(e) {
 		return []jsonError{{"duplicate_account", msg}}
 	}
 	return []jsonError{{"unknown_err", msg}}

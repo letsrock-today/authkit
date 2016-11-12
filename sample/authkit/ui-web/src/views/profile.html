@@ -3,124 +3,141 @@
 import dispatcher from '../dispatcher';
 
 <profile>
-  <div class="page-header container-fluid">
-    <div class="row">
-      <div if="{ !opts.user.email }" class="col-lg-6">
-        <h3>Please login to view profile</h3>
-      </div>
-    </div>
-    <div class="row">
-      <div if="{ opts.user.email }" class="user-picture col-lg-2">
-        <img src="{ opts.user.picture }" style="max-width:100px">
-      </div>
+    <div class="page-header container-fluid">
+        <div class="row">
+            <div if="{ !opts.user.authorized }" class="col-lg-6">
+                <h3>Please login to view profile</h3>
+            </div>
+        </div>
+        <div class="row">
+            <div if="{ opts.user.authorized }" class="user-picture col-lg-2">
+                <img src="{ opts.user.picture }" style="max-width:100px">
+            </div>
 
-      <form name="profile-form"
-            if="{ opts.user.email }"
-            class="form-group col-lg-4">
-        <div>
-        <div>
-          <label class="control-label">Email address</label>
-          <input type="text"
-                 name="email"
-                 class="form-control"
-                 placeholder="Email"
-                 value="{ opts.user.email }"
-                 disabled>
+            <form name="profile-form"
+                  if="{ opts.user.authorized }"
+                  class="form-group col-lg-4">
+                <div>
+                    <label class="control-label">Email address</label>
+                    <input type="text"
+                           name="email"
+                           class="form-control"
+                           placeholder="Email"
+                           value="{ opts.user.email }">
+                </div>
+                <div if="{ !opts.user.email_confirmed }">
+                    <p>Email is not confirmed.
+                    Please <a href="javascript:void(0)"
+                              onclick="{ onConfirmEmail }">confirm</a>.</p>
+                    <p/>
+                </div>
+                <div>
+                    <label class="control-label">User name</label>
+                    <input type="text"
+                           name="formatted_name"
+                           class="form-control"
+                           placeholder="Formatted user name"
+                           value="{ opts.user.formatted_name }">
+                </div>
+                <div>
+                    <label class="control-label">Location</label>
+                    <input type="text"
+                           name="location"
+                           class="form-control"
+                           placeholder="Location"
+                           value="{ opts.user.location }">
+                </div>
+                <div>
+                    <label class="control-label">Picture</label>
+                    <input type="text"
+                           name="picture"
+                           class="form-control"
+                           placeholder="Picture URL"
+                           value="{ opts.user.picture }">
+                </div>
+                <div>
+                    <label class="control-label">Birthday</label>
+                    <input type="text"
+                           name="birthday"
+                           class="form-control"
+                           placeholder="Date of birth"
+                           value="{ opts.user.birthday }">
+                </div>
+                <div>
+                    <label class="control-label">Gender</label>
+
+                    <select name="gender" class="form-control">
+                        <option value="male"
+                                __selected="{ isGenderSelected('male') }">Male</option>
+                        <option value="female"
+                                __selected="{ isGenderSelected('female') }">Female</option>
+                        <option value="-"
+                                __selected="{ isGenderSelected('-') }}">Not selected</option>
+                    </select>
+                </div>
+                <div>
+                    <br/>
+                    <button class="btn btn-default btn-sm"
+                            onclick="{ onSave }">Save</button>
+                </div>
+            </form>
         </div>
-          <label class="control-label">User name</label>
-          <input type="text"
-                 name="formatted_name"
-                 class="form-control"
-                 placeholder="Formatted user name"
-                 value="{ opts.user.formatted_name }">
+        <div class="row">
+            <div class="col-lg-6">
+                <error-msg error="{ error }"/>
+            </div>
         </div>
-        <div>
-          <label class="control-label">Location</label>
-          <input type="text"
-                 name="location"
-                 class="form-control"
-                 placeholder="Location"
-                 value="{ opts.user.location }">
+        <div class="row">
+            <div class="col-lg-6">
+                <fieldset>
+                    <p>To check restricted API press button below.</p>
+                    <p>When logged out, you should get a security error.</p>
+                    <p>When logged in, you should obtain list of your friends from social network(s).</p>
+                    <p>Notice, currently friends list fetched only from Facebook.</p>
+                    <p>
+                    <button class="btn btn-default btn-sm"
+                            onclick="{ onFriendsList }">List Friends</button>
+                    </p>
+                </fieldset>
+                <div if="{ friends }">
+                    <h4>Friends:</h4>
+                    <p each="{ f in friends }">
+                    <img src="{ f.picture }" style="max-width:100px">
+                    { f.formatted_name }
+                    </p>
+                </div>
+            </div>
         </div>
-        <div>
-          <label class="control-label">Picture</label>
-          <input type="text"
-                 name="picture"
-                 class="form-control"
-                 placeholder="Picture URL"
-                 value="{ opts.user.picture }">
-        </div>
-        <div>
-          <label class="control-label">Birthday</label>
-          <input type="text"
-                 name="birthday"
-                 class="form-control"
-                 placeholder="Date of birth"
-                 value="{ opts.user.birthday }">
-        </div>
-        <div>
-          <label class="control-label">Gender</label>
-          <select name="gender" class="form-control">
-            <option value="male" __selected="{ isGenderSelected('male') }">Male</option>
-            <option value="female" __selected="{ isGenderSelected('female') }">Female</option>
-            <option value="-" __selected="{ isGenderSelected('-') }}">Not selected</option>
-          </select>
-        </div>
-        <br/>
-        <p><button class="btn btn-default btn-sm"
-                   onclick="{ onSave }">Save</button></p>
-      </form>
     </div>
-    <div class="row">
-      <div class="col-lg-6">
-        <error-msg error="{ error }"/>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-lg-6">
-        <fieldset>
-            <p>To check restricted API press button below.</p>
-            <p>When logged out, you should get a security error.</p>
-            <p>When logged in, you should obtain list of your friends from social network(s).</p>
-            <p>Notice, currently friends list fetched only from Facebook.</p>
-            <p>
-              <button class="btn btn-default btn-sm"
-                   onclick="{ onFriendsList }">List Friends</button>
-            </p>
-        </fieldset>
-        <div if="{ friends }">
-            <h4>Friends:</h4>
-            <p each="{ f in friends }">
-              <img src="{ f.picture }" style="max-width:100px">
-              { f.formatted_name }
-            </p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <script>
-    let self = this;
-    self.isGenderSelected = (expected) => {
-        let g = opts.user.gender;
-        return expected === g || (expected === '-' && !g);
-    }
-    self.onSave = () => {
-        self.error = '';
-        let profileForm = self['profile-form'];
-        dispatcher.trigger(
-                dispatcher.SAVE_PROFILE,
-                profileForm,
-                (err) => { self.update({error: err}); });
-    }
-    self.onFriendsList = () => {
-        self.error = '';
-        delete self.friends;
-        dispatcher.trigger(
-                dispatcher.GET_FRIENDS,
-                (friends, err) => { self.update({friends: friends, error: err}); });
-    }
-    dispatcher.on(dispatcher.PROFILE_CHANGED, (user) => {
-        self.update({error: '', friends: undefined});
-    });
-  </script>
+    <script>
+        let self = this;
+        self.isGenderSelected = (expected) => {
+            let g = opts.user.gender;
+            return expected === g || (expected === '-' && !g);
+        }
+        self.onConfirmEmail = () => {
+            self.error = '';
+            dispatcher.trigger(
+                    dispatcher.CONFIRM_EMAIL,
+                    (err) => { self.update({error: err}); });
+        }
+        self.onSave = () => {
+            self.error = '';
+            let profileForm = self['profile-form'];
+            dispatcher.trigger(
+                    dispatcher.SAVE_PROFILE,
+                    profileForm,
+                    (err) => { self.update({error: err}); });
+        }
+        self.onFriendsList = () => {
+            self.error = '';
+            delete self.friends;
+            dispatcher.trigger(
+                    dispatcher.GET_FRIENDS,
+                    (friends, err) => { self.update({friends: friends, error: err}); });
+        }
+        dispatcher.on(dispatcher.PROFILE_CHANGED, (user) => {
+            self.update({error: '', friends: undefined});
+        });
+    </script>
 </profile>
