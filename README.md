@@ -10,7 +10,7 @@ TL;DR: may be you will be happy with one of following:
 - https://github.com/markbates/goth
 - https://github.com/ory-am/hydra
 
-__Status__: unstable, experimental.
+__Status__: unstable, experimental, probably unsecure.
 
 "authkit" is a set of reusable peaces of code (HTTP handlers, middleware, helpers
 and other primitives), mostly on Go programming language, useful to implement
@@ -55,13 +55,12 @@ This project uses:
 - https://github.com/labstack/echo, as a server framework (to implement routes,
   http handlers, middleware, etc); "echo" designed to be compatible with
   gorilla, negroni, standard lib, so, it should be possible to use our lib
-  with them either;
+  with them either (have not tested yet, though);
 - https://github.com/golang/oauth2, as a client OAuth2 library;
 - https://github.com/ory-am/hydra, as a OAuth2 provider;
 - https://github.com/dgrijalva/jwt-go, to create tokens, when we have to;
 - https://github.com/asaskevich/govalidator, for validation logic;
 - https://github.com/mitchellh/mapstructure, to convert maps into structures;
-- https://github.com/hashicorp/golang-lru, for caching;
 - https://github.com/stretchr/testify, for testing and mocking;
 - https://github.com/h2non/gock, to mock HTTP server;
 - ...
