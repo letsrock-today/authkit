@@ -36,6 +36,7 @@ func TestConfigValidation(t *testing.T) {
 	AccessTokenWithConfig(AccessTokenConfig{
 		UserService:    us,
 		TokenValidator: testTokenValidator{},
+		AuthHeaderName: "xxx-auth",
 	})
 	assert.NotNil(effcfg)
 	assert.Equal(DefaultContextKey, effcfg.ContextKey)
@@ -64,16 +65,16 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		"User",
 		"unknown@login.ok").Return(nil, authkit.NewUserNotFoundError(nil))
 	us.On(
-		"OAuth2Token",
-		"valid@login.ok",
+		"OAuth2TokenAndLoginByAccessToken",
+		"xxx",
 		"xxx-provider").Return(&oauth2.Token{
 		AccessToken:  "xxx",
 		RefreshToken: "rrr",
-	}, nil)
+	}, "valid@login.ok", nil)
 	us.On(
-		"OAuth2Token",
-		"unknown@login.ok",
-		"xxx-provider").Return(nil, authkit.NewUserNotFoundError(nil))
+		"OAuth2TokenAndLoginByAccessToken",
+		"zzz",
+		"xxx-provider").Return(nil, "", authkit.NewUserNotFoundError(nil))
 	us.On(
 		"Principal",
 		user).Return(user)
@@ -94,6 +95,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 		},
 		OAuth2Config:   testOAuth2Config{},
 		ContextCreator: authkit.DefaultContextCreator{},
+		AuthHeaderName: "xxx-auth",
 	}
 
 	invalidHeaderFormatMsg := errInvalidAuthHeader.Error()

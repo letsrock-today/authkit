@@ -47,6 +47,7 @@ type Config struct {
 	ChallengeLifespan               time.Duration     `mapstructure:"challenge-lifespan"`
 	ConfirmationLinkLifespan        time.Duration     `mapstructure:"confirmation-link-lifespan"`
 	AuthCookieName                  string            `mapstructure:"auth-cookie-name"`
+	AuthHeaderName                  string            `mapstructure:"auth-header-name"`
 	EmailConfig                     EmailConfig       `mapstructure:"email-config"`
 	MongoDB                         DBConfig          `mapstructure:"mongodb"`
 	OAuth2State                     OAuth2State       `mapstructure:"oauth2-state"`

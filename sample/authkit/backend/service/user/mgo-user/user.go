@@ -161,6 +161,19 @@ func (s store) OAuth2Token(
 	return u.(*_user).data.Tokens[providerID], nil
 }
 
+func (s store) OAuth2TokenAndLoginByAccessToken(
+	accessToken, providerID string) (*oauth2.Token, string, authkit.UserServiceError) {
+	u := &_user{}
+	err := s.users.Find(
+		bson.M{
+			"tokens." + providerID + ".accesstoken": accessToken,
+		}).One(u)
+	if err == mgo.ErrNotFound {
+		return nil, "", errors.WithStack(authkit.NewUserNotFoundError(err))
+	}
+	return u.OAuth2TokenByProviderID(providerID), u.Login(), err
+}
+
 func (s store) UpdateOAuth2Token(
 	login, providerID string, token *oauth2.Token) authkit.UserServiceError {
 	err := s.users.Update(

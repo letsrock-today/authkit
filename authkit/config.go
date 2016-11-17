@@ -26,7 +26,8 @@ type (
 		// OAuth2State is a configuration of OAuth2 code flow state token.
 		OAuth2State OAuth2State
 
-		// AuthCookieName is a name of cookie to be used to save auth token.
+		// AuthCookieName is a name of cookie to be used to send auth token to
+		// the client.
 		AuthCookieName string
 
 		// ModTime is a configuration modification time. It is used to

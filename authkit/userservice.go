@@ -55,6 +55,11 @@ type (
 		// OAuth2Token returns OAuth2 token by login and OAuth2 provider ID.
 		OAuth2Token(login, providerID string) (*oauth2.Token, UserServiceError)
 
+		// OAuth2TokenAndLoginByAccessToken returns OAuth2 token and login
+		// by accessToken and OAuth2 provider ID.
+		OAuth2TokenAndLoginByAccessToken(
+			accessToken, providerID string) (*oauth2.Token, string, UserServiceError)
+
 		// UpdateOAuth2Token saves or updates oauth2 token for user and provider.
 		UpdateOAuth2Token(login, providerID string, token *oauth2.Token) UserServiceError
 

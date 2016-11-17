@@ -38,5 +38,6 @@ func initMiddleware(
 			UserService:       userService,
 			OAuth2Config:      oauth2Config,
 			ContextCreator:    contextCreator,
+			AuthHeaderName:    c.AuthHeaderName,
 		})
 }

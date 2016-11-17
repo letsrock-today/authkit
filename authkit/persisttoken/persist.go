@@ -23,6 +23,24 @@ func WrapOAuth2Config(
 	}
 }
 
+// WrapOAuth2ConfigUseAccessToken wraps authkit.OAuth2Config or oauth2.Config
+// with logic for store/retrieve token from provided authkit.TokenStore.
+// It uses passed access token to find associated login and OAuth2 token.
+func WrapOAuth2ConfigUseAccessToken(
+	c authkit.OAuth2Config,
+	accessToken, providerID string,
+	ts authkit.TokenStore) authkit.OAuth2Config {
+	return &configByAccessToken{
+		config{
+			cfg:        c,
+			login:      "",
+			providerID: providerID,
+			ts:         ts,
+		},
+		accessToken,
+	}
+}
+
 type config struct {
 	cfg        authkit.OAuth2Config
 	login      string
@@ -69,15 +87,17 @@ func (c *config) Exchange(
 }
 
 type persistTokenSource struct {
-	login      string
-	providerID string
-	ts         authkit.TokenStore
-	cfg        authkit.OAuth2Config
-	ctx        context.Context
+	login       string
+	accessToken string
+	providerID  string
+	ts          authkit.TokenStore
+	cfg         authkit.OAuth2Config
+	ctx         context.Context
 }
 
 func (p persistTokenSource) Token() (*oauth2.Token, error) {
-	t, err := p.ts.OAuth2Token(p.login, p.providerID)
+	login := p.login
+	t, err := p.ts.OAuth2Token(login, p.providerID)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +106,51 @@ func (p persistTokenSource) Token() (*oauth2.Token, error) {
 		return nil, err
 	}
 	if new != t {
-		return new, p.ts.UpdateOAuth2Token(p.login, p.providerID, new)
+		return new, p.ts.UpdateOAuth2Token(login, p.providerID, new)
+	}
+	return new, nil
+}
+
+type configByAccessToken struct {
+	config
+	accessToken string
+}
+
+func (c *configByAccessToken) TokenSource(
+	ctx context.Context,
+	t *oauth2.Token) oauth2.TokenSource {
+	return oauth2.ReuseTokenSource(
+		t,
+		persistTokenSourceByAccessToken{
+			persistTokenSource{
+				login:      c.login,
+				providerID: c.providerID,
+				ts:         c.ts,
+				cfg:        c.cfg,
+				ctx:        ctx,
+			},
+			c.accessToken,
+		})
+}
+
+type persistTokenSourceByAccessToken struct {
+	persistTokenSource
+	accessToken string
+}
+
+func (p persistTokenSourceByAccessToken) Token() (*oauth2.Token, error) {
+	t, login, err := p.ts.OAuth2TokenAndLoginByAccessToken(
+		p.accessToken,
+		p.providerID)
+	if err != nil {
+		return nil, err
+	}
+	new, err := p.cfg.TokenSource(p.ctx, t).Token()
+	if err != nil {
+		return nil, err
+	}
+	if new != t {
+		return new, p.ts.UpdateOAuth2Token(login, p.providerID, new)
 	}
 	return new, nil
 }

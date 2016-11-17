@@ -40,6 +40,10 @@ type (
 		// ContextCreator used to obtain context to store and refresh OAuth2 token.
 		// Optional. Default value is nil, which disables token refresh.
 		ContextCreator authkit.ContextCreator
+
+		// AuthHeaderName is a name of header to be used to update auth token on
+		// the client.
+		AuthHeaderName string
 	}
 )
 
@@ -65,6 +69,7 @@ func AccessToken(
 	}
 	c.UserService = us
 	c.TokenValidator = tv
+	c.AuthHeaderName = "X-App-Auth"
 	return AccessTokenWithConfig(c)
 }
 
@@ -83,6 +88,9 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 	}
 	if config.TokenValidator == nil {
 		panic("TokenValidator must be provided")
+	}
+	if config.AuthHeaderName == "" {
+		panic("AuthHeaderName must be provided")
 	}
 	if reportEffectiveConfig != nil {
 		reportEffectiveConfig(config)
@@ -116,28 +124,36 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			// Validate token's permissions and retrieve subject (login).
 			login, err := config.TokenValidator.Validate(token, perm)
 			if err != nil {
-				c.Logger().Debugf("%+v", errors.WithStack(err))
-				return errAccessDenied
-			}
-
-			// Update OAuth2 token and save it in DB (asynchronously).
-			// Possible errors are irrelevant for the main code flow.
-			sync := make(chan struct{}, 1)
-			if config.OAuth2Config != nil && config.ContextCreator != nil {
-				go func() {
-					defer func() { sync <- struct{}{} }()
-					ctx := config.ContextCreator.CreateContext(
-						config.PrivateProviderID)
-					_, err := persisttoken.WrapOAuth2Config(
-						config.OAuth2Config,
-						login,
-						config.PrivateProviderID,
-						config.UserService).TokenSource(ctx, nil).Token()
-					if err != nil {
-						c.Logger().Warn(errors.WithStack(err))
-						return
-					}
-				}()
+				if config.OAuth2Config == nil || config.ContextCreator == nil {
+					c.Logger().Debugf("%+v", errors.New(
+						"access token is invalid and refreshing is not enabled"))
+					return errAccessDenied
+				}
+				// Update OAuth2 token and save it in DB.
+				ctx := config.ContextCreator.CreateContext(
+					config.PrivateProviderID)
+				t, err1 := persisttoken.WrapOAuth2ConfigUseAccessToken(
+					config.OAuth2Config,
+					token,
+					config.PrivateProviderID,
+					config.UserService).TokenSource(ctx, nil).Token()
+				if err1 != nil {
+					c.Logger().Debugf("%+v", errors.WithStack(err1))
+					return errAccessDenied
+				}
+				if t.AccessToken == token {
+					c.Logger().Debugf("%+v", errors.WithStack(err))
+					return errAccessDenied
+				}
+				token = t.AccessToken
+				login, err = config.TokenValidator.Validate(token, perm)
+				if err != nil {
+					c.Logger().Debugf("%+v", errors.WithStack(err))
+					return errAccessDenied
+				}
+				// Access token is updated and valid.
+				// Set custom header to update token on the client.
+				c.Response().Header().Set(config.AuthHeaderName, token)
 			}
 
 			// Find user.
@@ -150,8 +166,6 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 			// Map user to principal and put it into context.
 			c.Set(config.ContextKey, config.UserService.Principal(user))
 
-			// Make the whole call synchronouse.
-			<-sync
 			return next(c)
 		}
 	}
