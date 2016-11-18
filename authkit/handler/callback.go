@@ -28,7 +28,10 @@ type (
 func (h handler) Callback(c echo.Context) error {
 	var cr callbackRequest
 	if err := c.Bind(&cr); err != nil {
-		return errors.WithStack(err)
+		c.Logger().Debugf("%+v", errors.WithStack(err))
+		return c.JSON(
+			http.StatusBadRequest,
+			h.errorCustomizer.InvalidRequestParameterError(flatten(err)))
 	}
 
 	if cr.Error != "" {
@@ -246,10 +249,11 @@ func makeRandomPassword() (string, error) {
 	return base64.StdEncoding.EncodeToString(b), nil
 }
 
-func createCookie(authCookieName, accessToken string) *echo.Cookie {
-	cookie := new(echo.Cookie)
-	cookie.SetName(authCookieName)
-	cookie.SetValue(accessToken)
-	cookie.SetSecure(true)
+func createCookie(authCookieName, accessToken string) *http.Cookie {
+	cookie := &http.Cookie{
+		Name:   authCookieName,
+		Value:  accessToken,
+		Secure: true,
+	}
 	return cookie
 }

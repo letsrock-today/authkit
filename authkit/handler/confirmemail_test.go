@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/letsrock-today/authkit/authkit"
@@ -60,13 +59,13 @@ func TestConfirmEmail(t *testing.T) {
 		params        url.Values
 		expStatusCode int
 		expBody       string
-		internalError bool
 	}{
 		{
 			name:   "No params",
 			params: make(url.Values),
 			// because token shold not be created by human, but by our own app
-			internalError: true,
+			expStatusCode: http.StatusInternalServerError,
+			expBody:       http.StatusText(http.StatusInternalServerError),
 		},
 		{
 			name: "invalid token",
@@ -74,7 +73,8 @@ func TestConfirmEmail(t *testing.T) {
 				"token": []string{"invalid_token"},
 			},
 			// because token shold not be created by human, but by our own app
-			internalError: true,
+			expStatusCode: http.StatusInternalServerError,
+			expBody:       http.StatusText(http.StatusInternalServerError),
 		},
 		{
 			name: "expired token",
@@ -112,23 +112,17 @@ func TestConfirmEmail(t *testing.T) {
 			assert := assert.New(st)
 			e := echo.New()
 
-			e.SetRenderer(testTemplateRenderer)
+			e.Renderer = testTemplateRenderer
 
 			req, err := http.NewRequest(echo.GET, "/confirm-email?"+c.params.Encode(), nil)
 			assert.NoError(err)
 			rec := httptest.NewRecorder()
-			ctx := e.NewContext(
-				standard.NewRequest(req, e.Logger()),
-				standard.NewResponse(rec, e.Logger()))
+			ctx := e.NewContext(req, rec)
 
 			err = h.ConfirmEmail(ctx)
-			if c.internalError {
-				assert.Error(err)
-			} else {
-				assert.NoError(err)
-				assert.Equal(c.expStatusCode, rec.Code)
-				assert.Equal(c.expBody, string(rec.Body.Bytes()))
-			}
+			e.HTTPErrorHandler(err, ctx)
+			assert.Equal(c.expStatusCode, rec.Code)
+			assert.Equal(c.expBody, string(rec.Body.Bytes()))
 		})
 	}
 }
@@ -152,9 +146,7 @@ func TestSendConfirmationEmail(t *testing.T) {
 	e := echo.New()
 	req := new(http.Request)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(
-		standard.NewRequest(req, e.Logger()),
-		standard.NewResponse(rec, e.Logger()))
+	c := e.NewContext(req, rec)
 	c.Set(middleware.DefaultContextKey, testUser{login: "valid-login"})
 	err := h.SendConfirmationEmail(c)
 	assert := assert.New(t)

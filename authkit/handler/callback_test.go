@@ -10,7 +10,6 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -149,12 +148,12 @@ func TestCallback(t *testing.T) {
 		expStatusCode int
 		expBody       string
 		expCookie     string
-		internalError bool
 	}{
 		{
 			name:          "No params",
 			params:        make(url.Values),
-			internalError: true,
+			expStatusCode: http.StatusInternalServerError,
+			expBody:       http.StatusText(http.StatusInternalServerError),
 		},
 		{
 			name: "flow error",
@@ -162,7 +161,8 @@ func TestCallback(t *testing.T) {
 				"error":             []string{"some_error"},
 				"error_description": []string{"Error description"},
 			},
-			internalError: true,
+			expStatusCode: http.StatusInternalServerError,
+			expBody:       http.StatusText(http.StatusInternalServerError),
 		},
 		{
 			name: "invalid state",
@@ -170,7 +170,8 @@ func TestCallback(t *testing.T) {
 				"state": []string{"invalid_state"},
 				"code":  []string{"valid_code"},
 			},
-			internalError: true,
+			expStatusCode: http.StatusInternalServerError,
+			expBody:       http.StatusText(http.StatusInternalServerError),
 		},
 		{
 			name: "everything OK, private",
@@ -208,24 +209,18 @@ func TestCallback(t *testing.T) {
 			assert := assert.New(st)
 			e := echo.New()
 
-			e.SetRenderer(testTemplateRenderer)
+			e.Renderer = testTemplateRenderer
 
 			req, err := http.NewRequest(echo.GET, "/callback?"+c.params.Encode(), nil)
 			assert.NoError(err)
 			rec := httptest.NewRecorder()
-			ctx := e.NewContext(
-				standard.NewRequest(req, e.Logger()),
-				standard.NewResponse(rec, e.Logger()))
+			ctx := e.NewContext(req, rec)
 
 			err = h.Callback(ctx)
-			if c.internalError {
-				assert.Error(err)
-			} else {
-				assert.NoError(err)
-				assert.Equal(c.expStatusCode, rec.Code)
-				assert.Equal(c.expBody, string(rec.Body.Bytes()))
-				assert.Equal(c.expCookie, rec.Header().Get(echo.HeaderSetCookie))
-			}
+			e.HTTPErrorHandler(err, ctx)
+			assert.Equal(c.expStatusCode, rec.Code)
+			assert.Equal(c.expBody, string(rec.Body.Bytes()))
+			assert.Equal(c.expCookie, rec.Header().Get(echo.HeaderSetCookie))
 		})
 	}
 }

@@ -29,7 +29,10 @@ var errEmailInvalid = errors.New("email is invalid or not registered in the app"
 func (h handler) RestorePassword(c echo.Context) error {
 	var rp restorePasswordForm
 	if err := c.Bind(&rp); err != nil {
-		return errors.WithStack(err)
+		c.Logger().Debugf("%+v", errors.WithStack(err))
+		return c.JSON(
+			http.StatusBadRequest,
+			h.errorCustomizer.InvalidRequestParameterError(flatten(err)))
 	}
 	if _, err := govalidator.ValidateStruct(rp); err != nil {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
@@ -73,7 +76,10 @@ func (h handler) RestorePassword(c echo.Context) error {
 func (h handler) ChangePassword(c echo.Context) error {
 	var cp changePasswordForm
 	if err := c.Bind(&cp); err != nil {
-		return errors.WithStack(err)
+		c.Logger().Debugf("%+v", errors.WithStack(err))
+		return c.JSON(
+			http.StatusBadRequest,
+			h.errorCustomizer.InvalidRequestParameterError(flatten(err)))
 	}
 	if _, err := govalidator.ValidateStruct(cp); err != nil {
 		c.Logger().Debugf("%+v", errors.WithStack(err))

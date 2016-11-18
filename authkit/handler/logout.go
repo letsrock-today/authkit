@@ -11,7 +11,7 @@ import (
 func (h handler) Logout(c echo.Context) error {
 	// Get access token from header.
 	req := c.Request()
-	auth := req.Header().Get("Authorization")
+	auth := req.Header.Get("Authorization")
 	split := strings.SplitN(auth, " ", 2)
 	if len(split) != 2 || !strings.EqualFold(split[0], "bearer") {
 		return errors.WithStack(errors.New("invalid header fromat"))

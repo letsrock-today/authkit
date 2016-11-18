@@ -9,7 +9,6 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/letsrock-today/authkit/authkit"
@@ -175,16 +174,16 @@ func TestConsentLogin(t *testing.T) {
 				req, err := http.NewRequest(echo.POST, "", enc.encoder(c.params))
 				assert.NoError(err)
 				rec := httptest.NewRecorder()
-				ctx := e.NewContext(
-					standard.NewRequest(req, e.Logger()),
-					standard.NewResponse(rec, e.Logger()))
-				ctx.Request().Header().Set(echo.HeaderContentType, enc.contentType)
+				ctx := e.NewContext(req, rec)
+				ctx.Request().Header.Set(echo.HeaderContentType, enc.contentType)
 
 				err = h.ConsentLogin(ctx)
 				if enc.invalid {
-					assert.Error(err)
+					e.HTTPErrorHandler(err, ctx)
+					assert.Equal(http.StatusBadRequest, rec.Code)
+					assert.Equal(`{"Code":"invalid req param"}`, string(rec.Body.Bytes()))
 				} else {
-					assert.NoError(err)
+					e.HTTPErrorHandler(err, ctx)
 					assert.Equal(c.expStatusCode, rec.Code)
 					assert.Equal(c.expBody, string(rec.Body.Bytes()))
 				}

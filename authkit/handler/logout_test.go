@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/letsrock-today/authkit/authkit"
@@ -31,7 +30,7 @@ func TestLogout(t *testing.T) {
 	assert.NoError(err)
 	req.Header.Set(echo.HeaderAuthorization, "bearer xxx-access-token")
 	rec := httptest.NewRecorder()
-	c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+	c := e.NewContext(req, rec)
 
 	h := handler{
 		auth:  as,

@@ -25,7 +25,11 @@ type (
 
 func (h handler) AuthProviders(c echo.Context) error {
 	c.Response().Header().Set("Expires", time.Now().UTC().Format(http.TimeFormat))
-	c.ServeContent(
+	http.ServeContent(
+		c.Response(),
+		c.Request(),
+		".json", // mapped to correct type via /etc/mime.types (if not, register it manually)
+		h.config.ModTime,
 		seekingbuffer.New(
 			func() ([]byte, error) {
 				p := providersReply{}
@@ -42,8 +46,6 @@ func (h handler) AuthProviders(c echo.Context) error {
 					err = errors.WithStack(err)
 				}
 				return b, err
-			}),
-		".json", // mapped to correct type via /etc/mime.types (if not, register it manually)
-		h.config.ModTime)
+			}))
 	return nil
 }

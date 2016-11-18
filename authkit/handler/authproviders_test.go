@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	"github.com/letsrock-today/authkit/authkit"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +16,7 @@ func TestAuthProviders(t *testing.T) {
 	e := echo.New()
 	req := new(http.Request)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+	c := e.NewContext(req, rec)
 
 	cfg := authkit.Config{
 		ModTime: time.Now(),

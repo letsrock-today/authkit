@@ -25,7 +25,10 @@ type (
 func (h handler) ConsentLogin(c echo.Context) error {
 	var lf consentLoginForm
 	if err := c.Bind(&lf); err != nil {
-		return errors.WithStack(err)
+		c.Logger().Debugf("%+v", errors.WithStack(err))
+		return c.JSON(
+			http.StatusBadRequest,
+			h.errorCustomizer.InvalidRequestParameterError(flatten(err)))
 	}
 
 	if _, err := govalidator.ValidateStruct(lf); err != nil {

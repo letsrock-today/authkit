@@ -124,7 +124,7 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 
 			// Get access token from header.
 
-			auth := req.Header().Get("Authorization")
+			auth := req.Header.Get("Authorization")
 			split := strings.SplitN(auth, " ", 2)
 			if len(split) != 2 || !strings.EqualFold(split[0], "bearer") {
 				return errInvalidAuthHeader
@@ -136,8 +136,8 @@ func AccessTokenWithConfig(config AccessTokenConfig) echo.MiddlewareFunc {
 
 			// Map request to permission.
 			perm, err := config.PermissionMapper.RequiredPermissioin(
-				req.Method(),
-				req.URL().Path())
+				req.Method,
+				req.URL.Path)
 			if err != nil {
 				c.Logger().Debugf("%+v", errors.WithStack(err))
 				return errAccessDenied

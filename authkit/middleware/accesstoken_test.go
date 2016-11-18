@@ -10,7 +10,6 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/letsrock-today/authkit/authkit"
@@ -239,9 +238,7 @@ func TestAccessTokenWithConfig(t *testing.T) {
 			r := cs.r
 			w := cs.w
 			cs.r.Header.Set(echo.HeaderAuthorization, cs.accessTokenHeader)
-			e.ServeHTTP(
-				standard.NewRequest(r, e.Logger()),
-				standard.NewResponse(w, e.Logger()))
+			e.ServeHTTP(echo.NewResponse(w, e), r)
 			assert.Equal(cs.expStatusCode, w.Code)
 			assert.Equal(cs.expRespBody, string(w.Body.Bytes()))
 		})

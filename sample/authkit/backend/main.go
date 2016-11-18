@@ -7,8 +7,7 @@ import (
 	"log"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine"
-	"github.com/labstack/echo/engine/standard"
+	echolog "github.com/labstack/gommon/log"
 
 	"github.com/letsrock-today/authkit/sample/authkit/backend/config"
 	"github.com/letsrock-today/authkit/sample/authkit/backend/route"
@@ -52,26 +51,22 @@ func main() {
 
 	e := echo.New()
 	if debugMode {
-		e.SetDebug(true)
-		e.SetLogLevel(0)
+		e.Debug = true
+		e.Logger.SetLevel(echolog.DEBUG)
 	}
-	e.SetHTTPErrorHandler(newHTTPErrorHandler(e.DefaultHTTPErrorHandler))
+	e.HTTPErrorHandler = newHTTPErrorHandler(e.DefaultHTTPErrorHandler)
 
 	route.Init(e, us, ps)
 
-	e.SetRenderer(&Renderer{
+	e.Renderer = &Renderer{
 		templates: template.Must(template.ParseGlob("../ui-web/templates/*.html")),
-	})
+	}
 
 	log.Printf("Serving at address: '%s'.", c.ListenAddr)
 	log.Printf("Use 'https://' prefix in browser.")
 	log.Printf("Press Ctrl+C to exit.")
 
-	e.Run(standard.WithConfig(engine.Config{
-		Address:     c.ListenAddr,
-		TLSCertFile: c.TLSCertFile,
-		TLSKeyFile:  c.TLSKeyFile,
-	}))
+	e.Logger.Fatal(e.StartTLS(c.ListenAddr, c.TLSCertFile, c.TLSKeyFile))
 }
 
 // Renderer used to render templates from the folder.

@@ -8,7 +8,6 @@ import (
 	"net/url"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 
 	"github.com/letsrock-today/authkit/sample/authkit/backend/config"
 )
@@ -26,5 +25,5 @@ func initReverseProxy(e *echo.Echo) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: c.TLSInsecureSkipVerify},
 	}
 
-	e.Any("/oauth2/*", standard.WrapHandler(proxy))
+	e.Any("/oauth2/*", echo.WrapHandler(proxy))
 }
