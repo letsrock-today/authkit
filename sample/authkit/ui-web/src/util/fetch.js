@@ -11,6 +11,10 @@ module.exports = {
     // token leakage. Consider to use buildin or polyfill fetch for cross-origin
     // requests.
     fetch: (url, options) => {
+		if (!sameOrigin(url)) {
+            console.warn('DO NOT use this fetch implementation for cross-origin requests');
+            return fetch(url, options);
+        }
         if (!options) {
             options = {};
         }
@@ -18,19 +22,22 @@ module.exports = {
             options.credentials = 'same-origin';
         }
         if (!options.headers) {
-            options.headers = {};
+            options.headers = new Headers();
         }
-		if (sameOrigin(url)) {
-			let c = cookies.parse(document.cookie);
-			options.headers[csrfHeaderName] = c[csrfCookieName];
-			if (authTokenKey) {
-				options.headers["Authorization"] =
-					"Bearer " + localStorage.getItem(authTokenKey);
-			}
-		} else {
-            console.warn('CSRF & Authorization headers skipped in cross-origin request');
+        options.headers = new Headers(options.headers);
+		let c = cookies.parse(document.cookie);
+		options.headers.set(csrfHeaderName, c[csrfCookieName]);
+		if (authTokenKey) {
+			options.headers.set("Authorization",
+				"Bearer " + localStorage.getItem(authTokenKey));
 		}
-        return fetch(url, options);
+        return fetch(url, options).then(response => {
+            let token = response.headers.get(authUpdateHeaderName);
+            if (token) {
+                localStorage.setItem(authTokenKey, token);
+            }
+            return response;
+        });
     },
 
     setCSRFHeaderName: (name) => {
@@ -41,17 +48,21 @@ module.exports = {
         csrfCookieName = name;
     },
 
+    setAuthUpdateHeaderName: (name) => {
+        authUpdateHeaderName = name;
+    },
+
     setAuthTokenKey: (name) => {
         authTokenKey = name;
     },
-
 };
 
 let csrfHeaderName = "X-CSRF-Token",
     csrfCookieName = "_csrf",
+    authUpdateHeaderName = "X-App-Auth-Update",
     authTokenKey,
     loc = window.location,
-	 a = document.createElement('a');
+    a = document.createElement('a');
 
 function sameOrigin(url) {
     a.href = url

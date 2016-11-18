@@ -59,7 +59,8 @@ func TestWrapOAuth2Config(t *testing.T) {
 				testCfg,
 				"valid@login.ok",
 				providerID,
-				ts)
+				ts,
+				nil)
 			t, err := cfg.TokenSource(context.Background(), nil).Token()
 			assert.NoError(err)
 			assert.NotNil(t)
@@ -114,7 +115,8 @@ func TestWrapOAuth2ConfigiUseAccessToken(t *testing.T) {
 				testCfg,
 				"valid-access-token",
 				providerID,
-				ts)
+				ts,
+				nil)
 			t, err := cfg.TokenSource(context.Background(), nil).Token()
 			assert.NoError(err)
 			assert.NotNil(t)

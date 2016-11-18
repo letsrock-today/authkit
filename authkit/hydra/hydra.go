@@ -249,7 +249,10 @@ func (h hydra) Validate(
 				resp.StatusCode,
 				resp.Status))
 	}
-	var r map[string]interface{}
+	var r struct {
+		Allowed bool   `json:"allowed"`
+		Sub     string `json:"sub"`
+	}
 	b, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
@@ -258,19 +261,10 @@ func (h hydra) Validate(
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
-	v1, ok1 := r["allowed"]
-	v2, ok2 := r["sub"]
-	if !ok1 || !ok2 {
-		return "", errors.WithStack(
-			errors.Errorf(
-				"unexpected Hydra response format, orig: %s, parsed: %v",
-				string(b),
-				r))
-	}
-	if allowed, ok := v1.(bool); !ok || !allowed {
+	if !r.Allowed {
 		return "", errors.WithStack(errors.New("Hydra denied access"))
 	}
-	return v2.(string), nil
+	return r.Sub, nil
 }
 
 func (h hydra) RevokeAccessToken(accessToken string) error {

@@ -14,12 +14,17 @@ import (
 func WrapOAuth2Config(
 	c authkit.OAuth2Config,
 	login, providerID string,
-	ts authkit.TokenStore) authkit.OAuth2Config {
+	ts authkit.TokenStore,
+	checkRefreshable func(*oauth2.Token) error) authkit.OAuth2Config {
 	return &config{
 		cfg:        c,
-		login:      login,
 		providerID: providerID,
 		ts:         ts,
+		prepare: func() (*oauth2.Token, string, error) {
+			t, err := ts.OAuth2Token(login, providerID)
+			return t, login, err
+		},
+		checkRefreshable: checkRefreshable,
 	}
 }
 
@@ -29,23 +34,27 @@ func WrapOAuth2Config(
 func WrapOAuth2ConfigUseAccessToken(
 	c authkit.OAuth2Config,
 	accessToken, providerID string,
-	ts authkit.TokenStore) authkit.OAuth2Config {
-	return &configByAccessToken{
-		config{
-			cfg:        c,
-			login:      "",
-			providerID: providerID,
-			ts:         ts,
+	ts authkit.TokenStore,
+	checkRefreshable func(*oauth2.Token) error) authkit.OAuth2Config {
+	return &config{
+		cfg:        c,
+		providerID: providerID,
+		ts:         ts,
+		prepare: func() (*oauth2.Token, string, error) {
+			return ts.OAuth2TokenAndLoginByAccessToken(
+				accessToken,
+				providerID)
 		},
-		accessToken,
+		checkRefreshable: checkRefreshable,
 	}
 }
 
 type config struct {
-	cfg        authkit.OAuth2Config
-	login      string
-	providerID string
-	ts         authkit.TokenStore
+	cfg              authkit.OAuth2Config
+	providerID       string
+	ts               authkit.TokenStore
+	prepare          func() (*oauth2.Token, string, error)
+	checkRefreshable func(*oauth2.Token) error
 }
 
 func (c *config) Client(
@@ -60,11 +69,12 @@ func (c *config) TokenSource(
 	return oauth2.ReuseTokenSource(
 		t,
 		persistTokenSource{
-			login:      c.login,
-			providerID: c.providerID,
-			ts:         c.ts,
-			cfg:        c.cfg,
-			ctx:        ctx,
+			providerID:       c.providerID,
+			ts:               c.ts,
+			cfg:              c.cfg,
+			ctx:              ctx,
+			prepare:          c.prepare,
+			checkRefreshable: c.checkRefreshable,
 		})
 }
 
@@ -87,17 +97,16 @@ func (c *config) Exchange(
 }
 
 type persistTokenSource struct {
-	login       string
-	accessToken string
-	providerID  string
-	ts          authkit.TokenStore
-	cfg         authkit.OAuth2Config
-	ctx         context.Context
+	providerID       string
+	ts               authkit.TokenStore
+	cfg              authkit.OAuth2Config
+	ctx              context.Context
+	prepare          func() (*oauth2.Token, string, error)
+	checkRefreshable func(*oauth2.Token) error
 }
 
 func (p persistTokenSource) Token() (*oauth2.Token, error) {
-	login := p.login
-	t, err := p.ts.OAuth2Token(login, p.providerID)
+	t, login, err := p.prepare()
 	if err != nil {
 		return nil, err
 	}
@@ -106,51 +115,17 @@ func (p persistTokenSource) Token() (*oauth2.Token, error) {
 		return nil, err
 	}
 	if new != t {
-		return new, p.ts.UpdateOAuth2Token(login, p.providerID, new)
-	}
-	return new, nil
-}
-
-type configByAccessToken struct {
-	config
-	accessToken string
-}
-
-func (c *configByAccessToken) TokenSource(
-	ctx context.Context,
-	t *oauth2.Token) oauth2.TokenSource {
-	return oauth2.ReuseTokenSource(
-		t,
-		persistTokenSourceByAccessToken{
-			persistTokenSource{
-				login:      c.login,
-				providerID: c.providerID,
-				ts:         c.ts,
-				cfg:        c.cfg,
-				ctx:        ctx,
-			},
-			c.accessToken,
-		})
-}
-
-type persistTokenSourceByAccessToken struct {
-	persistTokenSource
-	accessToken string
-}
-
-func (p persistTokenSourceByAccessToken) Token() (*oauth2.Token, error) {
-	t, login, err := p.ts.OAuth2TokenAndLoginByAccessToken(
-		p.accessToken,
-		p.providerID)
-	if err != nil {
-		return nil, err
-	}
-	new, err := p.cfg.TokenSource(p.ctx, t).Token()
-	if err != nil {
-		return nil, err
-	}
-	if new != t {
-		return new, p.ts.UpdateOAuth2Token(login, p.providerID, new)
+		if err := p.ts.UpdateOAuth2Token(login, p.providerID, new); err != nil {
+			return nil, err
+		}
+		// Still refresh token for server's internal use, but return error to
+		// the caller, if it provided validation function. This is useful to
+		// emulate session timeout for web UI.
+		if p.checkRefreshable != nil {
+			if err := p.checkRefreshable(t); err != nil {
+				return nil, err
+			}
+		}
 	}
 	return new, nil
 }

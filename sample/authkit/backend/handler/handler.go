@@ -52,5 +52,6 @@ func (h handler) createHTTPClient(
 		p.OAuth2Config,
 		u.Login(),
 		p.ID,
-		userTokenStore{h.users, u}).Client(ctx, nil)
+		userTokenStore{h.users, u},
+		nil).Client(ctx, nil)
 }
