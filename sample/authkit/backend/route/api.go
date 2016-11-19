@@ -3,7 +3,6 @@ package route
 import (
 	"github.com/labstack/echo"
 
-	"github.com/letsrock-today/authkit/authkit"
 	authkithandler "github.com/letsrock-today/authkit/authkit/handler"
 	"github.com/letsrock-today/authkit/sample/authkit/backend/handler"
 )
@@ -12,10 +11,9 @@ const confirmEmailURL = "/email-confirm"
 
 func initAPI(
 	e *echo.Echo,
-	ac authkit.Config,
-	hc authkithandler.Config) {
+	c authkithandler.Config) {
 
-	ah := authkithandler.NewHandler(ac, hc)
+	ah := authkithandler.NewHandler(c)
 	e.GET("/api/auth-providers", ah.AuthProviders)
 	e.GET("/api/auth-code-urls", ah.AuthCodeURLs)
 	e.POST("/api/login", ah.ConsentLogin)
@@ -26,7 +24,7 @@ func initAPI(
 	e.POST("/password-change", ah.ChangePassword)
 	e.GET("/callback", ah.Callback)
 
-	h := handler.New(ac, hc)
+	h := handler.New(c)
 	e.POST("/api/confirm-email", ah.SendConfirmationEmail, middlwr)
 	e.GET("/api/profile", h.Profile, middlwr)
 	e.POST("/api/profile", h.ProfileSave, middlwr)

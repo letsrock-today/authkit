@@ -140,7 +140,7 @@ var testBodyEncoders = []struct {
 
 func testNewEmailTokenString(
 	t *testing.T,
-	config authkit.Config,
+	config Config,
 	login, email, passwordHash string,
 	expired ...bool) []string {
 	exp := 1 * time.Hour
@@ -160,7 +160,7 @@ func testNewEmailTokenString(
 
 func testNewStateTokenString(
 	t *testing.T,
-	config authkit.Config,
+	config Config,
 	pid, login string,
 	expired ...bool) []string {
 	exp := 1 * time.Hour

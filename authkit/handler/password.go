@@ -32,38 +32,38 @@ func (h handler) RestorePassword(c echo.Context) error {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
-			h.errorCustomizer.InvalidRequestParameterError(flatten(err)))
+			h.ErrorCustomizer.InvalidRequestParameterError(flatten(err)))
 	}
 	if _, err := govalidator.ValidateStruct(rp); err != nil {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
-			h.errorCustomizer.InvalidRequestParameterError(err))
+			h.ErrorCustomizer.InvalidRequestParameterError(err))
 	}
 
-	user, err := h.users.User(rp.Login)
+	user, err := h.UserService.User(rp.Login)
 	if err != nil {
 		if authkit.IsUserNotFound(err) {
 			c.Logger().Debugf("%+v", errors.WithStack(err))
 			return c.JSON(
 				http.StatusUnauthorized,
-				h.errorCustomizer.UserAuthenticationError(err))
+				h.ErrorCustomizer.UserAuthenticationError(err))
 		}
 		return errors.WithStack(err)
 	}
 
-	email, name, err := h.profiles.ConfirmedEmail(rp.Login)
+	email, name, err := h.ProfileService.ConfirmedEmail(rp.Login)
 	if err != nil {
 		if authkit.IsUserNotFound(err) {
 			c.Logger().Debugf("%+v", errors.WithStack(err))
 			return c.JSON(
 				http.StatusUnauthorized,
-				h.errorCustomizer.UserAuthenticationError(err))
+				h.ErrorCustomizer.UserAuthenticationError(err))
 		}
 		return errors.WithStack(err)
 	}
 
-	if err := h.users.RequestPasswordChangeConfirmation(
+	if err := h.UserService.RequestPasswordChangeConfirmation(
 		rp.Login,
 		email,
 		name,
@@ -79,16 +79,16 @@ func (h handler) ChangePassword(c echo.Context) error {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
-			h.errorCustomizer.InvalidRequestParameterError(flatten(err)))
+			h.ErrorCustomizer.InvalidRequestParameterError(flatten(err)))
 	}
 	if _, err := govalidator.ValidateStruct(cp); err != nil {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
-			h.errorCustomizer.InvalidRequestParameterError(err))
+			h.ErrorCustomizer.InvalidRequestParameterError(err))
 	}
 
-	s := h.config.OAuth2State
+	s := h.OAuth2State
 	t, err := apptoken.ParseEmailToken(
 		s.TokenIssuer,
 		cp.Token,
@@ -98,12 +98,12 @@ func (h handler) ChangePassword(c echo.Context) error {
 			c.Logger().Debugf("%+v", errors.WithStack(err))
 			return c.JSON(
 				http.StatusUnauthorized,
-				h.errorCustomizer.UserAuthenticationError(err))
+				h.ErrorCustomizer.UserAuthenticationError(err))
 		}
 		return errors.WithStack(err)
 	}
 
-	if err = h.users.UpdatePassword(
+	if err = h.UserService.UpdatePassword(
 		t.Login(),
 		t.PasswordHash(),
 		cp.Password); err != nil {
@@ -111,7 +111,7 @@ func (h handler) ChangePassword(c echo.Context) error {
 			c.Logger().Debugf("%+v", errors.WithStack(err))
 			return c.JSON(
 				http.StatusUnauthorized,
-				h.errorCustomizer.UserAuthenticationError(err))
+				h.ErrorCustomizer.UserAuthenticationError(err))
 		}
 		return errors.WithStack(err)
 	}

@@ -17,29 +17,19 @@ type Handler interface {
 	Friends(c echo.Context) error
 }
 
-func New(
-	ac authkit.Config,
-	hc authkithandler.Config) Handler {
-	if !hc.Valid() {
+func New(c authkithandler.Config) Handler {
+	if !c.Valid() {
 		panic("invalid argument")
 	}
-	if hc.ContextCreator == nil {
-		hc.ContextCreator = authkit.DefaultContextCreator{}
+	if c.ContextCreator == nil {
+		c.ContextCreator = authkit.DefaultContextCreator{}
 	}
-	return handler{
-		ac,
-		hc.ErrorCustomizer,
-		hc.UserService,
-		hc.ProfileService.(profile.Service),
-		hc.ContextCreator}
+	return handler{c, c.ProfileService.(profile.Service)}
 }
 
 type handler struct {
-	config          authkit.Config
-	errorCustomizer authkit.ErrorCustomizer
-	users           authkit.HandlerUserService
-	profiles        profile.Service
-	contextCreator  authkit.ContextCreator
+	authkithandler.Config
+	profiles profile.Service
 }
 
 // createHTTPClient creates http.Client via wrapper around oauth2.Config,
@@ -47,11 +37,11 @@ type handler struct {
 func (h handler) createHTTPClient(
 	u authkit.User,
 	p authkit.OAuth2Provider) *http.Client {
-	ctx := h.contextCreator.CreateContext(p.ID)
+	ctx := h.ContextCreator.CreateContext(p.ID)
 	return persisttoken.WrapOAuth2Config(
 		p.OAuth2Config,
 		u.Login(),
 		p.ID,
-		userTokenStore{h.users, u},
+		userTokenStore{h.UserService, u},
 		nil).Client(ctx, nil)
 }

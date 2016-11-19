@@ -21,11 +21,11 @@ func (h handler) Logout(c echo.Context) error {
 		return errors.WithStack(errors.New("invalid auth token"))
 	}
 
-	if err := h.auth.RevokeAccessToken(token); err != nil {
+	if err := h.AuthService.RevokeAccessToken(token); err != nil {
 		return errors.WithStack(err)
 	}
-	if err := h.users.RevokeAccessToken(
-		h.config.PrivateOAuth2Provider.ID,
+	if err := h.UserService.RevokeAccessToken(
+		h.PrivateOAuth2Provider.ID,
 		token); err != nil {
 		return errors.WithStack(err)
 	}

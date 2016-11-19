@@ -15,7 +15,7 @@ func (h handler) Friends(c echo.Context) error {
 	u := c.Get(middleware.DefaultContextKey).(authkit.User)
 	friends := []socialprofile.Profile{}
 	// iterate over all available social networks and geather all friends
-	for _, p := range h.config.OAuth2Providers {
+	for _, p := range h.OAuth2Providers {
 		client := h.createHTTPClient(u, p)
 		sp, err := socialprofile.New(p.ID)
 		if err != nil {

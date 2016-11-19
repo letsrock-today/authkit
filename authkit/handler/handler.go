@@ -1,12 +1,36 @@
 package handler
 
 import (
+	"time"
+
 	"github.com/asaskevich/govalidator"
 	"github.com/letsrock-today/authkit/authkit"
 )
 
 // Config holds configuration parmeters for handler.NewHandler().
 type Config struct {
+
+	// OAuth2Providers stores configuration of all registered external OAuth2
+	// providers (except application's private OAuth2 provider).
+	OAuth2Providers []authkit.OAuth2Provider
+
+	// PrivateOAuth2Provider is a configuration of private OAuth2
+	// provider. Private provider can be implemented by the app itself,
+	// or it can be a third-party application. In both cases, it should
+	// be available via http.
+	PrivateOAuth2Provider authkit.OAuth2Provider
+
+	// OAuth2State is a configuration of OAuth2 code flow state token.
+	OAuth2State authkit.OAuth2State
+
+	// AuthCookieName is a name of cookie to be used to send auth token to
+	// the client.
+	AuthCookieName string
+
+	// ModTime is a configuration modification time. It is used to
+	// cache list of providers on client (with "If-Modified_Since" header).
+	ModTime time.Time
+
 	ErrorCustomizer       authkit.ErrorCustomizer
 	AuthService           authkit.HandlerAuthService
 	UserService           authkit.HandlerUserService
@@ -29,42 +53,26 @@ func (c Config) Valid() bool {
 // All arguments except ContextCreator and Validator must be provided.
 // If ContextCreator is nil, then DefaultContextCreator is used.
 // If Validator is nil, then default password validator is used.
-func NewHandler(
-	ac authkit.Config,
-	hc Config) authkit.Handler {
-	if !hc.Valid() {
+func NewHandler(c Config) authkit.Handler {
+	if !c.Valid() {
 		panic("invalid argument")
 	}
-	if hc.ContextCreator == nil {
-		hc.ContextCreator = authkit.DefaultContextCreator{}
+	if c.ContextCreator == nil {
+		c.ContextCreator = authkit.DefaultContextCreator{}
 	}
-	if hc.PasswordValidator == nil {
-		hc.PasswordValidator = govalidator.Validator(defaultPasswordValidator)
+	if c.PasswordValidator == nil {
+		c.PasswordValidator = govalidator.Validator(defaultPasswordValidator)
 	}
-	govalidator.TagMap["password"] = hc.PasswordValidator
-	if hc.LoginValidator == nil {
-		hc.LoginValidator = govalidator.Validator(emailOrLoginValidator)
+	govalidator.TagMap["password"] = c.PasswordValidator
+	if c.LoginValidator == nil {
+		c.LoginValidator = govalidator.Validator(emailOrLoginValidator)
 	}
-	govalidator.TagMap["login"] = hc.LoginValidator
-	return handler{
-		ac,
-		hc.ErrorCustomizer,
-		hc.AuthService,
-		hc.UserService,
-		hc.ProfileService,
-		hc.SocialProfileServices,
-		hc.ContextCreator,
-	}
+	govalidator.TagMap["login"] = c.LoginValidator
+	return handler{c}
 }
 
 // handler implements Handler interface.
 // Note: methods are implemented in separate files.
 type handler struct {
-	config          authkit.Config
-	errorCustomizer authkit.ErrorCustomizer
-	auth            authkit.HandlerAuthService
-	users           authkit.HandlerUserService
-	profiles        authkit.ProfileService
-	socialProfiles  authkit.SocialProfileServices
-	contextCreator  authkit.ContextCreator
+	Config
 }

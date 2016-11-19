@@ -29,11 +29,11 @@ func (h handler) AuthProviders(c echo.Context) error {
 		c.Response(),
 		c.Request(),
 		".json", // mapped to correct type via /etc/mime.types (if not, register it manually)
-		h.config.ModTime,
+		h.ModTime,
 		seekingbuffer.New(
 			func() ([]byte, error) {
 				p := providersReply{}
-				for _, pp := range h.config.OAuth2Providers {
+				for _, pp := range h.OAuth2Providers {
 					p.Providers = append(p.Providers, oauth2Provider{
 						ID:      pp.ID,
 						Name:    pp.Name,

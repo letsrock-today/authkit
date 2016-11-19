@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/letsrock-today/authkit/authkit"
+	"github.com/letsrock-today/authkit/authkit/handler"
 	"github.com/letsrock-today/authkit/authkit/peculiarproviders/deezer"
 )
 
@@ -125,12 +126,12 @@ func (c *Config) newOAuth2Config(
 	return cfg
 }
 
-func (c Config) ToAuthkitType() authkit.Config {
+func (c Config) ToAuthkitType() handler.Config {
 	app := []authkit.OAuth2Provider{}
 	for _, p := range c.OAuth2Providers {
 		app = append(app, p.ToAuthkitType())
 	}
-	ac := authkit.Config{
+	ac := handler.Config{
 		OAuth2Providers:       app,
 		PrivateOAuth2Provider: c.PrivateOAuth2Provider.ToAuthkitType(),
 		OAuth2State:           c.OAuth2State.ToAuthkitType(),

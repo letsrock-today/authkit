@@ -28,17 +28,17 @@ func (h handler) ConsentLogin(c echo.Context) error {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
-			h.errorCustomizer.InvalidRequestParameterError(flatten(err)))
+			h.ErrorCustomizer.InvalidRequestParameterError(flatten(err)))
 	}
 
 	if _, err := govalidator.ValidateStruct(lf); err != nil {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
-			h.errorCustomizer.InvalidRequestParameterError(flatten(err)))
+			h.ErrorCustomizer.InvalidRequestParameterError(flatten(err)))
 	}
 
-	signedTokenString, err := h.auth.GenerateConsentToken(
+	signedTokenString, err := h.AuthService.GenerateConsentToken(
 		lf.P.Login,
 		lf.Scopes,
 		lf.Challenge)
@@ -46,7 +46,7 @@ func (h handler) ConsentLogin(c echo.Context) error {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusUnauthorized,
-			h.errorCustomizer.UserAuthenticationError(err))
+			h.ErrorCustomizer.UserAuthenticationError(err))
 	}
 
 	var (
@@ -57,11 +57,11 @@ func (h handler) ConsentLogin(c echo.Context) error {
 	signup := lf.P.Action == "signup"
 
 	if signup {
-		action = h.users.Create
-		errorCustomizer = h.errorCustomizer.UserCreationError
+		action = h.UserService.Create
+		errorCustomizer = h.ErrorCustomizer.UserCreationError
 	} else {
-		action = h.users.Authenticate
-		errorCustomizer = h.errorCustomizer.UserAuthenticationError
+		action = h.UserService.Authenticate
+		errorCustomizer = h.ErrorCustomizer.UserAuthenticationError
 	}
 
 	if err := action(lf.P.Login, lf.P.Password); err != nil {

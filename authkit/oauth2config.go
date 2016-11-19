@@ -9,32 +9,6 @@ import (
 )
 
 type (
-
-	// Config used to pass configuration to the authkit.Handler.
-	Config struct {
-
-		// OAuth2Providers stores configuration of all registered external OAuth2
-		// providers (except application's private OAuth2 provider).
-		OAuth2Providers []OAuth2Provider
-
-		// PrivateOAuth2Provider is a configuration of private OAuth2
-		// provider. Private provider can be implemented by the app itself,
-		// or it can be a third-party application. In both cases, it should
-		// be available via http.
-		PrivateOAuth2Provider OAuth2Provider
-
-		// OAuth2State is a configuration of OAuth2 code flow state token.
-		OAuth2State OAuth2State
-
-		// AuthCookieName is a name of cookie to be used to send auth token to
-		// the client.
-		AuthCookieName string
-
-		// ModTime is a configuration modification time. It is used to
-		// cache list of providers on client (with "If-Modified_Since" header).
-		ModTime time.Time
-	}
-
 	// OAuth2State holds configuration parameters for OAuth2 code flow state token.
 	OAuth2State struct {
 		TokenIssuer  string

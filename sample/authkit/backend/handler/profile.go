@@ -31,7 +31,7 @@ func (h handler) ProfileSave(c echo.Context) error {
 	if _, err := govalidator.ValidateStruct(p); err != nil {
 		return c.JSON(
 			http.StatusBadRequest,
-			h.errorCustomizer.InvalidRequestParameterError(err))
+			h.ErrorCustomizer.InvalidRequestParameterError(err))
 	}
 	//TODO: preserve fields absent in the html form.
 	emailChanged := false
@@ -44,7 +44,7 @@ func (h handler) ProfileSave(c echo.Context) error {
 	}
 	if emailChanged {
 		go func() {
-			if err := h.users.RequestEmailConfirmation(
+			if err := h.UserService.RequestEmailConfirmation(
 				u.Login(),
 				p.Email,
 				p.FormattedName); err != nil {

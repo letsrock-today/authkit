@@ -69,36 +69,32 @@ func TestLogin(t *testing.T) {
 		"new.valid@login.ok",
 		"new.valid@login.ok").Return(nil)
 
-	h := handler{
-		errorCustomizer: testErrorCustomizer{},
-		auth:            as,
-		users:           us,
-		profiles:        ps,
-		config: authkit.Config{
-			PrivateOAuth2Provider: authkit.OAuth2Provider{
-				ID: "some_id",
-				OAuth2Config: &oauth2.Config{
-					ClientID: "some_client_id",
-					Scopes:   []string{"some_scope"},
-				},
+	h := handler{Config{
+		ErrorCustomizer: testErrorCustomizer{},
+		AuthService:     as,
+		UserService:     us,
+		ProfileService:  ps,
+		PrivateOAuth2Provider: authkit.OAuth2Provider{
+			ID: "some_id",
+			OAuth2Config: &oauth2.Config{
+				ClientID: "some_client_id",
+				Scopes:   []string{"some_scope"},
 			},
 		},
-	}
+	}}
 
-	h2 := handler{
-		errorCustomizer: testErrorCustomizer{},
-		auth:            as,
-		users:           us,
-		config: authkit.Config{
-			PrivateOAuth2Provider: authkit.OAuth2Provider{
-				ID: "some_id",
-				OAuth2Config: &oauth2.Config{
-					ClientID: "unknown_client_id",
-					Scopes:   []string{"some_scope"},
-				},
+	h2 := handler{Config{
+		ErrorCustomizer: testErrorCustomizer{},
+		AuthService:     as,
+		UserService:     us,
+		PrivateOAuth2Provider: authkit.OAuth2Provider{
+			ID: "some_id",
+			OAuth2Config: &oauth2.Config{
+				ClientID: "unknown_client_id",
+				Scopes:   []string{"some_scope"},
 			},
 		},
-	}
+	}}
 
 	govalidator.TagMap["password"] = govalidator.Validator(func(p string) bool {
 		// simplified password validator for test

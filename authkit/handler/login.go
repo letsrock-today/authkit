@@ -35,14 +35,14 @@ func (h handler) Login(c echo.Context) error {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
-			h.errorCustomizer.InvalidRequestParameterError(flatten(err)))
+			h.ErrorCustomizer.InvalidRequestParameterError(flatten(err)))
 	}
 
 	if _, err := govalidator.ValidateStruct(lf); err != nil {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
-			h.errorCustomizer.InvalidRequestParameterError(err))
+			h.ErrorCustomizer.InvalidRequestParameterError(err))
 	}
 
 	var (
@@ -55,23 +55,23 @@ func (h handler) Login(c echo.Context) error {
 
 	if signup {
 		action = func(login, password string) authkit.UserServiceError {
-			if err := h.users.Create(login, password); err != nil {
+			if err := h.UserService.Create(login, password); err != nil {
 				return err
 			}
 			// Create empty profile for new user.
 			if govalidator.IsEmail(login) {
 				email = login
 			}
-			if err := h.profiles.EnsureExists(login, email); err != nil {
+			if err := h.ProfileService.EnsureExists(login, email); err != nil {
 				return err
 			}
 			return nil
 		}
 
-		customizedError = h.errorCustomizer.UserCreationError
+		customizedError = h.ErrorCustomizer.UserCreationError
 	} else {
-		action = h.users.Authenticate
-		customizedError = h.errorCustomizer.UserAuthenticationError
+		action = h.UserService.Authenticate
+		customizedError = h.ErrorCustomizer.UserAuthenticationError
 	}
 
 	if err := action(lf.Login, lf.Password); err != nil {
@@ -79,9 +79,9 @@ func (h handler) Login(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, customizedError(err))
 	}
 
-	pp := h.config.PrivateOAuth2Provider
+	pp := h.PrivateOAuth2Provider
 	cfg := pp.OAuth2Config.(*oauth2.Config)
-	t, err := h.auth.GenerateConsentTokenPriv(
+	t, err := h.AuthService.GenerateConsentTokenPriv(
 		lf.Login,
 		cfg.Scopes,
 		cfg.ClientID)
@@ -91,7 +91,7 @@ func (h handler) Login(c echo.Context) error {
 
 	if email != "" {
 		go func() {
-			if err := h.users.RequestEmailConfirmation(
+			if err := h.UserService.RequestEmailConfirmation(
 				lf.Login,
 				email,
 				""); err != nil {
@@ -100,7 +100,7 @@ func (h handler) Login(c echo.Context) error {
 		}()
 	}
 
-	s := h.config.OAuth2State
+	s := h.OAuth2State
 	state, err := apptoken.NewStateWithLoginTokenString(
 		s.TokenIssuer,
 		pp.ID,

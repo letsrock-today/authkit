@@ -20,7 +20,7 @@ func TestAuthCodeURLs(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	cfg := authkit.Config{
+	cfg := Config{
 		OAuth2State: authkit.OAuth2State{
 			TokenIssuer:  "zzz",
 			TokenSignKey: []byte("xxx"),
@@ -56,7 +56,7 @@ func TestAuthCodeURLs(t *testing.T) {
 		},
 	}
 
-	h := handler{config: cfg}
+	h := handler{cfg}
 
 	err := h.AuthCodeURLs(c)
 	assert.NoError(err)

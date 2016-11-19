@@ -41,18 +41,16 @@ func TestConfirmEmail(t *testing.T) {
 		"invalid@login.ok",
 		true).Return(authkit.NewUserNotFoundError(nil))
 
-	h := handler{
-		errorCustomizer: testErrorCustomizer{},
-		users:           us,
-		profiles:        ps,
-		config: authkit.Config{
-			OAuth2State: authkit.OAuth2State{
-				TokenIssuer:  "zzz",
-				TokenSignKey: []byte("xxx"),
-				Expiration:   1 * time.Hour,
-			},
+	h := handler{Config{
+		ErrorCustomizer: testErrorCustomizer{},
+		UserService:     us,
+		ProfileService:  ps,
+		OAuth2State: authkit.OAuth2State{
+			TokenIssuer:  "zzz",
+			TokenSignKey: []byte("xxx"),
+			Expiration:   1 * time.Hour,
 		},
-	}
+	}}
 
 	cases := []struct {
 		name          string
@@ -80,7 +78,7 @@ func TestConfirmEmail(t *testing.T) {
 			name: "expired token",
 			params: url.Values{
 				"token": testNewEmailTokenString(
-					t, h.config, "valid@login.ok", "valid@login.ok", "", true),
+					t, h.Config, "valid@login.ok", "valid@login.ok", "", true),
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `Error: user auth err`,
@@ -89,7 +87,7 @@ func TestConfirmEmail(t *testing.T) {
 			name: "invalid login (deleted)",
 			params: url.Values{
 				"token": testNewEmailTokenString(
-					t, h.config, "invalid@login.ok", "invalid@login.ok", ""),
+					t, h.Config, "invalid@login.ok", "invalid@login.ok", ""),
 			},
 			expStatusCode: http.StatusUnauthorized,
 			expBody:       `Error: user auth err`,
@@ -98,7 +96,7 @@ func TestConfirmEmail(t *testing.T) {
 			name: "everything OK",
 			params: url.Values{
 				"token": testNewEmailTokenString(
-					t, h.config, "valid@login.ok", "valid@login.ok", ""),
+					t, h.Config, "valid@login.ok", "valid@login.ok", ""),
 			},
 			expStatusCode: http.StatusOK,
 			expBody:       `OK`,
@@ -138,11 +136,11 @@ func TestSendConfirmationEmail(t *testing.T) {
 		"valid-login",
 		"valid@login.ok",
 		"Kate").Return(nil)
-	h := handler{
-		errorCustomizer: testErrorCustomizer{},
-		users:           us,
-		profiles:        ps,
-	}
+	h := handler{Config{
+		ErrorCustomizer: testErrorCustomizer{},
+		UserService:     us,
+		ProfileService:  ps,
+	}}
 	e := echo.New()
 	req := new(http.Request)
 	rec := httptest.NewRecorder()

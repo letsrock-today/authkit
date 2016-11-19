@@ -65,11 +65,11 @@ func TestConsentLogin(t *testing.T) {
 		"old.valid@login.ok",
 		"valid_password").Return(authkit.NewDuplicateUserError(nil))
 
-	h := handler{
-		errorCustomizer: testErrorCustomizer{},
-		auth:            as,
-		users:           us,
-	}
+	h := handler{Config{
+		ErrorCustomizer: testErrorCustomizer{},
+		AuthService:     as,
+		UserService:     us,
+	}}
 
 	govalidator.TagMap["password"] = govalidator.Validator(func(p string) bool {
 		// simplified password validator for test

@@ -22,8 +22,8 @@ type (
 
 func (h handler) AuthCodeURLs(c echo.Context) error {
 	reply := authCodeURLsReply{}
-	for _, p := range h.config.OAuth2Providers {
-		s := h.config.OAuth2State
+	for _, p := range h.OAuth2Providers {
+		s := h.OAuth2State
 		state, err := apptoken.NewStateTokenString(
 			s.TokenIssuer,
 			p.ID,

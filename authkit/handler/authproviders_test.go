@@ -18,7 +18,7 @@ func TestAuthProviders(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	cfg := authkit.Config{
+	cfg := Config{
 		ModTime: time.Now(),
 		OAuth2Providers: []authkit.OAuth2Provider{
 			{
@@ -34,7 +34,7 @@ func TestAuthProviders(t *testing.T) {
 		},
 	}
 
-	h := handler{config: cfg}
+	h := handler{cfg}
 
 	err := h.AuthProviders(c)
 	assert.NoError(err)

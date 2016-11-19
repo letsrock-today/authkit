@@ -111,12 +111,12 @@ func TestCallback(t *testing.T) {
 		mock.Anything).Return(nil)
 
 	h := handler{
-		errorCustomizer: testErrorCustomizer{},
-		auth:            as,
-		users:           us,
-		profiles:        ps,
-		socialProfiles:  sps,
-		config: authkit.Config{
+		Config{
+			ErrorCustomizer:       testErrorCustomizer{},
+			AuthService:           as,
+			UserService:           us,
+			ProfileService:        ps,
+			SocialProfileServices: sps,
 			OAuth2State: authkit.OAuth2State{
 				TokenIssuer:  "zzz",
 				TokenSignKey: []byte("xxx"),
@@ -138,8 +138,8 @@ func TestCallback(t *testing.T) {
 				},
 			},
 			AuthCookieName: "xxx-auth-cookie",
+			ContextCreator: authkit.DefaultContextCreator{},
 		},
-		contextCreator: authkit.DefaultContextCreator{},
 	}
 
 	cases := []struct {
@@ -176,7 +176,7 @@ func TestCallback(t *testing.T) {
 		{
 			name: "everything OK, private",
 			params: url.Values{
-				"state": testNewStateTokenString(t, h.config, "private-id", "valid@login.ok"),
+				"state": testNewStateTokenString(t, h.Config, "private-id", "valid@login.ok"),
 				"code":  []string{"valid_code"},
 			},
 			expStatusCode: http.StatusFound,
@@ -185,7 +185,7 @@ func TestCallback(t *testing.T) {
 		{
 			name: "everything OK, external",
 			params: url.Values{
-				"state": testNewStateTokenString(t, h.config, "external-id", ""),
+				"state": testNewStateTokenString(t, h.Config, "external-id", ""),
 				"code":  []string{"valid_code"},
 			},
 			expStatusCode: http.StatusFound,
@@ -194,7 +194,7 @@ func TestCallback(t *testing.T) {
 		{
 			name: "everything OK, external, new user",
 			params: url.Values{
-				"state": testNewStateTokenString(t, h.config, "external-id-new", ""),
+				"state": testNewStateTokenString(t, h.Config, "external-id-new", ""),
 				"code":  []string{"valid_code"},
 			},
 			expStatusCode: http.StatusFound,

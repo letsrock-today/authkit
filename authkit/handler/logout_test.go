@@ -32,15 +32,13 @@ func TestLogout(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	h := handler{
-		auth:  as,
-		users: us,
-		config: authkit.Config{
-			PrivateOAuth2Provider: authkit.OAuth2Provider{
-				ID: "some_provider_id",
-			},
+	h := handler{Config{
+		AuthService: as,
+		UserService: us,
+		PrivateOAuth2Provider: authkit.OAuth2Provider{
+			ID: "some_provider_id",
 		},
-	}
+	}}
 
 	err = h.Logout(c)
 	assert.NoError(err)

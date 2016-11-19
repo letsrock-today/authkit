@@ -53,11 +53,11 @@ func TestRestorePassword(t *testing.T) {
 		"ConfirmedEmail",
 		"valid-login").Return("valid@login.ok", "", nil)
 
-	h := handler{
-		errorCustomizer: testErrorCustomizer{},
-		users:           us,
-		profiles:        ps,
-	}
+	h := handler{Config{
+		ErrorCustomizer: testErrorCustomizer{},
+		UserService:     us,
+		ProfileService:  ps,
+	}}
 
 	govalidator.TagMap["login"] = govalidator.Validator(emailOrLoginValidator)
 
@@ -155,18 +155,16 @@ func TestChangePassword(t *testing.T) {
 		"valid_password_hash",
 		"strong-password").Return(nil)
 
-	h := handler{
-		errorCustomizer: testErrorCustomizer{},
-		users:           us,
-		config: authkit.Config{
-			OAuth2State: authkit.OAuth2State{
-				TokenIssuer:  "zzz",
-				TokenSignKey: []byte("xxx"),
-				Expiration:   1 * time.Hour,
-			},
-			AuthCookieName: "xxx-auth-cookie",
+	h := handler{Config{
+		ErrorCustomizer: testErrorCustomizer{},
+		UserService:     us,
+		OAuth2State: authkit.OAuth2State{
+			TokenIssuer:  "zzz",
+			TokenSignKey: []byte("xxx"),
+			Expiration:   1 * time.Hour,
 		},
-	}
+		AuthCookieName: "xxx-auth-cookie",
+	}}
 
 	govalidator.TagMap["password"] = govalidator.Validator(func(p string) bool {
 		// simplified password validator for test
@@ -191,7 +189,7 @@ func TestChangePassword(t *testing.T) {
 				"password1": []string{"xx"},
 				"token": testNewEmailTokenString(
 					t,
-					h.config,
+					h.Config,
 					"valid@login.ok",
 					"valid@login.ok",
 					"valid_password_hash"),
@@ -205,7 +203,7 @@ func TestChangePassword(t *testing.T) {
 				"password1": []string{"strong-password"},
 				"token": testNewEmailTokenString(
 					t,
-					h.config,
+					h.Config,
 					"valid@login.ok",
 					"valid@login.ok",
 					"invalid_password_hash"),
@@ -219,7 +217,7 @@ func TestChangePassword(t *testing.T) {
 				"password1": []string{"strong-password"},
 				"token": testNewEmailTokenString(
 					t,
-					h.config,
+					h.Config,
 					"unknown@login.ok",
 					"unknown@login.ok",
 					"valid_password_hash"),
@@ -233,7 +231,7 @@ func TestChangePassword(t *testing.T) {
 				"password1": []string{"strong-password"},
 				"token": testNewEmailTokenString(
 					t,
-					h.config,
+					h.Config,
 					"valid@login.ok",
 					"valid@login.ok",
 					"valid_password_hash",
@@ -248,7 +246,7 @@ func TestChangePassword(t *testing.T) {
 				"password1": []string{"strong-password"},
 				"token": testNewEmailTokenString(
 					t,
-					h.config,
+					h.Config,
 					"valid@login.ok",
 					"valid@login.ok",
 					"valid_password_hash"),

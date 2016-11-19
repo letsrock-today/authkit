@@ -31,7 +31,7 @@ func (h handler) Callback(c echo.Context) error {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.JSON(
 			http.StatusBadRequest,
-			h.errorCustomizer.InvalidRequestParameterError(flatten(err)))
+			h.ErrorCustomizer.InvalidRequestParameterError(flatten(err)))
 	}
 
 	if cr.Error != "" {
@@ -47,7 +47,7 @@ func (h handler) Callback(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	oauth2State := h.config.OAuth2State
+	oauth2State := h.OAuth2State
 	state, err := apptoken.ParseStateToken(
 		oauth2State.TokenIssuer,
 		cr.State,
@@ -57,14 +57,14 @@ func (h handler) Callback(c echo.Context) error {
 	}
 
 	var oauth2cfg authkit.OAuth2Config
-	privateProvider := h.config.PrivateOAuth2Provider
+	privateProvider := h.PrivateOAuth2Provider
 	privPID := privateProvider.ID
-	ctx := h.contextCreator.CreateContext(privPID)
+	ctx := h.ContextCreator.CreateContext(privPID)
 
 	if state.ProviderID() == privPID {
 		oauth2cfg = privateProvider.PrivateOAuth2Config
 	} else {
-		p := oauth2ProviderByID(h.config.OAuth2Providers, state.ProviderID())
+		p := oauth2ProviderByID(h.OAuth2Providers, state.ProviderID())
 		if p == nil {
 			err := fmt.Errorf("Unknown provider: %s", state.ProviderID())
 			return errors.WithStack(err)
@@ -89,7 +89,7 @@ func (h handler) Callback(c echo.Context) error {
 
 	// Make provider-specific call to external provider for user's profile data.
 	// Obtain external user id and profile data.
-	pa, err := h.socialProfiles.SocialProfileService(state.ProviderID())
+	pa, err := h.SocialProfileServices.SocialProfileService(state.ProviderID())
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -101,7 +101,7 @@ func (h handler) Callback(c echo.Context) error {
 	login := p.GetLogin()
 
 	// Check that internal user exists for external user.
-	user, err := h.users.User(login)
+	user, err := h.UserService.User(login)
 	if err != nil {
 		if !authkit.IsUserNotFound(err) {
 			return errors.WithStack(err)
@@ -120,7 +120,7 @@ func (h handler) Callback(c echo.Context) error {
 
 	// Save external provider's token in the users DB.
 	pid := state.ProviderID()
-	if err := h.users.UpdateOAuth2Token(login, pid, token); err != nil {
+	if err := h.UserService.UpdateOAuth2Token(login, pid, token); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -133,7 +133,7 @@ func (h handler) Callback(c echo.Context) error {
 	// Return private provider's token to client end exit
 	// (redirect client to / with token in header).
 	cookie := createCookie(
-		h.config.AuthCookieName,
+		h.AuthCookieName,
 		privToken.AccessToken)
 	c.SetCookie(cookie)
 	return c.Redirect(http.StatusFound, "/")
@@ -144,13 +144,13 @@ func (h handler) handlePrivateProvider(
 	if state.Login() == "" {
 		return errors.WithStack(errors.New("invalid state, empty login"))
 	}
-	pid := h.config.PrivateOAuth2Provider.ID
-	if err := h.users.UpdateOAuth2Token(state.Login(), pid, token); err != nil {
+	pid := h.PrivateOAuth2Provider.ID
+	if err := h.UserService.UpdateOAuth2Token(state.Login(), pid, token); err != nil {
 		return errors.WithStack(err)
 	}
 	// our trusted provider, just return access token to client
 	cookie := createCookie(
-		h.config.AuthCookieName,
+		h.AuthCookieName,
 		token.AccessToken)
 	c.SetCookie(cookie)
 	return c.Redirect(http.StatusFound, "/")
@@ -165,19 +165,19 @@ func (h handler) createInternalUser(
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	if err := h.users.Create(login, pass); err != nil {
+	if err := h.UserService.Create(login, pass); err != nil {
 		if err != nil {
 			return errors.WithStack(err)
 		}
 	}
 	// - Save user's profile from external provider to our profile db.
-	if err := h.profiles.Save(p); err != nil {
+	if err := h.ProfileService.Save(p); err != nil {
 		return errors.WithStack(err)
 	}
 	// - Send email confirmation request.
 	if p.GetEmail() != "" {
 		go func() {
-			if err := h.users.RequestEmailConfirmation(
+			if err := h.UserService.RequestEmailConfirmation(
 				login,
 				p.GetEmail(),
 				p.GetFormattedName()); err != nil {
@@ -194,11 +194,11 @@ func (h handler) issuePrivateProvidersToken(
 	login string,
 	freshUser bool) (*oauth2.Token, error) {
 	// Check if we have one in DB first.
-	privPID := h.config.PrivateOAuth2Provider.ID
+	privPID := h.PrivateOAuth2Provider.ID
 	var privToken *oauth2.Token
 	if !freshUser {
 		var err error
-		privToken, err = h.users.OAuth2Token(login, privPID)
+		privToken, err = h.UserService.OAuth2Token(login, privPID)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -206,11 +206,11 @@ func (h handler) issuePrivateProvidersToken(
 
 	// Use func to simplify condition check.
 	issueToken := func() (err error) {
-		privToken, err = h.auth.IssueToken(login)
+		privToken, err = h.AuthService.IssueToken(login)
 		if err != nil {
 			return err
 		}
-		return h.users.UpdateOAuth2Token(login, privPID, privToken)
+		return h.UserService.UpdateOAuth2Token(login, privPID, privToken)
 	}
 
 	if privToken == nil {

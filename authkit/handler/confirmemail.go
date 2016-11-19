@@ -28,7 +28,7 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	oauth2State := h.config.OAuth2State
+	oauth2State := h.OAuth2State
 	t, err := apptoken.ParseEmailToken(
 		oauth2State.TokenIssuer,
 		r.Token[0],
@@ -40,19 +40,19 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 				return c.Render(
 					http.StatusUnauthorized,
 					authkit.ConfirmEmailTemplateName,
-					h.errorCustomizer.UserAuthenticationError(err))
+					h.ErrorCustomizer.UserAuthenticationError(err))
 			}
 		}
 		return errors.WithStack(err)
 	}
 
-	if err := h.profiles.SetEmailConfirmed(t.Login(), t.Email(), true); err != nil {
+	if err := h.ProfileService.SetEmailConfirmed(t.Login(), t.Email(), true); err != nil {
 		if authkit.IsUserNotFound(err) {
 			c.Logger().Debugf("%+v", errors.WithStack(err))
 			return c.Render(
 				http.StatusUnauthorized,
 				authkit.ConfirmEmailTemplateName,
-				h.errorCustomizer.UserAuthenticationError(err))
+				h.ErrorCustomizer.UserAuthenticationError(err))
 		}
 		return errors.WithStack(err)
 	}
@@ -62,15 +62,15 @@ func (h handler) ConfirmEmail(c echo.Context) error {
 
 func (h handler) SendConfirmationEmail(c echo.Context) error {
 	u := c.Get(middleware.DefaultContextKey).(authkit.User)
-	email, name, err := h.profiles.Email(u.Login())
+	email, name, err := h.ProfileService.Email(u.Login())
 	if err != nil {
 		c.Logger().Debugf("%+v", errors.WithStack(err))
 		return c.Render(
 			http.StatusUnauthorized,
 			authkit.ConfirmEmailTemplateName,
-			h.errorCustomizer.UserAuthenticationError(err))
+			h.ErrorCustomizer.UserAuthenticationError(err))
 	}
-	if err := h.users.RequestEmailConfirmation(
+	if err := h.UserService.RequestEmailConfirmation(
 		u.Login(),
 		email,
 		name); err != nil {
