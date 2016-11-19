@@ -209,12 +209,12 @@ func testPrepareKeysResponder(t *testing.T, timesForKeys int) {
 }
 
 func testCreateHydra() *hydra {
-	return New(
-		"http://foo.com",
-		"some-provider-id",
-		"some-trusted-provider-id",
-		1*time.Hour,
-		&oauth2.Config{
+	return New(Config{
+		HydraURL:                 "http://foo.com",
+		ProviderID:               "some-provider-id",
+		ProviderIDTrustedContext: "some-trusted-provider-id",
+		ChallengeLifespan:        1 * time.Hour,
+		OAuth2Config: &oauth2.Config{
 			ClientID: "client-id",
 			Scopes:   []string{"some.scope"},
 			Endpoint: oauth2.Endpoint{
@@ -222,14 +222,15 @@ func testCreateHydra() *hydra {
 				TokenURL: "http://foo.com/auth/token",
 			},
 		},
-		&clientcredentials.Config{
+		ClientCredentials: &clientcredentials.Config{
 			TokenURL: "http://foo.com/auth/token",
 		},
-		authkit.OAuth2State{
+		OAuth2State: authkit.OAuth2State{
 			TokenIssuer:  "some-issuer",
 			TokenSignKey: []byte("some-key"),
 			Expiration:   1 * time.Hour,
 		},
-		authkit.DefaultContextCreator{},
-		false).(*hydra)
+		ContextCreator:        authkit.DefaultContextCreator{},
+		TLSInsecureSkipVerify: false,
+	}).(*hydra)
 }

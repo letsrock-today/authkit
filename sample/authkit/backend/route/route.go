@@ -36,16 +36,17 @@ func Init(
 			c.PrivateProviderIDTrustedContext: httpclient,
 		})
 
-	as := hydra.New(
-		c.HydraAddr,
-		c.PrivateProviderID,
-		c.PrivateProviderIDTrustedContext,
-		c.ChallengeLifespan,
-		c.PrivateOAuth2Provider.PrivateOAuth2Config.(*oauth2.Config),
-		c.OAuth2ClientCredentials,
-		c.OAuth2State.ToAuthkitType(),
-		cc,
-		c.TLSInsecureSkipVerify)
+	as := hydra.New(hydra.Config{
+		HydraURL:                 c.HydraAddr,
+		ProviderID:               c.PrivateProviderID,
+		ProviderIDTrustedContext: c.PrivateProviderIDTrustedContext,
+		ChallengeLifespan:        c.ChallengeLifespan,
+		OAuth2Config:             c.PrivateOAuth2Provider.PrivateOAuth2Config.(*oauth2.Config),
+		ClientCredentials:        c.OAuth2ClientCredentials,
+		OAuth2State:              c.OAuth2State.ToAuthkitType(),
+		ContextCreator:           cc,
+		TLSInsecureSkipVerify:    c.TLSInsecureSkipVerify,
+	})
 
 	sps := socialprofile.Providers()
 	userService := struct {

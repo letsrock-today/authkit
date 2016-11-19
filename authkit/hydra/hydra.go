@@ -24,50 +24,41 @@ import (
 )
 
 // New creates new Hydra-backed auth service.
-func New(
-	hydraURL string,
-	providerID string,
-	providerIDTrustedContext string,
-	challengeLifespan time.Duration,
-	oauth2Config *oauth2.Config,
-	clientCredentials *clientcredentials.Config,
-	oauth2State authkit.OAuth2State,
-	contextCreator authkit.ContextCreator,
-	tlsInsecureSkipVerify bool) authkit.AuthService {
-	if hydraURL == "" ||
-		providerID == "" ||
-		providerIDTrustedContext == "" ||
-		challengeLifespan == 0 ||
-		oauth2Config == nil ||
-		clientCredentials == nil {
+func New(c Config) authkit.AuthService {
+	if !c.Valid() {
 		panic("invalid argument")
 	}
-	if contextCreator == nil {
-		contextCreator = authkit.DefaultContextCreator{}
+	if c.ContextCreator == nil {
+		c.ContextCreator = authkit.DefaultContextCreator{}
 	}
-	return &hydra{
-		hydraURL,
-		providerID,
-		providerIDTrustedContext,
-		challengeLifespan,
-		oauth2Config,
-		clientCredentials,
-		oauth2State,
-		contextCreator,
-		tlsInsecureSkipVerify,
-	}
+	return &hydra{c}
+}
+
+// Config represents configuration for hydra.New().
+type Config struct {
+	HydraURL                 string
+	ProviderID               string
+	ProviderIDTrustedContext string // used to obtain context from contextCreator for 2-legged flow
+	ChallengeLifespan        time.Duration
+	OAuth2Config             *oauth2.Config            // for 3-legged flow
+	ClientCredentials        *clientcredentials.Config // for 2-legged flow
+	OAuth2State              authkit.OAuth2State
+	ContextCreator           authkit.ContextCreator
+	TLSInsecureSkipVerify    bool
+}
+
+// Valid validates configuration.
+func (c Config) Valid() bool {
+	return c.HydraURL != "" &&
+		c.ProviderID != "" &&
+		c.ProviderIDTrustedContext != "" &&
+		c.ChallengeLifespan != 0 &&
+		c.OAuth2Config != nil &&
+		c.ClientCredentials != nil
 }
 
 type hydra struct {
-	hydraURL                 string
-	providerID               string
-	providerIDTrustedContext string // used to obtain context from contextCreator for 2-legged flow
-	challengeLifespan        time.Duration
-	oauth2Config             *oauth2.Config            // for 3-legged flow
-	clientCredentials        *clientcredentials.Config // for 2-legged flow
-	oauth2State              authkit.OAuth2State
-	contextCreator           authkit.ContextCreator
-	tlsInsecureSkipVerify    bool
+	Config
 }
 
 func (h hydra) GenerateConsentToken(
@@ -123,7 +114,7 @@ func (h hydra) GenerateConsentTokenPriv(
 	claims := challengeClaims{
 		jwt.StandardClaims{
 			Audience:  clientID,
-			ExpiresAt: time.Now().Add(h.challengeLifespan).Unix(),
+			ExpiresAt: time.Now().Add(h.ChallengeLifespan).Unix(),
 			Subject:   subj,
 		},
 		scopes,
@@ -145,7 +136,7 @@ func (h hydra) IssueToken(login string) (*oauth2.Token, error) {
 	// emulate 3-legged flow on behave of user. We already authorized him
 	// and want to give him similar token, as for third-party user,
 	// so that tokens in both cases could be validated with same middleware.
-	conf := h.oauth2Config
+	conf := h.OAuth2Config
 	signedTokenString, err := h.GenerateConsentTokenPriv(
 		login,
 		conf.Scopes,
@@ -155,13 +146,13 @@ func (h hydra) IssueToken(login string) (*oauth2.Token, error) {
 	}
 
 	claims := jwt.StandardClaims{
-		ExpiresAt: time.Now().Add(h.oauth2State.Expiration).Unix(),
-		Issuer:    h.oauth2State.TokenIssuer,
+		ExpiresAt: time.Now().Add(h.OAuth2State.Expiration).Unix(),
+		Issuer:    h.OAuth2State.TokenIssuer,
 		Audience:  login,
-		Subject:   h.providerID,
+		Subject:   h.ProviderID,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	state, err := token.SignedString(h.oauth2State.TokenSignKey)
+	state, err := token.SignedString(h.OAuth2State.TokenSignKey)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -199,7 +190,7 @@ func (h hydra) IssueToken(login string) (*oauth2.Token, error) {
 	v = u.Query()
 	code := v.Get("code")
 	// Here we use 3-legged flow, hence correspondent context.
-	ctx := h.contextCreator.CreateContext(h.providerID)
+	ctx := h.ContextCreator.CreateContext(h.ProviderID)
 	t, err := conf.Exchange(ctx, code)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -214,11 +205,11 @@ func (h hydra) Validate(
 	if !ok {
 		return "", errors.WithStack(errors.New("invalid permission object"))
 	}
-	conf := h.clientCredentials
-	ctx := h.contextCreator.CreateContext(h.providerIDTrustedContext)
+	conf := h.ClientCredentials
+	ctx := h.ContextCreator.CreateContext(h.ProviderIDTrustedContext)
 	client := conf.Client(ctx)
 
-	url := fmt.Sprintf("%s/warden/token/allowed", h.hydraURL)
+	url := fmt.Sprintf("%s/warden/token/allowed", h.HydraURL)
 	b, err := json.Marshal(struct {
 		Token    string   `json:"token"`
 		Resource string   `json:"resource"`
@@ -268,13 +259,13 @@ func (h hydra) Validate(
 }
 
 func (h hydra) RevokeAccessToken(accessToken string) error {
-	conf := h.clientCredentials
-	ctx := h.contextCreator.CreateContext(h.providerIDTrustedContext)
+	conf := h.ClientCredentials
+	ctx := h.ContextCreator.CreateContext(h.ProviderIDTrustedContext)
 	client := http.DefaultClient
 	if hc, ok := ctx.Value(oauth2.HTTPClient).(*http.Client); ok {
 		client.Transport = hc.Transport
 	}
-	u := fmt.Sprintf("%s/oauth2/revoke", h.hydraURL)
+	u := fmt.Sprintf("%s/oauth2/revoke", h.HydraURL)
 	data := url.Values{"token": []string{accessToken}}
 	req, err := http.NewRequest("POST", u, bytes.NewBufferString(data.Encode()))
 	if err != nil {
@@ -354,11 +345,11 @@ func (h hydra) getConsentResponsePrivateKey() (interface{}, error) {
 }
 
 func (h hydra) getKey(set, kid string) (interface{}, error) {
-	conf := h.clientCredentials
-	ctx := h.contextCreator.CreateContext(h.providerIDTrustedContext)
+	conf := h.ClientCredentials
+	ctx := h.ContextCreator.CreateContext(h.ProviderIDTrustedContext)
 	client := conf.Client(ctx)
 
-	url := fmt.Sprintf("%s/keys/%s/%s", h.hydraURL, set, kid)
+	url := fmt.Sprintf("%s/keys/%s/%s", h.HydraURL, set, kid)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -415,7 +406,7 @@ var prepareHTTPClientWithoutRedirects = func(h hydra) *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: h.tlsInsecureSkipVerify,
+				InsecureSkipVerify: h.TLSInsecureSkipVerify,
 			},
 		},
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
