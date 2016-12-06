@@ -1,6 +1,6 @@
 {
   "name": "authkit",
-  "description": "A sample of usage Hydra",
+  "description": "A sample of usage Authkit & Hydra",
   "license": "MIT",
   "scripts": {
     "dev": "webpack-dev-server --host 192.168.2.33",

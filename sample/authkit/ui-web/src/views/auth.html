@@ -83,7 +83,7 @@ import respHelper from '../util/response-helper';
                 opts.onerror('The link to reset password has been sent to your email.');
             })
             .catch(e => {
-                let error = 'Could not reset password. ';
+                let error = 'Could not reset password. Have you confirmed your e-mail address? ';
                 if (e.msg) {
                     error += e.msg;
                 }

@@ -81,13 +81,6 @@ import dispatcher from '../dispatcher';
                             onclick="{ onSave }">Save</button>
                 </div>
             </form>
-        </div>
-        <div class="row">
-            <div class="col-lg-6">
-                <error-msg error="{ error }"/>
-            </div>
-        </div>
-        <div class="row">
             <div class="col-lg-6">
                 <fieldset>
                     <p>To check restricted API press button below.</p>
@@ -106,6 +99,11 @@ import dispatcher from '../dispatcher';
                     { f.formatted_name }
                     </p>
                 </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <error-msg error="{ error }"/>
             </div>
         </div>
     </div>

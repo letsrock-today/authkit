@@ -56,3 +56,22 @@ _HINT_: use `make down up ARGS="-dbg"` to resturt app with debug log.
 _Note_: we will be surprised if this sample happened to work in any version of IE.
 If it does, it is purely coincidental, because we have no resources to support it.
 We test it mostly in recent versions of FF and less rigorously in Chromium and Opera.
+
+## Screenshots
+
+At https://localhost:8080 you should see an app with "Login" button
+at the left side of navigation menu. When it clicked, login dialog should appear.
+
+![Login dialog](screenshot/login.png)
+
+Of course, initially database is empty, you cannot login, but can create a
+new account. You may use existing email address, or arbitrary login.
+To test password recovery you may enter your email later at the profile page.
+Uppon account creation, profile page will be displayed.
+
+![Profile page](screenshot/profile.png)
+
+Consent page (as if you were redirected to this sample from third-party site
+to login via this app) shown below.
+
+![Consent page](screenshot/consent.png)
