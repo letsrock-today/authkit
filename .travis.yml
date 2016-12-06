@@ -16,11 +16,10 @@ before_install:
     - npm -v
 install:
     - glide up
-    - tree -df -L 3 vendor
     - pushd $TRAVIS_BUILD_DIR/sample/authkit/ui-web && npm install && popd
 script:
-    - make
     - tree -df -L 3 vendor
+    - make
     - pushd $TRAVIS_BUILD_DIR/sample/authkit/ && make up down ARGS="-dbg" && popd
 notifications:
     email: false
