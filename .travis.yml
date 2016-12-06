@@ -11,11 +11,16 @@ before_install:
     - sudo apt-get -y install glide nodejs
     - npm install webpack -g
     - go get github.com/vektra/mockery/.../
+    - glide -version
+    - node -v
+    - npm -v
 install:
     - glide up
+    - tree -df -L 3 vendor
     - pushd $TRAVIS_BUILD_DIR/sample/authkit/ui-web && npm install && popd
 script:
     - make
+    - tree -df -L 3 vendor
     - pushd $TRAVIS_BUILD_DIR/sample/authkit/ && make up down ARGS="-dbg" && popd
 notifications:
     email: false
