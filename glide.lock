@@ -1,5 +1,5 @@
-hash: 03984e61a551732c0a0bd693495e5d2a950203d643efafbe9b831779ab3a5669
-updated: 2016-12-06T15:54:03.519014976+07:00
+hash: 95cecc656c09fdfe9a17ff2f71714eebcc1aa105df9eeb873f81402ec4839121
+updated: 2016-12-06T19:13:44.217806329+07:00
 imports:
 - name: cloud.google.com/go
   version: 41e2a5839c35f1f3b0b367e209a09c200556dac9
@@ -157,5 +157,11 @@ testImports:
   - difflib
 - name: github.com/stretchr/objx
   version: cbeaeb16a013161a98496fad62933b1d21786672
+- name: github.com/vektra/mockery
+  version: 4db903efa8f6a978c8ccee3d4f23e947af878ca9
+- name: golang.org/x/tools
+  version: c060f04f93f57c44284360be78bb323077183645
+  subpackages:
+  - go/loader
 - name: gopkg.in/h2non/gock.v1
   version: 0ad9c55bec42c49b394bca98d4bcff7f4a82843c

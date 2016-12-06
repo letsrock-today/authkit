@@ -31,3 +31,10 @@ import:
 testImport:
 - package: gopkg.in/h2non/gock.v1
   version: ^1.0.3
+- package: github.com/vektra/mockery
+  version: 4db903efa8f6a978c8ccee3d4f23e947af878ca9
+- package: golang.org/x/tools
+  version: c060f04f93f57c44284360be78bb323077183645
+  subpackages:
+    - go/loader
+
