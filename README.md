@@ -112,7 +112,8 @@ sudo apt-get install make ubuntu-make docker.io glide
 umake go
 umake nodejs
 
-go get github.com/vektra/mockery/.../
+# current mockery version is broken, use vendored instead
+#go get github.com/vektra/mockery/.../
 
 npm install webpack -g
 
@@ -137,6 +138,10 @@ git clone https://github.com/letsrock-today/authkit.git
 
 cd $WRK_DIR/authkit
 glide up
+
+# use vendored mockery version, till it be fixed
+
+go install github.com/letsrock-today/authkit/vendor/github.com/vektra/mockery/.../
 
 # update npm dependencies for every sample
 
