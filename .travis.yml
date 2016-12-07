@@ -14,7 +14,7 @@ before_install:
     - node -v
     - npm -v
 install:
-    - glide up
+    - glide install
     - go install github.com/letsrock-today/authkit/vendor/github.com/vektra/mockery/.../
     - pushd $TRAVIS_BUILD_DIR/sample/authkit/ui-web && npm install && popd
 script:

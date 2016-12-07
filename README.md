@@ -137,7 +137,7 @@ git clone https://github.com/letsrock-today/authkit.git
 # update go dependencies
 
 cd $WRK_DIR/authkit
-glide up
+glide install
 
 # use vendored mockery version, till it be fixed
 
