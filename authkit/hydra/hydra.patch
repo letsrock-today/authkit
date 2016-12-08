@@ -1,0 +1,83 @@
+@@ Apply this patch to fixed (for validation) Hydra's yaml spec to fix
+@@ inconsistience between spec and actual API implementation.
+
+--- hydra.fixed.yaml	2016-12-09 00:04:28.327347379 +0700
++++ hydra.yaml	2016-12-09 00:09:11.391456222 +0700
+@@ -14,6 +14,9 @@
+ - application/json
+ produces:
+ - application/json
++securityDefinitions:
++  basic:
++    type: basic
+ paths:
+   /oauth2/auth:
+     get:
+@@ -143,6 +146,26 @@
+         AllowDynamicQueryParameters: false
+         AllowDynamicFormParameters: false
+         IsMultiContentStreaming: false
++  /oauth2/revoke:
++    post:
++      description: Revoke token, issued by Hydra
++      tags:
++      - oauth2
++      operationId: Revoke
++      consumes:
++      - application/x-www-form-urlencoded
++      produces:
++      - application/json
++      parameters:
++        - name: token
++          in: formData
++          required: true
++          type: string
++      responses:
++        200:
++          description: "-"
++      security:
++        - basic: []
+   /clients:
+     post:
+       description: "The response contains a secret which is only issued once. Keep the secret in a safe place because you will not\nbe able to recover it.\n**Access Control Requirements**  \nScope: `hydra.clients`  \nAction: `create`  \nResource: `rn:hydra:clients`  \nContext: `{\"owner:\" \"john@doe.com\"}`"
+@@ -684,7 +707,39 @@
+       keys:
+         type: array
+         items:
+-          type: string
++          $ref: '#/definitions/JsonWebKey'
++  JsonWebKey:
++    title: JSON Web Key
++    type: object
++    properties:
++      keys:
++        type: array
++        items:
++          $ref: '#/definitions/JsonWebKey'
++      kty:
++        type: string
++      use:
++        type: string
++      kid:
++        type: string
++      alg:
++        type: string
++      crv:
++        type: string
++      x:
++        type: string
++      'y':
++        type: string
++      d:
++        type: string
++      'n':
++        type: string
++      e:
++        type: string
++      k:
++        type: string
++    required:
++      - kty
+   Oauth2ClientBase:
+     title: OAuth2 Client Base
+     type: object

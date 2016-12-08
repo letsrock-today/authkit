@@ -1,14 +1,10 @@
 package hydra
 
 import (
-	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -16,12 +12,21 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 
 	"github.com/dgrijalva/jwt-go"
+	httptransport "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 	"github.com/mendsley/gojwk"
 	"github.com/pkg/errors"
 
 	"github.com/letsrock-today/authkit/authkit"
+	hydraclient "github.com/letsrock-today/authkit/authkit/hydra/client"
+	"github.com/letsrock-today/authkit/authkit/hydra/client/jwk"
+	hydraoauth2 "github.com/letsrock-today/authkit/authkit/hydra/client/oauth2"
+	"github.com/letsrock-today/authkit/authkit/hydra/client/warden"
+	"github.com/letsrock-today/authkit/authkit/hydra/models"
 	"github.com/letsrock-today/authkit/authkit/middleware"
 )
+
+//go:generate swagger generate client -f hydra.authkit.yaml
 
 // New creates new Hydra-backed auth service.
 func New(c Config) authkit.AuthService {
@@ -31,7 +36,11 @@ func New(c Config) authkit.AuthService {
 	if c.ContextCreator == nil {
 		c.ContextCreator = authkit.DefaultContextCreator{}
 	}
-	return &hydra{c}
+	u, err := url.Parse(c.HydraURL)
+	if err != nil {
+		panic(err)
+	}
+	return &hydra{c, u}
 }
 
 // Config represents configuration for hydra.New().
@@ -59,6 +68,7 @@ func (c Config) Valid() bool {
 
 type hydra struct {
 	Config
+	HydraParsedURL *url.URL
 }
 
 func (h hydra) GenerateConsentToken(
@@ -170,9 +180,9 @@ func (h hydra) IssueToken(login string) (*oauth2.Token, error) {
 	u.RawQuery = v.Encode()
 	redirectURL := u.String()
 
-	httpClient := prepareHTTPClientWithoutRedirects(h)
+	client := prepareHTTPClientWithoutRedirects(h)
 
-	resp, err := httpClient.Get(redirectURL)
+	resp, err := client.Get(redirectURL)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -207,79 +217,53 @@ func (h hydra) Validate(
 	}
 	conf := h.ClientCredentials
 	ctx := h.ContextCreator.CreateContext(h.ProviderIDTrustedContext)
-	client := conf.Client(ctx)
 
-	url := fmt.Sprintf("%s/warden/token/allowed", h.HydraURL)
-	b, err := json.Marshal(struct {
-		Token    string   `json:"token"`
-		Resource string   `json:"resource"`
-		Action   string   `json:"action"`
-		Scopes   []string `json:"scopes"`
-	}{
-		Token:    accessToken,
-		Resource: p.Resource,
-		Action:   p.Action,
-		Scopes:   p.Scopes,
-	})
+	client := hydraclient.New(
+		httptransport.NewWithClient(
+			h.HydraParsedURL.Host,
+			h.HydraParsedURL.Path,
+			[]string{h.HydraParsedURL.Scheme},
+			conf.Client(ctx),
+		),
+		strfmt.Default)
+
+	r, err := client.Warden.IsAllowed(
+		warden.NewIsAllowedParams().WithBody(&models.WardenIsAllowedRequest{
+			Token:    &accessToken,
+			Resource: &p.Resource,
+			Action:   &p.Action,
+			Scopes:   p.Scopes,
+		}))
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
-	req, err := http.NewRequest("POST", url, bytes.NewReader(b))
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return "", errors.WithStack(
-			errors.Errorf(
-				"unexpected status from Hydra: %d, %s",
-				resp.StatusCode,
-				resp.Status))
-	}
-	var r struct {
-		Allowed bool   `json:"allowed"`
-		Sub     string `json:"sub"`
-	}
-	b, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	err = json.Unmarshal(b, &r)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-	if !r.Allowed {
+
+	if !*r.Payload.Allowed {
 		return "", errors.WithStack(errors.New("Hydra denied access"))
 	}
-	return r.Sub, nil
+	return *r.Payload.Sub, nil
 }
 
 func (h hydra) RevokeAccessToken(accessToken string) error {
 	conf := h.ClientCredentials
 	ctx := h.ContextCreator.CreateContext(h.ProviderIDTrustedContext)
-	client := http.DefaultClient
+	httpclient := http.DefaultClient
 	if hc, ok := ctx.Value(oauth2.HTTPClient).(*http.Client); ok {
-		client.Transport = hc.Transport
+		httpclient.Transport = hc.Transport
 	}
-	u := fmt.Sprintf("%s/oauth2/revoke", h.HydraURL)
-	data := url.Values{"token": []string{accessToken}}
-	req, err := http.NewRequest("POST", u, bytes.NewBufferString(data.Encode()))
+	client := hydraclient.New(
+		httptransport.NewWithClient(
+			h.HydraParsedURL.Host,
+			h.HydraParsedURL.Path,
+			[]string{h.HydraParsedURL.Scheme},
+			httpclient,
+		),
+		strfmt.Default)
+	_, err := client.Oauth2.Revoke(
+		hydraoauth2.NewRevokeParams().WithToken(accessToken),
+		httptransport.BasicAuth(conf.ClientID, conf.ClientSecret),
+	)
 	if err != nil {
-		return errors.WithStack(err)
-	}
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
-	req.SetBasicAuth(conf.ClientID, conf.ClientSecret)
-	resp, err := client.Do(req)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("failed to revoke access token at Hydra, status: %v", resp.Status)
 		return errors.WithStack(err)
 	}
 	return nil
@@ -347,58 +331,54 @@ func (h hydra) getConsentResponsePrivateKey() (interface{}, error) {
 func (h hydra) getKey(set, kid string) (interface{}, error) {
 	conf := h.ClientCredentials
 	ctx := h.ContextCreator.CreateContext(h.ProviderIDTrustedContext)
-	client := conf.Client(ctx)
 
-	url := fmt.Sprintf("%s/keys/%s/%s", h.HydraURL, set, kid)
-	req, err := http.NewRequest("GET", url, nil)
+	client := hydraclient.New(
+		httptransport.NewWithClient(
+			h.HydraParsedURL.Host,
+			h.HydraParsedURL.Path,
+			[]string{h.HydraParsedURL.Scheme},
+			conf.Client(ctx),
+		),
+		strfmt.Default)
+
+	r, err := client.Jwk.GetJWK(
+		jwk.NewGetJWKParams().WithSet(set).WithKid(kid))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("failed to retrieve key from Hydra, status: %v", resp.Status)
-		return nil, errors.WithStack(err)
-	}
-	defer resp.Body.Close()
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	type keyResponse struct {
-		Keys []gojwk.Key `json:"keys"`
-	}
-
-	var kr keyResponse
-	err = json.Unmarshal(b, &kr)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	if len(kr.Keys) == 0 {
+	keys := r.Payload.Keys
+	if len(keys) == 0 {
 		err := fmt.Errorf("no keys from Hydra returned")
 		return nil, errors.WithStack(err)
 	}
-
-	if kid == "public" {
-		k, err := kr.Keys[0].DecodePublicKey()
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		return k, nil
+	key0 := keys[0]
+	key := gojwk.Key{
+		//TODO: copy Keys field, if necessary, it needs type convertion of items.
+		Kty: *key0.Kty,
+		Use: key0.Use,
+		Kid: key0.Kid,
+		Alg: key0.Alg,
+		Crv: key0.Crv,
+		X:   key0.X,
+		Y:   key0.Y,
+		D:   key0.D,
+		N:   key0.N,
+		E:   key0.E,
+		K:   key0.K,
 	}
-	if kid == "private" {
-		k, err := kr.Keys[0].DecodePrivateKey()
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		return k, nil
+	var k interface{}
+	switch kid {
+	default:
+		return key, nil
+	case "public":
+		k, err = key.DecodePublicKey()
+	case "private":
+		k, err = key.DecodePrivateKey()
 	}
-
-	return kr.Keys[0], nil
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return k, nil
 }
 
 // replaced by test

@@ -19,6 +19,7 @@ import:
 - package: golang.org/x/net
   subpackages:
   - context
+  - context/ctxhttp
 - package: golang.org/x/oauth2
   subpackages:
   - clientcredentials
@@ -28,6 +29,7 @@ import:
 - package: gopkg.in/mgo.v2
   subpackages:
   - bson
+- package: github.com/go-openapi/runtime
 testImport:
 - package: gopkg.in/h2non/gock.v1
   version: ^1.0.3
@@ -36,5 +38,4 @@ testImport:
 - package: golang.org/x/tools
   version: c060f04f93f57c44284360be78bb323077183645
   subpackages:
-    - go/loader
-
+  - go/loader

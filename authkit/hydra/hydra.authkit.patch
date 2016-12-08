@@ -1,0 +1,842 @@
+@@ Apply this patch to correct Hydra's swagger 2.0 yaml spec to customize it
+@@ for use in authkit (remove unused API requests).
+
+--- hydra.yaml	2016-12-09 00:13:26.543154452 +0700
++++ hydra.authkit.yaml	2016-12-09 00:03:00.000000000 +0700
+@@ -2,14 +2,14 @@
+ info:
+   version: "1.0"
+   title: ory-am/hydra
+-  description: 'TODO: Add a description'
++  description: Hydra API (as used in Authkit)
+   license:
+     name: MIT
+     url: http://github.com/gruntjs/grunt/blob/master/LICENSE-MIT
+-host: polls.apiblueprint.org
++host: "localhost:4444"
+ basePath: /
+ schemes:
+-- http
++- https
+ consumes:
+ - application/json
+ produces:
+@@ -18,134 +18,6 @@
+   basic:
+     type: basic
+ paths:
+-  /oauth2/auth:
+-    get:
+-      description: This section is missing documentation, please check the IETF specification.
+-      tags:
+-      - OAuth2
+-      operationId: OAuth2 Auth Endpoint
+-      produces:
+-      - application/json
+-      parameters: []
+-      responses:
+-        200:
+-          description: "-"
+-      x-unitTests:
+-      - request:
+-          method: GET
+-          uri: /oauth2/auth
+-        expectedResponse:
+-          x-allowExtraHeaders: true
+-          x-bodyMatchMode: NONE
+-          x-arrayOrderedMatching: false
+-          x-arrayCheckCount: false
+-          x-matchResponseSchema: true
+-          headers: {}
+-        x-testShouldPass: true
+-        x-testEnabled: true
+-        x-testName: OAuth2 Auth Endpoint1
+-        x-testDescription: This section is missing documentation, please check the IETF specification.
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-  /oauth2/token:
+-    post:
+-      description: This section is missing documentation, please check the IETF specification.
+-      tags:
+-      - OAuth2
+-      operationId: OAuth2 Token Endpoint
+-      produces:
+-      - application/json
+-      parameters: []
+-      responses:
+-        200:
+-          description: "-"
+-      x-unitTests:
+-      - request:
+-          method: POST
+-          uri: /oauth2/token
+-        expectedResponse:
+-          x-allowExtraHeaders: true
+-          x-bodyMatchMode: NONE
+-          x-arrayOrderedMatching: false
+-          x-arrayCheckCount: false
+-          x-matchResponseSchema: true
+-          headers: {}
+-        x-testShouldPass: true
+-        x-testEnabled: true
+-        x-testName: OAuth2 Token Endpoint1
+-        x-testDescription: This section is missing documentation, please check the IETF specification.
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-  /oauth2/introspect:
+-    post:
+-      description: >-
+-        This endpoint implements the IETF [OAuth 2.0 Token Introspection](https://tools.ietf.org/html/rfc7662).
+-
+-        It is targeted at public clients that need to introspect an access token. Be aware that bearer and
+-
+-        introspection token must be different.
+-
+-        Extra data set through the `at_ext` claim in the consent response will be included in the response.
+-
+-        The `id_ext` claim will never be returned by this endpoint.
+-      tags:
+-      - OAuth2
+-      operationId: OAuth2 Token Introspection
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: body
+-        in: body
+-        required: true
+-        schema:
+-          type: string
+-      responses:
+-        200:
+-          description: "-"
+-          schema:
+-            $ref: '#/definitions/Oauth2TokenIntrospectionResponse'
+-        401:
+-          description: "-"
+-        403:
+-          description: "-"
+-      x-unitTests:
+-      - request:
+-          method: POST
+-          uri: /oauth2/introspect
+-          body: token=2YotnFZFEjr1zCsicMWpAA
+-        expectedResponse:
+-          x-allowExtraHeaders: true
+-          x-bodyMatchMode: KEYS
+-          x-arrayOrderedMatching: false
+-          x-arrayCheckCount: false
+-          x-matchResponseSchema: true
+-          headers:
+-            Content-Type: application/json
+-          body: '{  "active": true,  "sub": "f1e71e67-edbe-429c-b51d-d72df8f44266",  "exp": 1470595670,  "iat": 1470592070,  "nbf": 1470592070,  "aud": "f1e71e67-edbe-429c-b51d-d72df8f44266",  "iss": "hydra.localhost",  "ext": {}}'
+-        x-testShouldPass: true
+-        x-testEnabled: true
+-        x-testName: OAuth2 Token Introspection1
+-        x-testDescription: >-
+-          This endpoint implements the IETF [OAuth 2.0 Token Introspection](https://tools.ietf.org/html/rfc7662).
+-
+-          It is targeted at public clients that need to introspect an access token. Be aware that bearer and
+-
+-          introspection token must be different.
+-
+-          Extra data set through the `at_ext` claim in the consent response will be included in the response.
+-
+-          The `id_ext` claim will never be returned by this endpoint.
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+   /oauth2/revoke:
+     post:
+       description: Revoke token, issued by Hydra
+@@ -166,244 +38,12 @@
+           description: "-"
+       security:
+         - basic: []
+-  /clients:
+-    post:
+-      description: "The response contains a secret which is only issued once. Keep the secret in a safe place because you will not\nbe able to recover it.\n**Access Control Requirements**  \nScope: `hydra.clients`  \nAction: `create`  \nResource: `rn:hydra:clients`  \nContext: `{\"owner:\" \"john@doe.com\"}`"
+-      tags:
+-      - OAuth2
+-      operationId: Create a New OAuth2 Client
+-      produces:
+-      - application/json
+-      parameters: []
+-      responses:
+-        200:
+-          description: "-"
+-          schema:
+-            $ref: '#/definitions/Oauth2ClientBase'
+-        400:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-        401:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-        403:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-      x-unitTests:
+-      - request:
+-          method: POST
+-          uri: /clients
+-        expectedResponse:
+-          x-allowExtraHeaders: true
+-          x-bodyMatchMode: NONE
+-          x-arrayOrderedMatching: false
+-          x-arrayCheckCount: false
+-          x-matchResponseSchema: true
+-          headers:
+-            Content-Type: application/json
+-            Location: /clients/043b6cdd-80a4-4c9b-b99f-d3853c1dc677
+-        x-testShouldPass: true
+-        x-testEnabled: true
+-        x-testName: Create a New OAuth2 Client1
+-        x-testDescription: "The response contains a secret which is only issued once. Keep the secret in a safe place because you will not\nbe able to recover it.\n**Access Control Requirements**  \nScope: `hydra.clients`  \nAction: `create`  \nResource: `rn:hydra:clients`  \nContext: `{\"owner:\" \"john@doe.com\"}`"
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-  /clients/{id}:
+-    get:
+-      description: "**Access Control Requirements**  \nScope: `hydra.clients`  \nAction: `get`  \nResource: `rn:hydra:clients:<id>`  \nContext: `{\"owner:\" \"john@doe.com\"}`"
+-      tags:
+-      - OAuth2
+-      operationId: Get an OAuth2 Client
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: id
+-        in: path
+-        required: true
+-        type: string
+-        description: The client's `id`.
+-      responses:
+-        200:
+-          description: "-"
+-          schema:
+-            $ref: '#/definitions/Oauth2ClientBase'
+-        400:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-        401:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-        403:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-        404:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-      x-unitTests: []
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-    delete:
+-      description: "**Access Control Definitions**  \nScope: `hydra.clients`  \nAction: `delete`  \nResource: `rn:hydra:clients:<id>`  \nContext: `{\"owner:\" \"john@doe.com\"}`"
+-      tags:
+-      - OAuth2
+-      operationId: Delete an OAuth2 Client
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: id
+-        in: path
+-        required: true
+-        type: string
+-        description: The client's `id`.
+-      responses:
+-        200:
+-          description: "-"
+-        400:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-        401:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-        403:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-      x-unitTests: []
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-  /keys/{set}:
+-    get:
+-      description: "**Access Control Requirements**  \nScope: `hydra.keys.get`  \nAction: `get`  \nResource: `rn:hydra:keys:<set>`  \nContext: *not supported*"
+-      tags:
+-      - JSON Web Keys JWK
+-      operationId: Get a JSON Web Key Set
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: set
+-        in: path
+-        required: true
+-        type: string
+-        description: the set name, e.g. "app-tls-keys".
+-      responses:
+-        200:
+-          description: "-"
+-          schema:
+-            $ref: '#/definitions/JsonWebKeySet'
+-      x-unitTests: []
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-    put:
+-      description: "**Access Control Requirements**  \nScope: `hydra.keys.update`  \nAction: `update`  \nResource: `rn:hydra:keys:<set>`  \nContext: *not supported*"
+-      tags:
+-      - JSON Web Keys JWK
+-      operationId: Upload a JSON Web Key Set
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: set
+-        in: path
+-        required: true
+-        type: string
+-        description: the set name, e.g. "app-tls-keys".
+-      responses:
+-        200:
+-          description: "-"
+-          schema:
+-            $ref: '#/definitions/JsonWebKeySet'
+-      x-unitTests: []
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-    post:
+-      description: "**Access Control Requirements**  \nScope: `hydra.keys.create`  \nAction: `create`  \nResource: `rn:hydra:keys:<set>`  \nContext: *not supported*"
+-      tags:
+-      - JSON Web Keys JWK
+-      operationId: Generate a new JSON Web Key Set
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: set
+-        in: path
+-        required: true
+-        type: string
+-        description: the set name, e.g. "app-tls-keys".
+-      - name: body
+-        in: body
+-        required: true
+-        schema:
+-          $ref: '#/definitions/GenerateANewJsonWebKeySetRequest'
+-      responses:
+-        200:
+-          description: "-"
+-          schema:
+-            $ref: '#/definitions/JsonWebKeySet'
+-      x-unitTests: []
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-    delete:
+-      description: "**Access Control Requirements**  \nScope: `hydra.keys.delete`  \nAction: `delete`  \nResource: `rn:hydra:keys:<set>`  \nContext: *not supported*"
+-      tags:
+-      - JSON Web Keys JWK
+-      operationId: Delete a JSON Web Key Set
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: set
+-        in: path
+-        required: true
+-        type: string
+-        description: the set name, e.g. "app-tls-keys".
+-      responses:
+-        200:
+-          description: "-"
+-      x-unitTests: []
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+   /keys/{set}/{kid}:
+     get:
+       description: "**Access Control Requirements**  \nScope: `hydra.keys.get`  \nAction: `get`  \nResource: `rn:hydra:keys:<set>:<key>`  \nContext: *not supported*"
+       tags:
+-      - JSON Web Keys JWK
+-      operationId: Get a JSON Web Key
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: set
+-        in: path
+-        required: true
+-        type: string
+-        description: the set name, e.g. `app-tls-keys`.
+-      - name: kid
+-        in: path
+-        required: true
+-        type: string
+-        description: "the set name, e.g. `shared´."
+-      responses:
+-        200:
+-          description: "-"
+-          schema:
+-            $ref: '#/definitions/JsonWebKeySet'
+-      x-unitTests: []
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-    put:
+-      description: "**Access Control Requirements**  \nScope: `hydra.keys.update`  \nAction: `update`  \nResource: `rn:hydra:keys:<set>:<key>`  \nContext: *not supported*"
+-      tags:
+-      - JSON Web Keys JWK
+-      operationId: Set a JSON Web Key
++      - jwk
++      operationId: GetJWK
+       produces:
+       - application/json
+       parameters:
+@@ -428,145 +68,12 @@
+         AllowDynamicQueryParameters: false
+         AllowDynamicFormParameters: false
+         IsMultiContentStreaming: false
+-    delete:
+-      description: "**Access Control Requirements**  \nScope: `hydra.keys.delete`  \nAction: `delete`  \nResource: `rn:hydra:keys:<set>:<key>`  \nContext: *not supported*"
+-      tags:
+-      - JSON Web Keys JWK
+-      operationId: Delete a JSON Web Key
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: set
+-        in: path
+-        required: true
+-        type: string
+-        description: the set name, e.g. `app-tls-keys`.
+-      - name: kid
+-        in: path
+-        required: true
+-        type: string
+-        description: "the set name, e.g. `shared´."
+-      responses:
+-        200:
+-          description: "-"
+-      x-unitTests: []
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-  /policies:
+-    get:
+-      description: "**Access Control Requirements**  \nScope: `hydra.policies`  \nAction: `find`  \nResource: `rn:hydra:policies`  \nContext: *not supported*"
+-      tags:
+-      - Policies For Access Control
+-      operationId: Find Policies by Subject ID
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: subject
+-        in: query
+-        required: true
+-        type: string
+-        description: only return relevant policies for `subject`, e.g. `max`.
+-      responses:
+-        200:
+-          description: "-"
+-          schema:
+-            $ref: '#/definitions/PolicyBase'
+-      x-unitTests: []
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-    post:
+-      description: "**Access Control Requirements**  \nScope: `hydra.policies`  \nAction: `create`  \nResource: `rn:hydra:policies`  \nContext: *not supported*"
+-      tags:
+-      - Policies For Access Control
+-      operationId: Create a Policy
+-      produces:
+-      - application/json
+-      parameters: []
+-      responses:
+-        200:
+-          description: "-"
+-          schema:
+-            $ref: '#/definitions/PolicyBase'
+-      x-unitTests:
+-      - request:
+-          method: POST
+-          uri: /policies
+-        expectedResponse:
+-          x-allowExtraHeaders: true
+-          x-bodyMatchMode: NONE
+-          x-arrayOrderedMatching: false
+-          x-arrayCheckCount: false
+-          x-matchResponseSchema: true
+-          headers:
+-            Content-Type: application/json
+-        x-testShouldPass: true
+-        x-testEnabled: true
+-        x-testName: Create a Policy1
+-        x-testDescription: "**Access Control Requirements**  \nScope: `hydra.policies`  \nAction: `create`  \nResource: `rn:hydra:policies`  \nContext: *not supported*"
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-  /policies/{id}:
+-    get:
+-      description: "**Access Control Requirements**  \nScope: `hydra.policies`  \nAction: `get`  \nResource: `rn:hydra:policies:<id>`  \nContext: *not supported*"
+-      tags:
+-      - Policies For Access Control
+-      operationId: Get Policy
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: id
+-        in: path
+-        required: true
+-        type: string
+-        description: the policy's id.
+-      responses:
+-        200:
+-          description: "-"
+-          schema:
+-            $ref: '#/definitions/PolicyBase'
+-      x-unitTests: []
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+-    delete:
+-      description: "**Access Control Requirements**  \nScope: `hydra.policies`  \nAction: `delete`  \nResource: `rn:hydra:policies:<id>`  \nContext: *not supported*"
+-      tags:
+-      - Policies For Access Control
+-      operationId: Delete Policy
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: id
+-        in: path
+-        required: true
+-        type: string
+-        description: the policy's id.
+-      responses:
+-        200:
+-          description: "-"
+-      x-unitTests: []
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+   /warden/token/allowed:
+     post:
+       description: "**Access Control Requirements**  \nScope: `hydra.warden`  \nAction: `decide`  \nResource: `rn:hydra:warden:token:allowed`  \nContext: *not supported*"
+       tags:
+-      - 'Warden: Access Control'
+-      operationId: Check if the subject of a token is allowed to do something
++      - warden
++      operationId: IsAllowed
+       produces:
+       - application/json
+       parameters:
+@@ -574,12 +81,12 @@
+         in: body
+         required: true
+         schema:
+-          $ref: '#/definitions/CheckIfTheSubjectOfATokenIsAllowedToDoSomethingRequest'
++          $ref: '#/definitions/WardenIsAllowedRequest'
+       responses:
+         200:
+           description: "-"
+           schema:
+-            $ref: '#/definitions/CheckIfTheSubjectOfATokenIsAllowedToDoSomethingResponse'
++            $ref: '#/definitions/WardenIsAllowedResponse'
+         401:
+           description: Unexpected error in API call. See HTTP response body for details.
+         403:
+@@ -609,97 +116,7 @@
+         AllowDynamicQueryParameters: false
+         AllowDynamicFormParameters: false
+         IsMultiContentStreaming: false
+-  /warden/allowed:
+-    post:
+-      description: "**Access Control Requirements**  \nScope: `hydra.warden`  \nAction: `decide`  \nResource: `rn:hydra:warden:valid`  \nContext: *not supported*"
+-      tags:
+-      - 'Warden: Access Control'
+-      operationId: Check if a subject is allowed to do something
+-      produces:
+-      - application/json
+-      parameters:
+-      - name: body
+-        in: body
+-        required: true
+-        schema:
+-          $ref: '#/definitions/CheckIfASubjectIsAllowedToDoSomethingRequest'
+-      responses:
+-        200:
+-          description: "-"
+-          schema:
+-            $ref: '#/definitions/CheckIfASubjectIsAllowedToDoSomethingResponse'
+-        401:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-        403:
+-          description: Unexpected error in API call. See HTTP response body for details.
+-      x-unitTests:
+-      - request:
+-          method: POST
+-          uri: /warden/allowed
+-          headers:
+-            Content-Type: application/json
+-          body: '{    "resource": "resources:blogs:posts:my-first-post",    "action": "create",    "subject": "alice",    "context": {        "remoteIP": "123.213.113.123"    }}'
+-        expectedResponse:
+-          x-allowExtraHeaders: true
+-          x-bodyMatchMode: KEYS
+-          x-arrayOrderedMatching: false
+-          x-arrayCheckCount: false
+-          x-matchResponseSchema: true
+-          headers:
+-            Content-Type: application/json
+-          body: '{    "allowed": true}'
+-        x-testShouldPass: true
+-        x-testEnabled: true
+-        x-testName: Check if a subject is allowed to do something1
+-        x-testDescription: "**Access Control Requirements**  \nScope: `hydra.warden`  \nAction: `decide`  \nResource: `rn:hydra:warden:valid`  \nContext: *not supported*"
+-      x-operation-settings:
+-        CollectParameters: false
+-        AllowDynamicQueryParameters: false
+-        AllowDynamicFormParameters: false
+-        IsMultiContentStreaming: false
+ definitions:
+-  PolicyBase:
+-    title: Policy Base
+-    type: object
+-    properties:
+-      description:
+-        type: string
+-      subjects:
+-        type: array
+-        items:
+-          type: string
+-      effect:
+-        type: string
+-      resources:
+-        type: array
+-        items:
+-          type: string
+-      actions:
+-        type: array
+-        items:
+-          type: string
+-      conditions:
+-        $ref: '#/definitions/Conditions'
+-  Conditions:
+-    title: conditions
+-    type: object
+-    properties:
+-      remoteIP:
+-        $ref: '#/definitions/RemoteIP'
+-  RemoteIP:
+-    title: remoteIP
+-    type: object
+-    properties:
+-      type CIDRCondition:
+-        type: string
+-      options:
+-        $ref: '#/definitions/Options'
+-  Options:
+-    title: options
+-    type: object
+-    properties:
+-      range `192.168.178.1/32`:
+-        type: string
+   JsonWebKeySet:
+     title: JSON Web Key Set
+     type: object
+@@ -740,136 +157,7 @@
+         type: string
+     required:
+       - kty
+-  Oauth2ClientBase:
+-    title: OAuth2 Client Base
+-    type: object
+-    properties:
+-      id:
+-        description: A unique identitfier. If none is provided, one will be generated for you.
+-        type: string
+-      owner:
+-        type: string
+-      scope:
+-        description: A list of scopes separated by whitespace.
+-        type: string
+-      public:
+-        description: >-
+-          When set, this public won't need a secret for performing certain flows. It will disallow the client
+-
+-          from using the client_credentials flow.
+-        type: boolean
+-      client_name:
+-        description: Name of the Client to be presented to the End-User.
+-        type: string
+-      client_secrent:
+-        description: >-
+-          The secret to authenticate the client with. If no secret is provided, a random one
+-
+-          will be generated returned in the response. If a secret is provided it will not be
+-
+-          included in the response.
+-        type: string
+-      redirect_uris:
+-        description: >-
+-          Array of Redirection URI values used by the Client. One of these
+-
+-          registered Redirection URI values MUST exactly match the redirect_uri
+-
+-          parameter value used in each Authorization Request
+-        type: array
+-        items:
+-          type: string
+-      grant_types:
+-        description: >-
+-          Array containing a list of the OAuth 2.0 Grant Types that the Client is declaring that it will restrict itself to using. The Grant Type values used by OpenID Connect are:
+-
+-          - authorization_code: The Authorization Code Grant Type.
+-
+-          - implicit: The Implicit Grant Type
+-
+-          - refresh_token: The Refresh Token Grant Typ
+-
+-          The following table lists the correspondence between response_type values that the Client will use and grant_type values that MUST be included in the registered grant_types list:
+-
+-          - code: authorization_code
+-
+-          - id_token: implicit
+-
+-          - token id_token: implicit
+-
+-          - code id_token: authorization_code, implicit
+-
+-          - code token: authorization_code, implicit
+-
+-          - code token id_token: authorization_code, implicit
+-        type: array
+-        items:
+-          type: string
+-      response_types:
+-        description: JSON array containing a list of the OAuth 2.0 response_type values that the Client is declaring that it will restrict itself to using. If omitted, the default is that the Client will use only the code Response Type.
+-        type: array
+-        items:
+-          type: string
+-      policy_uri:
+-        description: URL that the Relying Party Client provides to the End-User to read about the how the profile data will be used. The value of this field MUST point to a valid web page. The OpenID Provider SHOULD display this URL to the End-User if it is given.
+-        type: string
+-      tos_uri:
+-        description: URL that the Relying Party Client provides to the End-User to read about the Relying Party's terms of service. The value of this field MUST point to a valid web page. The OpenID Provider SHOULD display this URL to the End-User if it is given.
+-        type: string
+-      client_uri:
+-        description: URL of the home page of the Client. The value of this field MUST point to a valid Web page. If present, the server SHOULD display this URL to the End-User in a followable fashion.
+-        type: string
+-      logo_uri:
+-        description: URL that references a logo for the Client application. If present, the server SHOULD display this image to the End-User during approval. The value of this field MUST point to a valid image file.
+-        type: string
+-      contacts:
+-        description: Array of e-mail addresses of people responsible for this Client. This might be used by some providers to enable a Web user interface to modify the Client information.
+-        type: array
+-        items:
+-          type: string
+-    required:
+-    - redirect_uris
+-  Oauth2TokenIntrospectionResponse:
+-    title: OAuth2 Token Introspection Response
+-    type: object
+-    properties:
+-      active:
+-        type: boolean
+-      sub:
+-        type: string
+-      exp:
+-        type: integer
+-        format: int32
+-      iat:
+-        type: integer
+-        format: int32
+-      nbf:
+-        type: integer
+-        format: int32
+-      aud:
+-        type: string
+-      iss:
+-        type: string
+-      ext:
+-        type: string
+-    required:
+-    - active
+-    - sub
+-    - exp
+-    - iat
+-    - nbf
+-    - aud
+-    - iss
+-    - ext
+-  GenerateANewJsonWebKeySetRequest:
+-    title: Generate a new JSON Web Key Set request
+-    type: object
+-    properties:
+-      alg:
+-        type: string
+-    required:
+-    - alg
+-  CheckIfTheSubjectOfATokenIsAllowedToDoSomethingRequest:
++  WardenIsAllowedRequest:
+     title: Check if the subject of a token is allowed to do something request
+     type: object
+     properties:
+@@ -891,7 +179,7 @@
+     - resource
+     - action
+     - context
+-  CheckIfTheSubjectOfATokenIsAllowedToDoSomethingResponse:
++  WardenIsAllowedResponse:
+     title: Check if the subject of a token is allowed to do something Response
+     type: object
+     properties:
+@@ -922,28 +210,3 @@
+     - exp
+     - iat
+     - ext
+-  CheckIfASubjectIsAllowedToDoSomethingRequest:
+-    title: Check if a subject is allowed to do something request
+-    type: object
+-    properties:
+-      resource:
+-        type: string
+-      action:
+-        type: string
+-      subject:
+-        type: string
+-      context:
+-        type: string
+-    required:
+-    - resource
+-    - action
+-    - subject
+-    - context
+-  CheckIfASubjectIsAllowedToDoSomethingResponse:
+-    title: Check if a subject is allowed to do something Response
+-    type: object
+-    properties:
+-      allowed:
+-        type: boolean
+-    required:
+-    - allowed

@@ -3,6 +3,7 @@ GOLDFLAGS ?= "-w -s"
 .PHONY: \
 	all \
 	clean \
+	generate \
 	test \
 	build \
 	up \
@@ -17,18 +18,25 @@ all: \
 clean:
 	@echo "Clean"
 	@rm -rf ./.build
-	@go clean -i -r \
-		github.com/letsrock-today/authkit/sample/authkit/backend
+	@-go clean -i -r \
+		github.com/letsrock-today/authkit/sample/authkit/backend 2>/dev/null
 	@echo "Clean Done."
 
-test:
+generate:
+	@echo "Generate"
+	@cd ../.. && glide nv | xargs go generate
+	@echo "Generate Done."
+
+test: \
+	generate
 	@echo "Test"
 	@glide nv | xargs go test
 	@-glide nv | xargs go vet
 	@-glide nv | xargs golint
 	@echo "Test Done."
 
-build:
+build: \
+	generate
 	@echo "Build"
 	@rm -rf ./.build
 	@mkdir -p ./.build

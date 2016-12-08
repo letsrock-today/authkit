@@ -101,6 +101,7 @@ Below are listed versions of tools we used in dev equivalent:
 - npm 3.10.3
 - webpack 1.13.2
 - GNU Make 4.1
+- go-swagger dev
 
 Ubuntu users may use following scriptlet to install necessary tools:
 
@@ -114,6 +115,8 @@ umake nodejs
 
 # current mockery version is broken, use vendored instead
 #go get github.com/vektra/mockery/.../
+
+go get -u github.com/go-swagger/go-swagger/cmd/swagger
 
 npm install webpack -g
 

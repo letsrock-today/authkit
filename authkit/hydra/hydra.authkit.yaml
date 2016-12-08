@@ -1,0 +1,212 @@
+swagger: "2.0"
+info:
+  version: "1.0"
+  title: ory-am/hydra
+  description: Hydra API (as used in Authkit)
+  license:
+    name: MIT
+    url: http://github.com/gruntjs/grunt/blob/master/LICENSE-MIT
+host: "localhost:4444"
+basePath: /
+schemes:
+- https
+consumes:
+- application/json
+produces:
+- application/json
+securityDefinitions:
+  basic:
+    type: basic
+paths:
+  /oauth2/revoke:
+    post:
+      description: Revoke token, issued by Hydra
+      tags:
+      - oauth2
+      operationId: Revoke
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      parameters:
+        - name: token
+          in: formData
+          required: true
+          type: string
+      responses:
+        200:
+          description: "-"
+      security:
+        - basic: []
+  /keys/{set}/{kid}:
+    get:
+      description: "**Access Control Requirements**  \nScope: `hydra.keys.get`  \nAction: `get`  \nResource: `rn:hydra:keys:<set>:<key>`  \nContext: *not supported*"
+      tags:
+      - jwk
+      operationId: GetJWK
+      produces:
+      - application/json
+      parameters:
+      - name: set
+        in: path
+        required: true
+        type: string
+        description: the set name, e.g. `app-tls-keys`.
+      - name: kid
+        in: path
+        required: true
+        type: string
+        description: "the set name, e.g. `shared´."
+      responses:
+        200:
+          description: "-"
+          schema:
+            $ref: '#/definitions/JsonWebKeySet'
+      x-unitTests: []
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+  /warden/token/allowed:
+    post:
+      description: "**Access Control Requirements**  \nScope: `hydra.warden`  \nAction: `decide`  \nResource: `rn:hydra:warden:token:allowed`  \nContext: *not supported*"
+      tags:
+      - warden
+      operationId: IsAllowed
+      produces:
+      - application/json
+      parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/WardenIsAllowedRequest'
+      responses:
+        200:
+          description: "-"
+          schema:
+            $ref: '#/definitions/WardenIsAllowedResponse'
+        401:
+          description: Unexpected error in API call. See HTTP response body for details.
+        403:
+          description: Unexpected error in API call. See HTTP response body for details.
+      x-unitTests:
+      - request:
+          method: POST
+          uri: /warden/token/allowed
+          headers:
+            Content-Type: application/json
+          body: '{    "scopes": ["core", "some.scope.create", "some.scope.delete"],    "token": "z4ab93c94111439fb",    "resource": "resources:blogs:posts:my-first-post",    "action": "create",    "context": {        "remoteIP": "123.213.113.123"    }}'
+        expectedResponse:
+          x-allowExtraHeaders: true
+          x-bodyMatchMode: KEYS
+          x-arrayOrderedMatching: false
+          x-arrayCheckCount: false
+          x-matchResponseSchema: true
+          headers:
+            Content-Type: application/json
+          body: '{    "allowed": true,    "sub": "alice",    "scopes": ["core", "some.scope.create", "some.scope.delete"],    "iss": "hydra",    "aud": "my-client-app",    "exp": "2016-04-23T18:25:43.511Z",    "iat": "2016-04-22T17:25:43.511Z",    "ext": {}}'
+        x-testShouldPass: true
+        x-testEnabled: true
+        x-testName: Check if the subject of a token is allowed to do something1
+        x-testDescription: "**Access Control Requirements**  \nScope: `hydra.warden`  \nAction: `decide`  \nResource: `rn:hydra:warden:token:allowed`  \nContext: *not supported*"
+      x-operation-settings:
+        CollectParameters: false
+        AllowDynamicQueryParameters: false
+        AllowDynamicFormParameters: false
+        IsMultiContentStreaming: false
+definitions:
+  JsonWebKeySet:
+    title: JSON Web Key Set
+    type: object
+    properties:
+      keys:
+        type: array
+        items:
+          $ref: '#/definitions/JsonWebKey'
+  JsonWebKey:
+    title: JSON Web Key
+    type: object
+    properties:
+      keys:
+        type: array
+        items:
+          $ref: '#/definitions/JsonWebKey'
+      kty:
+        type: string
+      use:
+        type: string
+      kid:
+        type: string
+      alg:
+        type: string
+      crv:
+        type: string
+      x:
+        type: string
+      'y':
+        type: string
+      d:
+        type: string
+      'n':
+        type: string
+      e:
+        type: string
+      k:
+        type: string
+    required:
+      - kty
+  WardenIsAllowedRequest:
+    title: Check if the subject of a token is allowed to do something request
+    type: object
+    properties:
+      scopes:
+        type: array
+        items:
+          type: string
+      token:
+        type: string
+      resource:
+        type: string
+      action:
+        type: string
+      context:
+        type: string
+    required:
+    - scopes
+    - token
+    - resource
+    - action
+    - context
+  WardenIsAllowedResponse:
+    title: Check if the subject of a token is allowed to do something Response
+    type: object
+    properties:
+      allowed:
+        type: boolean
+      sub:
+        type: string
+      scopes:
+        type: array
+        items:
+          type: string
+      iss:
+        type: string
+      aud:
+        type: string
+      exp:
+        type: string
+      iat:
+        type: string
+      ext:
+        type: string
+    required:
+    - allowed
+    - sub
+    - scopes
+    - iss
+    - aud
+    - exp
+    - iat
+    - ext

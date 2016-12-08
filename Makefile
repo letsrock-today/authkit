@@ -1,9 +1,9 @@
 .PHONY: \
 	all \
 	clean \
+	generate \
 	test \
-	build \
-	generate
+	build
 
 all: \
 	clean \
@@ -14,8 +14,11 @@ all: \
 
 clean:
 	@echo "Clean"
-	@glide nv | xargs go clean -i -r
+	@-glide nv | xargs go clean -i -r 2>/dev/null
 	@find ./authkit/mocks/ -type f -path *.go ! -name doc.go -delete
+	@find ./authkit/hydra/client/ -type f -path *.go ! -name doc.go -delete
+	@find ./authkit/hydra/models/ -type f -path *.go ! -name doc.go -delete
+	@find ./authkit/hydra/ -type d -empty -delete
 	@echo "Clean Done."
 
 generate:
