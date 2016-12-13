@@ -33,7 +33,7 @@ paths:
           This section is missing documentation, please check the IETF
           specification.
       tags:
-        - "oauth2"
+        - "OAuth2"
       operationId: "OAuth2 Auth Endpoint"
       produces:
         - "application/json"
@@ -48,7 +48,7 @@ paths:
           This section is missing documentation, please check the IETF
           specification.
       tags:
-        - "oauth2"
+        - "OAuth2"
       operationId: "OAuth2 Token Endpoint"
       produces:
         - "application/json"
@@ -68,7 +68,7 @@ paths:
           will be included in the response. The `id_ext` claim will never be
           returned by this endpoint.
       tags:
-        - "oauth2"
+        - "OAuth2"
       operationId: "OAuth2 Token Introspection"
       produces:
         - "application/json"
@@ -102,7 +102,7 @@ paths:
     post:
       description: "Revoke token, issued by Hydra"
       tags:
-        - "oauth2"
+        - "OAuth2"
       operationId: "Revoke"
       consumes:
         - "application/x-www-form-urlencoded"
@@ -135,7 +135,7 @@ paths:
 
           * Context: `{"owner:" "john@doe.com"}`
       tags:
-        - "oauth2"
+        - "OAuth2"
       operationId: "Create a New OAuth2 Client"
       produces:
         - "application/json"
@@ -208,7 +208,7 @@ paths:
 
           * Context: `{"owner:" "john@doe.com"}`
       tags:
-        - "oauth2"
+        - "OAuth2"
       operationId: "Get an OAuth2 Client"
       produces:
         - "application/json"
@@ -293,7 +293,7 @@ paths:
 
           * Context: `{"owner:" "john@doe.com"}`
       tags:
-        - "oauth2"
+        - "OAuth2"
       operationId: "Delete an OAuth2 Client"
       produces:
         - "application/json"
@@ -342,7 +342,7 @@ paths:
 
           * Context: *not supported*
       tags:
-        - "jwk"
+        - "JSON Web Keys JWK"
       operationId: "Get a JSON Web Key Set"
       produces:
         - "application/json"
@@ -376,7 +376,7 @@ paths:
 
           * Context: *not supported*
       tags:
-        - "jwk"
+        - "JSON Web Keys JWK"
       operationId: "Upload a JSON Web Key Set"
       produces:
         - "application/json"
@@ -414,7 +414,7 @@ paths:
 
           * Context: *not supported*
       tags:
-        - "jwk"
+        - "JSON Web Keys JWK"
       operationId: "Generate a new JSON Web Key Set"
       produces:
         - "application/json"
@@ -448,7 +448,7 @@ paths:
 
           * Context: *not supported*
       tags:
-        - "jwk"
+        - "JSON Web Keys JWK"
       operationId: "Delete a JSON Web Key Set"
       produces:
         - "application/json"
@@ -475,8 +475,8 @@ paths:
 
           * Context: *not supported*
       tags:
-        - "jwk"
-      operationId: "GetJWK"
+        - "JSON Web Keys JWK"
+      operationId: "Get a JSON Web Key"
       produces:
         - "application/json"
       parameters:
@@ -509,7 +509,7 @@ paths:
 
           * Context: *not supported*
       tags:
-        - "jwk"
+        - "JSON Web Keys JWK"
       operationId: "Set a JSON Web Key"
       produces:
         - "application/json"
@@ -543,7 +543,7 @@ paths:
 
           * Context: *not supported*
       tags:
-        - "jwk"
+        - "JSON Web Keys JWK"
       operationId: "Delete a JSON Web Key"
       produces:
         - "application/json"
@@ -682,8 +682,8 @@ paths:
 
           * Context: *not supported*
       tags:
-        - "warden"
-      operationId: "IsAllowed"
+        - "Warden: Access Control"
+      operationId: "Check if the subject of a token is allowed to do something"
       produces:
         - "application/json"
       parameters:
@@ -692,12 +692,12 @@ paths:
           in: "body"
           required: true
           schema:
-            $ref: "#/definitions/WardenIsAllowedRequest"
+            $ref: "#/definitions/CheckIfTheSubjectOfATokenIsAllowedToDoSomethingRequest"
       responses:
         200:
           description: "OK"
           schema:
-            $ref: "#/definitions/WardenIsAllowedResponse"
+            $ref: "#/definitions/CheckIfTheSubjectOfATokenIsAllowedToDoSomethingResponse"
         401:
           description: "Unauthorized"
         403:
@@ -715,7 +715,7 @@ paths:
 
           * Context: *not supported*
       tags:
-        - "warden"
+        - "Warden: Access Control"
       operationId: "Check if a subject is allowed to do something"
       produces:
         - "application/json"
@@ -971,7 +971,7 @@ definitions:
         type: "string"
     required:
       - "alg"
-  WardenIsAllowedRequest:
+  CheckIfTheSubjectOfATokenIsAllowedToDoSomethingRequest:
     title: "Check if the subject of a token is allowed to do something request"
     type: "object"
     properties:
@@ -993,7 +993,7 @@ definitions:
       - "resource"
       - "action"
       - "context"
-  WardenIsAllowedResponse:
+  CheckIfTheSubjectOfATokenIsAllowedToDoSomethingResponse:
     title: "Check if the subject of a token is allowed to do something Response"
     type: "object"
     properties:

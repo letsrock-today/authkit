@@ -1,46 +1,16 @@
 #!/bin/bash
 
-# This script updates Hydra API spec from apiary, converts it to yaml
-# and deletes all unnecessary definitions.
-#
-# You need an account at https://apimatic.io/transformer,
-# you'll be asked with login/password
+# This script updates Hydra API spec from github
+# and patches it to generate less ugly package and method names.
 
-read -p "Username (for apimatic API): " APIUSER
-read -p "Password (for apimatic API): " APIPASS
+APISRC='https://gist.githubusercontent.com/nikolay-turpitko/472213904f324ef89cb27a9225adb142/raw/20a9f13bb8722599c602879ae921e0dc8506f7b5/hydra.yaml'
 
-# Download spec from apiary,
-# fix backslash usage,
-# convert to swagger 2.0 yaml with apimatic,
-# remove windows '\r'.
-wget -O - http://docs.hdyra.apiary.io/api-description-document | \
-    sed -e 's/\\_/_/g' | \
-    curl -u "$APIUSER:$APIPASS" -F "file=@-" https://apimatic.io/api/transform?format=swaggeryaml | \
-    tr -d '\r' > hydra.orig.yaml
+# Download spec.
+echo "Download apib spec..."
+wget -O hydra.yaml "$APISRC"
 
-# Fix validation issues. Similar to following sed rules:
-#    sed \
-#        -e 's/^swagger:\s*2\.0$/swagger: "2.0"/g' \
-#        -e 's/^  version:\s*1.0$/  version: "1.0"/' \
-#        -e 's/^          description: $/          description: "-"/' \
-#        -e '/  SsoConnectionBase:/,/  Oauth2ClientBase:/ {/  Oauth2ClientBase:/ !{d}}'
-patch -i hydra.fix.patch  -o hydra.fixed.yaml hydra.orig.yaml
+# Fix spec.
+patch -i hydra.authkit.patch -o hydra.authkit.yaml hydra.yaml
 
-# Fix inconsestience between spec and  actual API implementation.
-patch -i hydra.patch  -o hydra.yaml hydra.fixed.yaml
-
-# Customize API spec for authkit. Similar to following sed rules (but more than that):
-#    sed \
-#        -e "s/  description: 'TODO: Add a description'/  description: Hydra API (as used in Authkit)/" \
-#        -e 's/^host: .*$/host: "localhost:4444"/' \
-#        -e 's/^- http$/- https/' \
-#        -e '\|  /oauth2/auth:|,\|  /keys/{set}/{kid}:| {\|  /keys/{set}/{kid}:| !{d}}' \
-#        -e '/    put:/,\|  /warden/token/allowed:| {\|  /warden/token/allowed:| !{d}}' \
-#        -e '\|  /warden/allowed:|,/definitions:/ {/definitions:/ !{d}}' \
-#        -e '/  PolicyBase:/,/  JsonWebKeySet:/ {/  JsonWebKeySet:/ !{d}}' \
-#        -e '/  Oauth2ClientBase:/,/  CheckIfTheSubjectOfATokenIsAllowedToDoSomethingRequest:/ {/  CheckIfTheSubjectOfATokenIsAllowedToDoSomethingRequest:/ !{d}}' \
-#        -e '/  CheckIfASubjectIsAllowedToDoSomethingRequest:/,$ d'
-patch -i hydra.authkit.patch  -o hydra.authkit.yaml hydra.yaml
-
-# Remove intermediate files.
-rm hydra.orig.yaml hydra.fixed.yaml hydra.yaml
+# Remove intermediate file.
+#rm hydra.yaml
