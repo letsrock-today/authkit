@@ -818,6 +818,11 @@ definitions:
         type: "string"
     required:
       - kty
+    x-go-type:
+      import:
+        package: "github.com/letsrock-today/authkit/authkit/hydra/jwk"
+        alias: "jwk"
+      type: "Key"
   Oauth2ClientBase:
     title: "OAuth2 Client Base"
     type: "object"

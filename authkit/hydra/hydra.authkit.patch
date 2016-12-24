@@ -1,5 +1,5 @@
---- hydra.yaml	2016-12-13 15:17:21.000000000 +0700
-+++ hydra.authkit.yaml	2016-12-13 22:19:24.955592213 +0700
+--- hydra.yaml	2016-12-13 22:45:56.554647820 +0700
++++ hydra.authkit.yaml	2016-12-23 18:36:05.003874114 +0700
 @@ -33,7 +33,7 @@
            This section is missing documentation, please check the IETF
            specification.
@@ -163,7 +163,19 @@
        operationId: "Check if a subject is allowed to do something"
        produces:
          - "application/json"
-@@ -971,7 +971,7 @@
+@@ -818,6 +818,11 @@
+         type: "string"
+     required:
+       - kty
++    x-go-type:
++      import:
++        package: "github.com/letsrock-today/authkit/authkit/hydra/jwk"
++        alias: "jwk"
++      type: "Key"
+   Oauth2ClientBase:
+     title: "OAuth2 Client Base"
+     type: "object"
+@@ -971,7 +976,7 @@
          type: "string"
      required:
        - "alg"
@@ -172,7 +184,7 @@
      title: "Check if the subject of a token is allowed to do something request"
      type: "object"
      properties:
-@@ -993,7 +993,7 @@
+@@ -993,7 +998,7 @@
        - "resource"
        - "action"
        - "context"
@@ -181,3 +193,10 @@
      title: "Check if the subject of a token is allowed to do something Response"
      type: "object"
      properties:
+@@ -1048,4 +1053,4 @@
+       allowed:
+         type: "boolean"
+     required:
+-      - "allowed"
+\ No newline at end of file
++      - "allowed"

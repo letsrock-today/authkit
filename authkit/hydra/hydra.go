@@ -14,7 +14,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
-	"github.com/mendsley/gojwk"
 	"github.com/pkg/errors"
 
 	"github.com/letsrock-today/authkit/authkit"
@@ -351,21 +350,7 @@ func (h hydra) getKey(set, kid string) (interface{}, error) {
 		err := fmt.Errorf("no keys from Hydra returned")
 		return nil, errors.WithStack(err)
 	}
-	key0 := keys[0]
-	key := gojwk.Key{
-		//TODO: copy Keys field, if necessary, it needs type convertion of items.
-		Kty: *key0.Kty,
-		Use: key0.Use,
-		Kid: key0.Kid,
-		Alg: key0.Alg,
-		Crv: key0.Crv,
-		X:   key0.X,
-		Y:   key0.Y,
-		D:   key0.D,
-		N:   key0.N,
-		E:   key0.E,
-		K:   key0.K,
-	}
+	key := keys[0]
 	var k interface{}
 	switch kid {
 	default:
