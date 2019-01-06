@@ -10,7 +10,11 @@ TL;DR: may be you will be happy with one of following:
 - https://github.com/markbates/goth
 - https://github.com/ory-am/hydra
 
-__Status__: unstable, experimental, probably unsecure.
+__Status__: **abandoned**, unstable, experimental, probably unsecure.
+
+Please note, that we currently do not have time to invest in this project. We
+leave it here as an example of Hydra API usage in case we ever return to it.
+Things may be outdated or broken.
 
 "authkit" is a set of reusable peaces of code (HTTP handlers, middleware, helpers
 and other primitives), mostly on Go programming language, useful to implement
