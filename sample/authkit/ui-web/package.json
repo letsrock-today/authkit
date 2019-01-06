@@ -10,17 +10,17 @@
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.5",
     "babel-preset-es2015-riot": "^1.1.0",
-    "css-loader": "^0.24.0",
     "cookie": "^0.3.1",
-    "riot": "2.6.1",
+    "css-loader": "^0.24.0",
+    "es6-promise": "^4.0.5",
+    "file-loader": "^0.9.0",
+    "jwt-decode": "^2.1.0",
+    "riot": "^3.13.12",
     "riotjs-loader": "^3.0.0",
     "style-loader": "^0.13.1",
+    "url-loader": "^1.1.2",
     "webpack": "^1.13.2",
-    "webpack-dev-server": "^1.15.0",
-    "url-loader": "^0.5.7",
-    "file-loader": "^0.9.0",
-    "whatwg-fetch": "^1.0.0",
-    "jwt-decode": "^2.1.0",
-    "es6-promise": "^4.0.5"
+    "webpack-dev-server": "^3.1.14",
+    "whatwg-fetch": "^1.0.0"
   }
 }
